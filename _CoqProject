@@ -1,0 +1,27 @@
+-R . "FLL"
+# Miscellaneous and Utilitities
+Misc/Utils.v
+Misc/Hybrid.v
+Misc/Permutations.v
+
+# Specification Logic
+# First-order classical linear logic
+SL/Syntax.v
+SL/Sequent.v
+SL/StructuralRules.v
+SL/FLLTactics.v
+SL/InvNegativePhase.v
+SL/InvPositivePhase.v
+SL/CutElimination.v
+SL/IdElimination.v
+SL/Examples.v
+#
+## Object Logics and cut-elimination theorem for them
+OL/OLSyntax.v
+OL/OLDefinitions.v
+OL/OLCutElimTheorem.v
+OL/OLExampleLJ.v
+OL/OLExampleLK.v
+OL/OLExampleLM.v
+OL/OLExampleMALL.v
+OL/OLExampleNDSeq.v
