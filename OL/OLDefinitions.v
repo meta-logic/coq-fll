@@ -1151,3 +1151,265 @@ Ltac WFSolver :=
             |[ H: isOLConstant (t_bin _ _ _)|-_] => inversion H  end);
         constructor ; solveF
       end);auto.
+
+(** In this section we define several useful instances of the above
+bipole definitions. These instances are common place in different
+encodings of OLs as LL theories, thus facilitating the proof
+obligations showing that the rules adhere to the bipole requirements. *)
+
+Section BipoleInstance.
+  Context `{OL: OLSyntax}.
+  Variable Theory : oo -> Prop.
+  Variable Gamma Delta : list oo .
+  Variable BC : connectives.
+  Variable Fo Go : uexp .
+  
+
+  (** Conjunction right as tensor *)
+  Definition ANDR_TENSOR_RULE := (atom (up Fo) ** atom (up Go)).
+  Definition ANDR_TENSOR_HEAD := perp (up (t_bin BC Fo Go)).
+
+  Hint Unfold ANDR_TENSOR_RULE ANDR_TENSOR_HEAD : core .
+
+  Theorem ANDR_Tensor : GenericBiPole2PM Theory Gamma Delta (t_bin BC Fo Go)
+                                         (ANDR_TENSOR_HEAD **  ANDR_TENSOR_RULE) ANDR_TENSOR_RULE up.
+  Proof with WFSolver.
+    intros n HSeq HIs...
+    InvTriAll...
+    ++ exists M0.  exists N0.
+       exists [atom (up' Fo)].
+       exists [atom (up' Go)].
+       exists (@nil oo). exists (@nil oo).
+       eexists. exists 4...
+       rewrite H1.
+       left...
+       tensor'...
+       decide3' (perp (up (t_bin BC Fo Go)) ** (atom (up Fo) ** atom (up Go))) ...
+       tensor' [(atom (up (t_bin BC Fo Go)))] (Delta1 ++ Delta2)...
+       tensor'. 
+       
+    ++ exists M0.  exists N0.
+       exists [atom (up' Fo)].
+       exists [atom (up' Go)].
+       exists (@nil oo). exists (@nil oo).
+       eexists. exists 4...
+       rewrite H1.
+       right...
+       tensor'...
+       decide3' (perp (up (t_bin BC Fo Go)) ** (atom (up Fo) ** atom (up Go))) ...
+       tensor' (@nil oo) (Delta1 ++ Delta2)...
+       tensor'...
+  Qed.
+
+  (** Conjunction left as par *)
+
+  Definition ANDL_PAR_RULE := (atom (down Fo) $ atom (down Go)).
+  Definition ANDL_PAR_HEAD := perp (down (t_bin BC Fo Go)).
+
+  Hint Unfold ANDL_PAR_RULE ANDL_PAR_HEAD : core .
+  Theorem ANDL_Par  : GenericBiPole1P Theory Gamma Delta (t_bin BC Fo Go)
+                                      (ANDL_PAR_HEAD **  ANDL_PAR_RULE) ANDL_PAR_RULE down.
+  Proof with WFSolver.
+    intros n HSeq HIs...
+    InvTriAll.
+    
+    ++ exists ([atom (down' Fo)] ++ [atom (down' Go)]).
+       exists (@nil oo).
+       eexists. exists 5...
+       left.  exists N...
+       decide3'  (perp (down (t_bin BC Fo Go)) ** (atom (down Fo) $ atom (down Go))). 
+       tensor' [(atom (down (t_bin BC Fo Go)))] Delta1... 
+    ++  exists ([atom (down' Fo)] ++ [atom (down' Go)]).
+        exists (@nil oo).
+        eexists. exists 5...
+        rewrite H1.
+        right...
+        decide3'  (perp (down (t_bin BC Fo Go)) ** (atom (down Fo) $ atom (down Go))).
+        tensor' (@nil oo) Delta1...
+  Qed.
+
+
+  (** Disjunction left as with *)
+  Definition ORL_WITH_RULE := (atom (down Fo) & atom (down Go)).
+  Definition ORL_WITH_HEAD := perp (down (t_bin BC Fo Go)).
+  
+  
+  Hint Unfold ORL_WITH_RULE ORL_WITH_HEAD : core .
+  Theorem ORL_With : GenericBiPole2PA Theory Gamma Delta (t_bin BC Fo Go)
+                                      (ORL_WITH_HEAD **  ORL_WITH_RULE) ORL_WITH_RULE down.
+  Proof with WFSolver.
+    intros n HSeq HIs...
+    InvTriAll...
+    ++ exists N. 
+       exists [atom (down' Fo)].
+       exists [atom (down' Go)].
+       exists (@nil oo). exists (@nil oo).
+       eexists. exists 4...
+       left...
+       decide3'  (perp (down (t_bin BC Fo Go)) ** (atom (down Fo) & atom (down Go))) ...
+       tensor' [ (atom (down (t_bin BC Fo Go)))] Delta12.
+    ++ exists N. 
+       exists [atom (down' Fo)].
+       exists [atom (down' Go)].
+       exists (@nil oo). exists (@nil oo).
+       eexists. exists 4...
+       right...
+       decide3'  (perp (down (t_bin BC Fo Go)) ** (atom (down Fo) & atom (down Go))) ...
+       tensor' (@nil oo) Delta12.
+  Qed.
+
+  (** Disjunction right as oplus *)
+  Definition ORR_PLUS_RULE := (atom (up Fo) op atom (up Go)).
+  Definition ORR_PLUS_HEAD := perp (up (t_bin BC Fo Go)).
+  
+  Hint Unfold ORR_PLUS_RULE ORR_PLUS_HEAD : core .
+  Theorem ORR_Plus : GenericBiPole1P Theory Gamma Delta (t_bin BC Fo Go)
+                                     (ORR_PLUS_HEAD **  ORR_PLUS_RULE) ORR_PLUS_RULE up.
+  Proof with WFSolver.
+    intros n HSeq HIs...
+    InvTriAll.
+
+    exists  [atom (up' Fo)]. exists (@nil oo).
+    eexists. exists 4...
+    rewrite H1.
+    left.
+    exists N...
+    apply tri_plus1'...
+    decide3'  (perp (up (t_bin BC Fo Go)) ** (atom (up Fo) op atom (up Go))) ...
+    tensor' [ (atom (up (t_bin BC Fo Go)))] Delta1.
+
+    exists  [atom (up' Fo)]. exists (@nil oo).
+    eexists. exists 4...
+    rewrite H1.
+    right...
+    apply tri_plus1'...
+    decide3'  (perp (up (t_bin BC Fo Go)) ** (atom (up Fo) op atom (up Go)))...
+    tensor' (@nil oo) Delta1.
+
+    exists  [atom (up' Go)]. exists (@nil oo).
+    eexists. exists 4...
+    rewrite H1.
+    left.
+    exists N...
+    apply tri_plus2'...
+    decide3'  (perp (up (t_bin BC Fo Go)) ** (atom (up Fo) op atom (up Go)))...
+    tensor' [ (atom (up (t_bin BC Fo Go)))] Delta1.
+
+    exists  [atom (up' Go)]. exists (@nil oo).
+    eexists. exists 4...
+    rewrite H1.
+    right...
+    apply tri_plus2'...
+    decide3'  (perp (up (t_bin BC Fo Go)) ** (atom (up Fo) op atom (up Go)))...
+    tensor' (@nil oo) Delta1.
+  Qed.
+  
+
+  (** Implication right as par *)
+  Definition IMPR_PAR_RULE := (atom (down Fo) $ atom (up Go)).
+  Definition IMPR_PAR_HEAD := perp (up (t_bin BC Fo Go)).
+
+  Hint Unfold IMPR_PAR_RULE IMPR_PAR_HEAD : core .
+  Theorem IMPR_Par  : GenericBiPole1P Theory Gamma Delta (t_bin BC Fo Go)
+                                      (IMPR_PAR_HEAD **  IMPR_PAR_RULE) IMPR_PAR_RULE up.
+  Proof with WFSolver.
+    intros n HSeq HIs...
+    InvTriAll.
+    
+    ++ exists ([atom (down' Fo)] ++ [atom (up' Go)]).
+       exists (@nil oo).
+       eexists. exists 5...
+       left.  exists N...
+       decide3'  (perp (up (t_bin BC Fo Go)) ** (atom (down Fo) $ atom (up Go))).
+       tensor' [(atom (up (t_bin BC Fo Go)))] Delta1... 
+    ++  exists ([atom (down' Fo)] ++ [atom (up' Go)]).
+        exists (@nil oo).
+        eexists. exists 5...
+        rewrite H1.
+        right...
+        decide3'  (perp (up (t_bin BC Fo Go)) ** (atom (down Fo) $ atom (up Go))).
+        tensor' (@nil oo) Delta1...
+  Qed.
+
+  (** Implication left as tensor *)
+  Definition IMPL_TENSOR_RULE := (atom (up Fo) ** atom (down Go)).
+  Definition IMPL_TENSOR_HEAD := perp (down (t_bin BC Fo Go)).
+
+  Hint Unfold IMPL_TENSOR_RULE IMPL_TENSOR_HEAD : core .
+
+  Theorem IMPL_Tensor : GenericBiPole2PM Theory Gamma Delta (t_bin BC Fo Go)
+                                         (IMPL_TENSOR_HEAD **  IMPL_TENSOR_RULE) IMPL_TENSOR_RULE down.
+  Proof with WFSolver.
+    intros n HSeq HIs...
+    InvTriAll...
+    ++ exists M0.  exists N0.
+       exists [atom (up' Fo)].
+       exists [atom (down' Go)].
+       exists (@nil oo). exists (@nil oo).
+       eexists. exists 4...
+       rewrite H1.
+       left...
+       tensor'...
+       decide3' (perp (down (t_bin BC Fo Go)) ** (atom (up Fo) ** atom (down Go))).
+       tensor' [(atom (down (t_bin BC Fo Go)))] (Delta1 ++ Delta2)...
+       tensor'. 
+       
+    ++ exists M0.  exists N0.
+       exists [atom (up' Fo)].
+       exists [atom (down' Go)].
+       exists (@nil oo). exists (@nil oo).
+       eexists. exists 4...
+       rewrite H1.
+       right...
+       tensor'...
+       decide3' (perp (down (t_bin BC Fo Go)) ** (atom (up Fo) ** atom (down Go))).
+       tensor' (@nil oo) (Delta1 ++ Delta2)...
+       tensor'...
+  Qed.
+
+  (** Right constant  as top *)
+  Variable C : constants. (* A constant t_cons C *)
+
+  Definition TRUER_TOP_RULE := top.
+  Definition TRUER_TOP_HEAD := perp (up (t_cons C)).
+
+  Hint Unfold TRUER_TOP_RULE TRUER_TOP_HEAD : core .
+
+  Theorem TT_Top : GenericBiPoleAxiom Theory Gamma Delta (t_cons C) 
+                                      (TRUER_TOP_HEAD **  TRUER_TOP_RULE) TRUER_TOP_RULE up.
+  Proof with WFSolver.
+    intros n HSeq HIs...
+    InvTriAll.
+    ++ (* linear case *)
+      left; exists N...
+      decide3'  (perp (up (t_cons C)) ** top).
+      tensor'  [(atom (up (t_cons C)))] Delta1...
+    ++ (* classical case *)
+      right... 
+      decide3'  (perp (up (t_cons C)) ** top).
+      tensor'  (@nil oo) Delta1...
+  Qed.
+
+  (** Left constant as top *)
+  Definition FALSEL_TOP_RULE := top.
+  Definition FALSEL_TOP_HEAD := perp (down (t_cons C)).
+
+  Hint Unfold FALSEL_TOP_RULE FALSEL_TOP_HEAD : core .
+
+  Theorem FF_Top : GenericBiPoleAxiom Theory Gamma Delta (t_cons C) 
+                                      (FALSEL_TOP_HEAD **  FALSEL_TOP_RULE) FALSEL_TOP_RULE down.
+  Proof with WFSolver.
+    intros n HSeq HIs...
+    InvTriAll.
+    ++ (* linear case *)
+      left; exists N...
+      decide3'  (perp (down (t_cons C)) ** top).
+      tensor'  [(atom (down (t_cons C)))] Delta1...
+    ++ (* classical case *)
+      right... 
+      decide3'  (perp (down (t_cons C)) ** top).
+      tensor'  (@nil oo) Delta1...
+  Qed.
+End BipoleInstance.
+
+

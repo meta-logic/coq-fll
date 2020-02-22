@@ -2003,7 +2003,7 @@ decomposition (telling how to rebuild the proof from the presmies. *)
         SolveOnePremise.
     }
     
-  Qed.
+  Qed. 
 
   (** A particular instance of the previous theorem for constants *)
   Theorem OLCutElimStepCte :
