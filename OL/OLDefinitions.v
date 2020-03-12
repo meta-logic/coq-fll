@@ -986,11 +986,13 @@ Section Bipoles.
   (** A theory with only with the object logic rules *)
   Inductive OLTheory   : oo -> Prop :=
   | ooth_rules : forall OO, buildTheory OO ->  OLTheory OO
+  | ooth_init : forall OO, isOLFormula OO -> OLTheory (RINIT OO) 
   .
 
   (** A theory including cuts of size [n] *)
   Inductive OLTheoryCut (n:nat) : oo -> Prop :=
   | oothc_theory : forall OO, buildTheory OO ->  OLTheoryCut n OO
+  | oothc_init : forall OO, isOLFormula OO -> OLTheoryCut n (RINIT OO) 
   | oothc_cutn : forall OO, CutRuleN n OO -> OLTheoryCut n OO
   .
   
@@ -1086,8 +1088,8 @@ Section Bipoles.
 
   
   Lemma TheoryEmb1 : forall n F  , OLTheory F -> (OLTheoryCut n) F.
-    intros. 
-    inversion H;subst;constructor;auto.
+    intros.
+    inversion H;subst; solve[constructor;auto].
   Qed.
 
   

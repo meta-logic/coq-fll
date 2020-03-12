@@ -293,7 +293,7 @@ Section FLLBasicTheory.
   (** Some simple invertibility lemmas *)
   Section Invertibility.
     Variable theory : oo -> Prop. (* Theory Definition *)
-    
+
     Theorem FocusAtomN: forall n Gamma Delta A,
         (seqN theory n Gamma Delta (>> ((perp A ) ))) ->
         Delta = [ (atom A)] \/ (Delta = [] /\ In (atom A ) Gamma) . 

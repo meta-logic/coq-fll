@@ -123,31 +123,16 @@ Section CutElimination .
     intros.
     destruct OLIsFormula as [HC [HU [HB HQ]]];autounfold in *.
     inversion H;subst.
-    inversion H0;subst;autounfold.
-    
-    constructor;auto. apply HC.
-    constructor;auto. apply HC.
-    constructor;auto. apply HU.
-    constructor;auto. apply HU.
-    constructor;auto. apply HB.
-    constructor;auto. apply HB.
-    constructor;auto. apply HQ.
-    constructor;auto. apply HQ.
+    inversion H0;subst;autounfold;constructor;auto;firstorder.
+    constructor;auto.
   Qed.
 
   Theorem OLTheoryCutWellFormed : forall F n,  (OLTheoryCut n) F -> isFormula F.
-    intros.
+    intros. 
     destruct OLIsFormula as [HC [HU [HB HQ]]];autounfold in *.
     inversion H;subst.
-    inversion H0;subst;autounfold.
-    constructor;auto. apply HC.
-    constructor;auto. apply HC.
-    constructor;auto. apply HU.
-    constructor;auto. apply HU.
-    constructor;auto. apply HB.
-    constructor;auto. apply HB.
-    constructor;auto. apply HQ.
-    constructor;auto. apply HQ.
+    inversion H0;subst;autounfold;constructor;auto;firstorder.
+    constructor;auto.
     inversion H0;subst.
     unfold RCUT.
     constructor;auto.
@@ -157,31 +142,16 @@ Section CutElimination .
     intros.
     destruct OLIsFormulaD as [HC [HU [HB HQ]]];autounfold in *.
     inversion H;subst.
-    inversion H0;subst;autounfold.
-    
-    constructor;auto. apply HC.
-    constructor;auto. apply HC.
-    constructor;auto. apply HU.
-    constructor;auto. apply HU.
-    constructor;auto. apply HB.
-    constructor;auto. apply HB.
-    constructor;auto. apply HQ.
-    constructor;auto. apply HQ.
+    inversion H0;subst;autounfold;simpl;constructor;auto;firstorder.
+    constructor;auto.
   Qed.
 
   Theorem OLTheoryCutWellFormedD : forall F n,  (OLTheoryCut n) F -> isFormula (F^).
     intros.
     destruct OLIsFormulaD as [HC [HU [HB HQ]]];autounfold in *.
     inversion H;subst.
-    inversion H0;subst;autounfold.
-    constructor;auto. apply HC.
-    constructor;auto. apply HC.
-    constructor;auto. apply HU.
-    constructor;auto. apply HU.
-    constructor;auto. apply HB.
-    constructor;auto. apply HB.
-    constructor;auto. apply HQ.
-    constructor;auto. apply HQ.
+    inversion H0;subst;autounfold;simpl;constructor;auto;firstorder.
+    simpl;auto.
     inversion H0;subst.
     unfold RCUT;simpl.
     constructor;auto.
@@ -775,7 +745,7 @@ decomposition (telling how to rebuild the proof from the presmies. *)
     ].
 
 
-   (** Similar to [SolveUnary] for quantifiers *)
+  (** Similar to [SolveUnary] for quantifiers *)
   Ltac SolveQuantifier :=
     match goal with
       [ HSeq : seqN _ _ _ (atom (up _) :: _) (>> makeLRuleQ _ _ ) |- _ ] => wellFormedQ HSeq
@@ -1264,7 +1234,6 @@ decomposition (telling how to rebuild the proof from the presmies. *)
     SolveQuantifier.
   Qed.
 
-
   (** Solve all the trivial cases when the current atom cannot be
   principal *)
   Ltac SolveAll :=
@@ -1278,6 +1247,74 @@ decomposition (telling how to rebuild the proof from the presmies. *)
     | [ HSeq :  seqN _ _ _ (atom (up _) :: _) (>> makeLRuleUnary _ _) |- _ ] => eapply LeftUnaryUp in HSeq; eauto
     | [ HSeq :  seqN _ _ _ (atom (up _) :: _) (>> makeLRuleBin _ _ _) |- _ ] => eapply LeftBinUp in HSeq; eauto
     end.
+
+  Theorem PosAtomFocus' : forall  Gamma Th N X, (seq Th Gamma N (>> atom X)) ->
+                                             (seq Th Gamma (atom X :: N) (> [])) .
+    intros.
+    InvTriAll'.
+    rewrite Permutation_app_comm in H6;auto.
+  Qed.
+
+  Theorem PosAtomFocus : forall Gamma Th N X h, (seqN Th h Gamma N (>> atom X)) ->
+                                                (seq Th Gamma (atom X :: N) (> [])) .
+    intros.
+    apply seqNtoSeq in H.
+    eapply PosAtomFocus';auto.
+  Qed.
+
+  (** Non Principal cases when the INIT rule is applied in one premise
+  and some sequent rule in the other premise *)
+  Theorem InitOtherRuleUp  n0 n1 n FCut M N Gamma F FInit:
+    (seqN OLTheory n0 Gamma (atom (up FCut) :: N) (>> F)) ->
+    isOLFormula FCut ->
+    IsPositiveAtomFormulaL M ->
+    IsPositiveAtomFormulaL N ->
+    IsPositiveAtomFormulaL Gamma -> 
+    (seqN OLTheory (S (S (S n1))) Gamma M (>> atom (down FCut))) ->
+    (seqN OLTheory (S (S (S n0))) Gamma N (>> atom (up FCut))) ->
+    (seqN OLTheory n1 Gamma (atom (down FCut) :: M) (>> RINIT FInit)) ->
+    (isOLFormula FInit) -> 
+    seq (OLTheoryCut (pred n)) Gamma (M ++ N) (> []) .
+  Proof with CutTac.
+    intros.
+    apply Init_inversion2 with (M0:=M) in H6...
+    destruct H8...
+    apply PosAtomFocus in H5; apply WeakTheory with (theory := OLTheory);eauto using TheoryEmb1.
+    invTri H5.
+    apply seqNtoSeq in H13.
+    apply AbsorptionClassic in H13...
+    apply WeakTheory with (theory := OLTheory);eauto using TheoryEmb1.
+    apply IsPositiveAtomNotAsync...
+  Qed.
+  
+  Theorem InitOtherRuleDown n0 n1 n FCut M N Gamma F FInit:
+    (seqN OLTheory n0 Gamma (atom (up FCut) :: N) (>> F)) ->
+    isOLFormula FCut ->
+    IsPositiveAtomFormulaL M ->
+    IsPositiveAtomFormulaL N ->
+    IsPositiveAtomFormulaL Gamma -> 
+    (seqN OLTheory (S (S (S n0))) Gamma N (>> atom (up FCut))) ->
+    (seqN OLTheory (S n1) Gamma (atom (down FCut) :: M) (> [])) ->
+    (seqN OLTheory n0 Gamma (atom (up FCut) :: N) (>> RINIT FInit)) ->
+    (isOLFormula FInit) -> 
+    seq (OLTheoryCut (pred n)) Gamma (M ++ N) (> []) .
+  Proof with CutTac.
+    intros.
+    apply Init_inversion1 with (M0:=M) in H6...
+    destruct H8...
+    apply PosAtomFocus in H4; apply WeakTheory with (theory := OLTheory);eauto using TheoryEmb1.
+    apply seqNtoSeq in H5.
+    rewrite Permutation_app_comm...
+    
+    assert (seq OLTheory Gamma M (> [atom (down FInit)]))...
+    solveLL'.
+    apply seqNtoSeq in H5.
+    rewrite Permutation_app_comm...
+    apply AbsorptionClassic in H6...
+    rewrite app_nil_r.
+    apply WeakTheory with (theory := OLTheory);eauto using TheoryEmb1.
+    apply IsPositiveAtomNotAsync...
+  Qed.
 
 
   
@@ -1319,9 +1356,9 @@ decomposition (telling how to rebuild the proof from the presmies. *)
     
     (* Now we proceed by cases on the last rule applied on both
     derivations Hseq1'' and Hseq2'' *)
-    inversion H0;inversion H2...
+    inversion H0 ;inversion H2...
     
-    inversion H4;CutTac;inversion H6;CutTac;try SolveAll.
+    inversion H4;CutTac ;inversion H6;CutTac;try SolveAll.
 
     (* The remaining 16 cases are possible principal cases: focus on a
     RightFormula and the atom is of the form (up FCut *)
@@ -1346,7 +1383,7 @@ decomposition (telling how to rebuild the proof from the presmies. *)
           CaseIn H11.
           (* principal case*)
           SolvePrincipalCaseCte.
-            
+          
           SolveOnePremise.
           SolveOnePremise.
         }
@@ -1398,7 +1435,7 @@ decomposition (telling how to rebuild the proof from the presmies. *)
 
         destruct H18;CleanContext;[ | SolveOnePremise].
         UpDownMismatch;
-        SolveOnePremise.
+          SolveOnePremise.
       }  
       CaseIn H15; SolveTwoPremises.
       CaseIn H11; SolveTwoPremises.
@@ -1479,7 +1516,7 @@ decomposition (telling how to rebuild the proof from the presmies. *)
         wellConstant Hseq1''.
         destruct H12;CleanContext.
         UpDownMismatch;
-        rewrite H12. rewrite Permutation_app_comm;simpl. apply H15...
+          rewrite H12. rewrite Permutation_app_comm;simpl. apply H15...
         apply H15...
 
         destruct H15;CleanContext.
@@ -1643,7 +1680,7 @@ decomposition (telling how to rebuild the proof from the presmies. *)
           SolveCaseTwoPremisesCut H24 Hseq1 H H27 H23 n.
           destruct H20;CleanContext.
           CaseIn H20.
-         (* principal case *)
+          (* principal case *)
           SolvePrincipalCaseU. 
           
           SolveTwoPremisesAddLinear.
@@ -1986,7 +2023,7 @@ decomposition (telling how to rebuild the proof from the presmies. *)
           CaseIn H18;[|SolveOnePremise].
           (* principal case *)
           SolvePrincipalCaseBin.
-            
+          
           SolveOnePremise.
 
           destruct H20;CleanContext.
@@ -2021,7 +2058,7 @@ decomposition (telling how to rebuild the proof from the presmies. *)
       { wellFormedQ Hseq2'';bipoleQ.
         destruct H15;CleanContext.
         UpDownMismatch;
-        SolveOnePremise.
+          SolveOnePremise.
         SolveOnePremise.
       }
       SolveOnePremise.
@@ -2032,7 +2069,7 @@ decomposition (telling how to rebuild the proof from the presmies. *)
         wellFormedQ Hseq2'';bipoleQ.
         destruct H18;CleanContext.
         UpDownMismatch;
-        SolveOnePremise.
+          SolveOnePremise.
         SolveOnePremise.
       }
       CaseIn H15; SolveTwoPremises.
@@ -2044,7 +2081,7 @@ decomposition (telling how to rebuild the proof from the presmies. *)
         wellFormedQ Hseq2'';bipoleQ.
         destruct H18;CleanContext.
         UpDownMismatch;
-        SolveOnePremise.
+          SolveOnePremise.
         SolveOnePremise.
       }
       SolveTwoPremisesAddLinear'.
@@ -2077,7 +2114,7 @@ decomposition (telling how to rebuild the proof from the presmies. *)
       { wellFormedQ Hseq1'';bipoleQ.
         destruct H15;CleanContext.
         UpDownMismatch;
-        SolveOnePremise.
+          SolveOnePremise.
         SolveOnePremise.
       }
       SolveOnePremise.
@@ -2088,7 +2125,7 @@ decomposition (telling how to rebuild the proof from the presmies. *)
         wellFormedQ Hseq1'';bipoleQ.
         destruct H18;CleanContext.
         UpDownMismatch;
-        SolveOnePremise.
+          SolveOnePremise.
         SolveOnePremise.
       }
       CaseIn H15; SolveTwoPremises.
@@ -2115,7 +2152,7 @@ decomposition (telling how to rebuild the proof from the presmies. *)
       { wellFormedQ Hseq1'';bipoleQ.
         destruct H15;CleanContext.
         UpDownMismatch;
-        SolveOnePremise.
+          SolveOnePremise.
         SolveOnePremise.
       }
       SolveOnePremise.
@@ -2174,6 +2211,32 @@ decomposition (telling how to rebuild the proof from the presmies. *)
         SolveOnePremise.
         (* classical case *)
         SolveOnePremise.
+    }
+    { (* INIT and another rule *)
+      eapply InitOtherRuleUp;eauto.
+      
+    }
+    { (* INIT and another rule *)
+      eapply InitOtherRuleDown;eauto.
+    } 
+    { (* INIT INIT *)
+      
+      apply Init_inversion1 with (M0 := N) in Hseq1''...
+      apply Init_inversion2 with (M0 := M) in Hseq2''...
+      clear H.
+      destruct H7;destruct H8...
+
+      decide3' (RINIT OO0)...
+      tensor' [atom (up OO0) ][ atom (down OO0)].
+
+      decide3' (RINIT OO0)...
+      tensor' (@nil oo) [ atom (down OO0)].
+
+      decide3' (RINIT OO0)...
+      tensor' [atom (up OO0) ] (@nil oo).
+
+      decide3' (RINIT OO0)...
+      tensor' (@nil oo) (@nil oo).
     }
   Qed. 
 
@@ -2321,10 +2384,21 @@ decomposition (telling how to rebuild the proof from the presmies. *)
       destruct H9;CleanContext.
       apply H in H11... FindSolution H11.
       apply H in H11...
-    + (* The principal case *)
+    + (* init case *)
+      clear H IHn H2.
+      apply seqNtoSeq in H6.
+      unfold RINIT in H6.
+      InvTriAll'.
+
+      rewrite H7. decide3' (RINIT OO). tensor'  [atom (up OO) ] [atom (down OO)].
+      rewrite H7. decide3' (RINIT OO). tensor'  (@nil oo) [atom (down OO)].
+      rewrite H7. decide3' (RINIT OO). tensor'  [atom (up OO) ] (@nil oo).
+      rewrite H7. decide3' (RINIT OO). tensor'  (@nil oo) (@nil oo) .
+      
+    +  (* The principal case *)
       inversion H3...
       CleanContext.
-
+      
       InvTriAll;CleanContext.
       apply H in H19...
       apply H in H20...
