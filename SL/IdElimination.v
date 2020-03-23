@@ -14,7 +14,7 @@ Set Implicit Arguments.
 
 Section FLLTheory.
   Context `{OLS: OLSig}.
-  Hint Constructors isFormula  remove seqN IsPositiveAtom : core .
+  Hint Constructors isFormula  Remove seqN IsPositiveAtom : core .
 
   Section FLLTheory.
     Variable theory : oo -> Prop .

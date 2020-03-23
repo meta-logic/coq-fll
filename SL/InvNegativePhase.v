@@ -19,7 +19,7 @@ Hint Unfold isFormulaL : core.
 
 Section InvNPhase .
   Context `{OLS: OLSig}.
-  Hint Constructors isFormula  remove seqN IsPositiveAtom : core .
+  Hint Constructors isFormula  Remove seqN IsPositiveAtom : core .
 
   Variable theory : oo -> Prop .
   Notation " n '|---' B ';' L ';' X " := (seqN theory n B L X) (at level 80).

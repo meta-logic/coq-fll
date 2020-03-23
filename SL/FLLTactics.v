@@ -22,7 +22,7 @@ Set Implicit Arguments.
 Remove Hints Equivalence.pointwise_equivalence : typeclass_instances.
 Existing Instance Equivalence.pointwise_equivalence | 11.
 
-Hint Constructors isFormula remove seqN IsPositiveAtom : core .
+Hint Constructors isFormula Remove seqN IsPositiveAtom : core .
 
 (** This tactic solves most of the irrelevant goals in a focused
   proof (e.g., proving whether a formula is positive or not) *)
@@ -40,11 +40,11 @@ Ltac solveF :=
     | [|-~ IsPositiveAtom _ ] => intro H; inversion H;auto
     | [|- IsPositiveAtom _ ] => repeat constructor
     | [|- release _] => constructor
-    | [|- remove _ _ _] => constructor
+    | [|- Remove _ _ _] => constructor
     | [H: Permutation [?F] _ |- _] => apply Permutation_unq in H;subst
     | [H: In _ [] |- _ ] => inversion H
     | [|- asynchronous _] => constructor
-    | [H: remove _ [?F] ?L |- _] =>  apply RemoveUnique in H;subst
+    | [H: Remove _ [?F] ?L |- _] =>  apply RemoveUnique in H;subst
     | [H: release ?F  |- _] =>
       let H' := fresh "H" in
       match F with

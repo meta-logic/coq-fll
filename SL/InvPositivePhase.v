@@ -646,9 +646,9 @@ proper t -> *)
     Qed.
 
     Lemma Remove_app_in' :
-      forall (F:oo) (L: list oo), remove F (L ++ [F]) (L).
+      forall (F:oo) (L: list oo), Remove F (L ++ [F]) (L).
       intros.
-      assert(remove (F) (L ++ [F]) (L++[])).
+      assert(Remove (F) (L ++ [F]) (L++[])).
       eapply Remove_app_in with (F:=F) (L1:=L) (L2:=nil).
       rewrite app_nil_r in H.
       assumption.
@@ -1922,7 +1922,7 @@ proper t -> *)
           do 3 destruct H2.
           do 3 destruct H5.
 
-          assert(remove F1 (F1 :: x0) x0)...
+          assert(Remove F1 (F1 :: x0) x0)...
           eapply Remove_Permutation_Ex2 with (M:=M2) in H13.
           do 2 destruct H13.
 
@@ -1964,7 +1964,7 @@ proper t -> *)
           inversion H5...
           clear H5.
 
-          assert(remove F0 (F0 :: x) x)...
+          assert(Remove F0 (F0 :: x) x)...
           eapply Remove_Permutation_Ex2 with (M:=M1) in H5.
           do 2 destruct H5.
 
@@ -1999,7 +1999,7 @@ proper t -> *)
           inversion H2...
           clear H2.
 
-          assert(remove F1 (F1 :: x0) x0)...
+          assert(Remove F1 (F1 :: x0) x0)...
           eapply Remove_Permutation_Ex2 with (M:=M2) in H2.
           do 2 destruct H2...
 

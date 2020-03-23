@@ -175,17 +175,17 @@ Section CutElimination .
       | [ H : isOLAtom ?A |- Forall IsPositiveAtomFormula [atom (up ?A) ] ]=>
         repeat constructor;inversion H3;auto
       (* the following 3 cases solve the goal when the case of Dec1 appears *)
-      | [  H1 : IsPositiveAtomFormulaL ?L , H2 : ~ IsPositiveAtom ?F , H3 : remove ?F ((_ ++ ?N)) _ |- _ ] =>
+      | [  H1 : IsPositiveAtomFormulaL ?L , H2 : ~ IsPositiveAtom ?F , H3 : Remove ?F ((_ ++ ?N)) _ |- _ ] =>
         apply Remove_In in H3; destruct H3;solveF;
         apply  Forall_forall  with (x:= F) in H1;auto;destruct H1;solveF
-      | [  H1 : IsPositiveAtomFormulaL ?N , H2 : ~ IsPositiveAtom ?F , H3 : remove ?F ?N _ |- _ ] =>
+      | [  H1 : IsPositiveAtomFormulaL ?N , H2 : ~ IsPositiveAtom ?F , H3 : Remove ?F ?N _ |- _ ] =>
         apply Remove_In in H3;apply  Forall_forall  with (x:= F) in H1;auto;destruct H1;solveF
-      | [  H1 : IsPositiveAtomFormulaL ?N , H2 : ~ IsPositiveAtom ?F , H3 : remove ?F (_ :: ?N) _ |- _ ] =>
+      | [  H1 : IsPositiveAtomFormulaL ?N , H2 : ~ IsPositiveAtom ?F , H3 : Remove ?F (_ :: ?N) _ |- _ ] =>
         apply Remove_In in H3;destruct H3;subst;solveF
       | [ HIn :  In ?F ?B , HB : IsPositiveAtomFormulaL ?B , Hneg : ~ IsPositiveAtom ?F |- _]
         => let HB' := fresh in
            apply Forall_forall with (x:= F) in HB as HB';auto;subst;inversion HB';solveF
-      | [ HPos : IsPositiveAtomFormulaL ?N, HRem : remove ?F ([ atom (up ?A)  ] ++ ?N) _, HNeg : ~ IsPositiveAtom ?F |- _] => let H' := fresh "H" in generalize (Remove_In HRem);intro H';inversion H2;subst;solveF;IsPositiveLSolve
+      | [ HPos : IsPositiveAtomFormulaL ?N, HRem : Remove ?F ([ atom (up ?A)  ] ++ ?N) _, HNeg : ~ IsPositiveAtom ?F |- _] => let H' := fresh "H" in generalize (Remove_In HRem);intro H';inversion H2;subst;solveF;IsPositiveLSolve
       | [ H : Permutation  (?F :: ?N) ( (?F :: ?M1) ++ ?M2) |- _ ] =>
         simpl in H; apply Permutation_cons_inv in H
       | [ H :  Permutation (?F :: ?N) (?X ++ ?F :: ?M) |- _ ] =>

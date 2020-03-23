@@ -190,7 +190,7 @@ Section LLSyntax.
   (** Well formendness conditions for lists and arrows *)
   Definition isFormulaL  (L:list oo)  := Forall isFormula L. 
   Definition multiset := list.
-  Hint Constructors remove : core.
+  Hint Constructors Remove : core. 
 
   Lemma isFormulaIn : forall F L, 
       isFormulaL L -> In F L -> isFormula F. 

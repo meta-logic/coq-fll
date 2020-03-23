@@ -253,11 +253,11 @@ Ltac SolveIsFormulas :=
     | [ |- isFormulaL(_ :: _)] => constructor;SolveIsFormulas;auto
     | [ |- isFormulaL (_ ++ _)] => apply ForallApp; SolveIsFormulas
     | [ |- isNotAsyncL (_ ++ _)] => apply ForallApp; SolveIsFormulas
-    | [ Hp : Utils.remove _ _ _  |- isFormulaL _] => apply Remove_Permute in Hp;solveF;
+    | [ Hp : Utils.Remove _ _ _  |- isFormulaL _] => apply Remove_Permute in Hp;solveF;
                                                      apply PermuteMap with (f:= isFormula) in Hp;inversion Hp;solveF
-    | [ Hp : Utils.remove _ _ _  |- isFormula _] => apply Remove_Permute in Hp;solveF;
+    | [ Hp : Utils.Remove _ _ _  |- isFormula _] => apply Remove_Permute in Hp;solveF;
                                                     apply PermuteMap with (f:= isFormula) in Hp;inversion Hp;solveF
-    | [ Hp : Utils.remove _ _ _  |-  isNotAsyncL _] => apply Remove_Permute in Hp;solveF;
+    | [ Hp : Utils.Remove _ _ _  |-  isNotAsyncL _] => apply Remove_Permute in Hp;solveF;
                                                        apply PermuteMap with (f:= Notasynchronous) in Hp;inversion Hp;solveF
     | [ |- isFormula _ ] => constructor;auto
                                           

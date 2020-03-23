@@ -30,13 +30,13 @@ Section MultisetOperations.
   Variable T:Type.
 
   (** removing an element from a list *)
-  Inductive remove :T -> list T -> list T -> Prop :=
-  | remove1: forall t l, remove t (t::l) l
-  | remove2: forall t t' l1 l2,  remove t l1 l2 -> remove t (t'::l1) (t'::l2).
+  Inductive Remove :T -> list T -> list T -> Prop :=
+  | Remove1: forall t l, Remove t (t::l) l
+  | Remove2: forall t t' l1 l2,  Remove t l1 l2 -> Remove t (t'::l1) (t'::l2).
   
 End MultisetOperations.
 
-Hint Constructors remove : core .
+Hint Constructors Remove : core .
 
 (** ** Additional results on lists *)
 Section List.
@@ -221,11 +221,11 @@ Section Permutations.
 
 End Permutations.
 
-(** ** Properties about [remove] *)
+(** ** Properties about [Remove] *)
 Section Remove.
   Variable A:Type.
   Lemma Remove_In  : forall (F: A) (L L' :list A),
-      remove F L L' -> In F L.
+      Remove F L L' -> In F L.
     induction L;intros.
     + inversion H.    
     + inversion H;subst.
@@ -235,7 +235,7 @@ Section Remove.
   Qed.
 
   Lemma In_Remove  : forall (F: A) (L :list A),
-      In F L -> exists L', remove F L L'.
+      In F L -> exists L', Remove F L L'.
     induction L;intros.
     + inversion H. 
     + inversion H;subst.
@@ -248,7 +248,7 @@ Section Remove.
   Qed.
 
   Lemma RemoveUnique : forall (F G:A) L,
-      remove F [G] L -> F = G.
+      Remove F [G] L -> F = G.
     intros.
     apply Remove_In in H.
     inversion H;auto.
@@ -256,24 +256,24 @@ Section Remove.
   Qed.
 
   Lemma Remove_app_head : forall (F:A) L1 L1' L2,
-      remove F L1 L1' -> remove F (L2 ++ L1) (L2 ++ L1').
+      Remove F L1 L1' -> Remove F (L2 ++ L1) (L2 ++ L1').
     induction L2;intros;auto.
     apply IHL2 in H.
     change ((a :: L2) ++ L1) with (a :: (L2 ++ L1)) .
     change ((a :: L2) ++ L1') with (a :: (L2 ++ L1')) .
-    apply remove2;auto.
+    apply Remove2;auto.
   Qed.
 
   Lemma Remove_app_in : forall (F:A) L1 L2,
-      remove F (L1 ++ F :: L2) (L1 ++ L2).
+      Remove F (L1 ++ F :: L2) (L1 ++ L2).
     intros.
     apply Remove_app_head.
     constructor.
   Qed.
 
   Lemma Remove_head: forall (F:A) L1 L,
-      remove F (F :: L1) L ->
-      L = L1 \/ (exists l1, L = F::l1 /\ remove F L1 l1).
+      Remove F (F :: L1) L ->
+      L = L1 \/ (exists l1, L = F::l1 /\ Remove F L1 l1).
     intros.
     inversion H;subst;auto.
     right.
@@ -281,10 +281,10 @@ Section Remove.
   Qed.
 
   Lemma Remove_inv: forall (F:A) a L L1,
-      remove F L (a :: L1) ->
+      Remove F L (a :: L1) ->
       exists b1 b2 L2, L = b1 :: b2 :: L2 /\
                        ( ( b1=F /\ a::L1 = b2::L2) \/
-                         (a=b1 /\ remove F (b2::L2) L1) ) .
+                         (a=b1 /\ Remove F (b2::L2) L1) ) .
   Proof with subst.
     intros.
     revert dependent L1.
@@ -310,9 +310,9 @@ Section Remove.
   Qed.
 
   Lemma Remove_inv_cons: forall (F:A) a L L1,
-      remove F (a::L) L1 ->
+      Remove F (a::L) L1 ->
       (F =a /\ L = L1) \/
-      (exists L1', L1 = a::L1' /\ remove F L L1') .
+      (exists L1', L1 = a::L1' /\ Remove F L L1') .
     intros.
     inversion H;subst.
     + left;auto.
@@ -324,11 +324,11 @@ Section Remove.
 End Remove.
 
 
-(** ** Preperties relating [remove] and [Permutation] *)
+(** ** Preperties relating [Remove] and [Permutation] *)
 Section RemovePermutation.
   Variable A:Type.
   Lemma Remove_Permutation_Ex  : forall (F : A) (L L' M : list A),
-      remove F L L' -> Permutation L M -> exists M', remove F M M'. 
+      Remove F L L' -> Permutation L M -> exists M', Remove F M M'. 
     intros.
     apply Remove_In in H as Hrm.
     destruct L.
@@ -339,7 +339,7 @@ Section RemovePermutation.
   Qed.
 
   Lemma Remove_upto_permute : forall (F:A) L1 L2 L,
-      remove F L L1 -> remove F L L2 ->  Permutation L1 L2.
+      Remove F L L1 -> Remove F L L2 ->  Permutation L1 L2.
   Proof with subst.
     intros.
     revert dependent L1.
@@ -358,7 +358,7 @@ Section RemovePermutation.
          apply Remove_In in H1 as H1'.
          apply in_split in H1'.
          firstorder ...
-         assert (remove a (x1 ++ a :: x2) (x1++x2)) by apply Remove_app_in.
+         assert (Remove a (x1 ++ a :: x2) (x1++x2)) by apply Remove_app_in.
          generalize (IHL x0 H1 (x1++x2) H3);intro.
          assert (Permutation  (a:: x1 ++ x2) (x1 ++a :: x2) ) by  apply Permutation_middle.
          rewrite <- H6.
@@ -374,7 +374,7 @@ Section RemovePermutation.
          apply Remove_In in H1 as H1'.
          apply in_split in H1'.
          firstorder ...
-         assert (remove a (x1 ++ a :: x2) (x1++x2)) by apply Remove_app_in.
+         assert (Remove a (x1 ++ a :: x2) (x1++x2)) by apply Remove_app_in.
          generalize (IHL x0 H1 (x1++x2) H3);intro.
          assert (Permutation  (a:: x1 ++ x2) (x1 ++a :: x2) ) by  apply Permutation_middle.
          rewrite <- H6.
@@ -389,26 +389,26 @@ Section RemovePermutation.
 
 
   Lemma Remove_permute : forall (F:A) L1 L2 L,
-      remove F (L1 ++ F :: L2) L -> Permutation (L1 ++ L2) L.
+      Remove F (L1 ++ F :: L2) L -> Permutation (L1 ++ L2) L.
     intros.
-    assert(remove  F (L1 ++ F :: L2) (L1 ++ L2)) by  apply Remove_app_in.
+    assert(Remove  F (L1 ++ F :: L2) (L1 ++ L2)) by  apply Remove_app_in.
     eapply Remove_upto_permute;eauto.
   Qed.
 
   Lemma Remove_app_tail : forall (F:A) L1 L1' L2,
-      remove F L1 L1' -> remove F (L1++L2) (L1'++L2).
+      Remove F L1 L1' -> Remove F (L1++L2) (L1'++L2).
     intros. induction H.
     *
-      apply remove1.
+      apply Remove1.
     *
       change ((t' :: l1) ++ L2) with (t' ::(l1 ++ L2)).
       change ((t' :: l2) ++ L2) with (t' ::(l2 ++ L2)).
-      apply remove2;auto.
+      apply Remove2;auto.
   Qed.
 
   Lemma Remove_Permutation_Ex2  : forall (F : A) (L L' M : list A),
-      remove F L L' -> Permutation L M ->
-      exists M', remove F M M'  /\ Permutation M' L'.
+      Remove F L L' -> Permutation L M ->
+      exists M', Remove F M M'  /\ Permutation M' L'.
     intros.
     assert(HFL: In F L) by eauto using Remove_In.
     assert(HFM: In F M).
@@ -433,7 +433,7 @@ Section RemovePermutation.
   Qed.
 
   Lemma Remove_Permute : forall (F : A) (L L' M : list A),
-      remove F L L' -> Permutation L (F :: L').
+      Remove F L L' -> Permutation L (F :: L').
     induction L;intros.
     inversion H.
     apply Remove_inv_cons in H.

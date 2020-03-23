@@ -56,7 +56,7 @@ Section LLSequent.
   | tri_store : forall B L M F n,
       ~ asynchronous  F-> n |-F- B ; L ++ [F] ; UP M -> S n |-F- B ; L ; UP (F::M)
   | tri_dec1 : forall B L L' F n,
-      ~IsPositiveAtom F -> remove F L L' -> n |-F- B ; L' ; DW F -> S n |-F- B ; L ; UP []
+      ~IsPositiveAtom F -> Remove F L L' -> n |-F- B ; L' ; DW F -> S n |-F- B ; L ; UP []
   | tri_dec2 : forall B L F n,
       ~IsPositiveAtom F -> In F B -> n |-F- B ; L ; DW F -> S n |-F- B ; L ; UP []
   | tri_dec3 : forall B L F n,
@@ -108,7 +108,7 @@ Section LLSequent.
   | tri_store' : forall B L M F,
       ~ asynchronous  F-> |-f- B ; L ++ [F] ; UP M -> |-f- B ; L ; UP (F::M)
   | tri_dec1' : forall B L L' F,
-      ~IsPositiveAtom F -> remove F L L' -> |-f- B ; L' ; DW F -> |-f- B ; L ; UP []
+      ~IsPositiveAtom F -> Remove F L L' -> |-f- B ; L' ; DW F -> |-f- B ; L ; UP []
   | tri_dec2' : forall B L F,
       ~IsPositiveAtom F -> In F B -> |-f- B ; L ; DW F -> |-f- B ; L ; UP []
   | tri_dec3' : forall B L F,

@@ -23,7 +23,7 @@ Set Implicit Arguments.
 
 Section CutElimination.
   Context `{OLS: OLSig}.
-  Hint Constructors isFormula  remove seqN IsPositiveAtom : core .
+  Hint Constructors isFormula  Remove seqN IsPositiveAtom : core .
 
 
   
@@ -650,7 +650,7 @@ Section CutElimination.
                 apply perm_takeit_3.
             
             (* just double hyp *)
-            assert(remove F (M ++ [C]) L') by auto.
+            assert(Remove F (M ++ [C]) L') by auto.
             eapply Remove_Permutation_Ex in H4;eauto.
             destruct H4.    
             apply Remove_inv_cons in H4.
