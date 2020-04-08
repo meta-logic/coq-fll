@@ -46,7 +46,6 @@ Definition rulesBC (c :connectives) :=
   | OR =>  WITHPLUS
   | IMPL => TENSORPAR
   end.
-Check rulesBC.
 
 Instance SimpleOORUles : OORules :=
   {|
