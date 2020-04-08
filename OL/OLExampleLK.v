@@ -1,8 +1,7 @@
 (** * System LK for propositional classical logic encoded as an LL theory
 
 This file encodes the inference rules of the system LK (propositional
-classical logic). The cut-coherence and well-formedness properties are
-proved and then, using [OLCutElimination] we prove the cut-elimination
+classical logic). Using [OLCutElimination] we prove the cut-elimination
 theorem for this system .
  *)
 

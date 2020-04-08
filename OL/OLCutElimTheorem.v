@@ -158,43 +158,6 @@ Section CutElimination .
   Qed.
   
   
-  (** During the proof of cut-elimination, there are many
-          subgoals related to [IsPositiveAtomFormulaL] predicates and
-          testing whether a rule belongs to the theory. This procedure
-          resolves most of these cases. Moreover, since the classical
-          and linear context only contain positive atoms, none of the
-          proofs (by inversion) may use [tri_dec1] nor [tri_dec2]. *)
-  Ltac CutTac :=
-    solveF; 
-    repeat 
-      match goal with
-      | [H : seqN _ _ _ (?L ++ [atom ?F ]) (> []) |- _] => rewrite (Permutation_app_comm L [atom F ]) in H
-      | [ H :  Permutation (?F :: ?N) (?G :: ?F :: ?M) |- _ ] => apply Perm_swap_inv in H
-      (* Positive Atom cases *)
-      | [ |-  IsPositiveAtomFormulaL _ ] => solve  IsPositiveLSolve 
-      | [ H : isOLAtom ?A |- Forall IsPositiveAtomFormula [atom (up ?A) ] ]=>
-        repeat constructor;inversion H3;auto
-      (* the following 3 cases solve the goal when the case of Dec1 appears *)
-      | [  H1 : IsPositiveAtomFormulaL ?L , H2 : ~ IsPositiveAtom ?F , H3 : Remove ?F ((_ ++ ?N)) _ |- _ ] =>
-        apply Remove_In in H3; destruct H3;solveF;
-        apply  Forall_forall  with (x:= F) in H1;auto;destruct H1;solveF
-      | [  H1 : IsPositiveAtomFormulaL ?N , H2 : ~ IsPositiveAtom ?F , H3 : Remove ?F ?N _ |- _ ] =>
-        apply Remove_In in H3;apply  Forall_forall  with (x:= F) in H1;auto;destruct H1;solveF
-      | [  H1 : IsPositiveAtomFormulaL ?N , H2 : ~ IsPositiveAtom ?F , H3 : Remove ?F (_ :: ?N) _ |- _ ] =>
-        apply Remove_In in H3;destruct H3;subst;solveF
-      | [ HIn :  In ?F ?B , HB : IsPositiveAtomFormulaL ?B , Hneg : ~ IsPositiveAtom ?F |- _]
-        => let HB' := fresh in
-           apply Forall_forall with (x:= F) in HB as HB';auto;subst;inversion HB';solveF
-      | [ HPos : IsPositiveAtomFormulaL ?N, HRem : Remove ?F ([ atom (up ?A)  ] ++ ?N) _, HNeg : ~ IsPositiveAtom ?F |- _] => let H' := fresh "H" in generalize (Remove_In HRem);intro H';inversion H2;subst;solveF;IsPositiveLSolve
-      | [ H : Permutation  (?F :: ?N) ( (?F :: ?M1) ++ ?M2) |- _ ] =>
-        simpl in H; apply Permutation_cons_inv in H
-      | [ H :  Permutation (?F :: ?N) (?X ++ ?F :: ?M) |- _ ] =>
-        apply Perm_swap_inv_app in H
-      | [ |- Forall IsPositiveAtomFormula ?M] => fold  (IsPositiveAtomFormulaL M)
-      | [ |- OLTheory _ ] => solve [constructor;auto]
-      | [ |- OLTheoryCut _ _] => solve [constructor;auto]
-      end.
-
   Lemma FocusAtomInv : forall Theory Gamma  A M n,
       ( seqN Theory n Gamma ( (atom A ) :: M) (> []) ) -> 
       ( seqN Theory (S (S n)) Gamma M (>> (atom A ) ) ).

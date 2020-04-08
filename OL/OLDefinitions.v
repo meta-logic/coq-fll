@@ -32,6 +32,8 @@ Hint Constructors isOLFormula : core.
 
 Section PositiveAtoms.
   Context `{OL: OLSyntax}.
+  Definition down' : uexp -> atm := down.
+  Definition up' : uexp -> atm := up.
 
   
   (** Positive atoms are only [down] and [up] atoms. The linear and
@@ -64,6 +66,16 @@ Section PositiveAtoms.
     inversion H1;auto.
   Qed.
 
+  Lemma PositiveAtomIn : forall F A Gamma,
+      In F (atom A :: Gamma) ->
+      IsPositiveAtomFormulaL Gamma ->
+      IsPositiveAtom F.
+    intros.
+    inversion H;subst;auto.
+    unfold IsPositiveAtomFormulaL in H0.
+    apply Forall_forall with (x:= F) in H0;auto.
+    inversion H0;subst;auto.
+  Qed.
 
   Lemma IsPositiveConsInv :
     forall M N A, isOLAtom A ->
@@ -109,8 +121,6 @@ Section PositiveAtoms.
     apply ForallAppInv1 in H5.
     inversion H5...
   Qed.
-
-  
 
   Lemma IsPosL1 :
     forall M F L A X, IsPositiveAtomFormulaL M ->
@@ -207,9 +217,120 @@ Section PositiveAtoms.
       apply Permutation_sym in H.
       eauto using PermuteMap.
     Qed.
+
+    (** atoms of the form [down A] *)
+  Inductive IsPositiveLAtomFormula : oo -> Prop :=
+  | IsFPAL_dw : forall A, isOLFormula A -> IsPositiveLAtomFormula (atom (down (A)))
+  .
+  Hint Constructors IsPositiveLAtomFormula : core .
+
+  
+  Definition IsPositiveLAtomFormulaL L : Prop := Forall IsPositiveLAtomFormula L.
+  Hint Unfold IsPositiveLAtomFormulaL : core. 
+
+  (** Some auxiliar results that help automation *)
+  Lemma IsPositiveLAtomFormulaLApp :
+    forall M N, IsPositiveLAtomFormulaL M ->
+                IsPositiveLAtomFormulaL N ->
+                IsPositiveLAtomFormulaL (M ++ N ).
+    intros;eapply ForallApp;auto.
+  Qed.
+
+  Lemma IsPositiveLAtomFormulaLConsInv :
+    forall M N F, Permutation N (F :: M) ->
+                  IsPositiveLAtomFormulaL N ->
+                  IsPositiveLAtomFormulaL M.
+    intros.
     
+    generalize (PermuteMap H0 H);intro.
+    inversion H1;auto.
+  Qed.
+
+  Lemma IsPositiveLAtomNotAsync :
+    forall N, IsPositiveLAtomFormulaL N ->  isNotAsyncL  N.
     
+    induction N;simpl;auto;intros.
+    apply Forall_forall; intros x Hx; inversion Hx.
+    inversion H;subst.
+    change  (a :: N) with ( [a] ++ N).
+    apply ForallApp;auto.
+    2:{ apply IHN;auto. }
     
+    inversion H2;subst;auto.
+    apply Forall_forall; intros x Hx;inversion Hx;subst;auto.
+    intro Hc;inversion Hc.
+    inversion H1.
+  Qed.
+
+  Lemma IsPositiveLIsFormula :
+    forall N, IsPositiveLAtomFormulaL N ->  isFormulaL  N.
+    intros.
+    induction H.
+    constructor.
+    inversion H;subst.
+    constructor;auto.
+  Qed.
+
+  Lemma PermLIsFormula :
+    forall N M, Permutation N M -> IsPositiveLAtomFormulaL N ->
+                IsPositiveLAtomFormulaL M.
+    intros.
+    eauto using PermuteMap.
+  Qed.
+
+  Lemma PermLIsFormula' :
+    forall N M, Permutation M N -> IsPositiveLAtomFormulaL N ->
+                IsPositiveLAtomFormulaL M.
+    intros.
+    apply Permutation_sym in H.
+    eauto using PermuteMap.
+  Qed.
+
+  Hint Unfold down' up' : core .
+
+  Theorem NotUpInLAtom :   forall M R,
+      IsPositiveLAtomFormulaL M ->
+      ~ In (atom (up R)) M.
+  Proof with  solveF.
+    induction M;intros...
+    intro.
+    destruct H0...
+    inversion H...
+    inversion H2.
+    inversion H...
+    firstorder.
+  Qed.
+
+  Theorem RightLeftMismatch: forall N M R1 R2,
+      IsPositiveLAtomFormulaL N ->
+      Permutation (u| R1 | :: N) (u| R2 | :: M) ->
+      R1 = R2 /\ Permutation N M.
+  Proof with solveF.
+    intros.
+    apply Permutation_sym in H0.
+    apply Permutation_in with (x:= atom (up' R2)) in H0 as H0'...
+    inversion H0'...
+    subst.
+    apply Permutation_cons_inv in H0.
+    split... rewrite H0...
+    apply NotUpInLAtom with (R:=R2)in H.
+    contradiction.
+  Qed.
+
+    Theorem UpDownMismatch : forall A B N M,
+      Permutation (u|A|::M) (d|B|::N) ->
+      exists MN,
+        Permutation M (d| B | :: MN)/\
+        Permutation N (u| A | :: MN).
+    intros.
+    assert(u|A| <> d|B|) by (intro Hn; inversion Hn).
+    generalize (PermutationNeqIn H H0);intro.
+    CleanContext.
+    rewrite H1 in H.
+    apply Perm_swap_inv in H as H'.
+    exists x.
+    split;auto.
+  Qed.
 End PositiveAtoms.
 
 Ltac SolveIsFormulas :=
@@ -678,6 +799,7 @@ Section Bipoles.
   Definition POS F := ((perp (down F)) ** ? atom (down F)).
   (** Allowing contraction and weakening on the right side of the sequent *)
   Definition NEG F := ((perp (up F)) ** ? atom (up F)).
+
   
   Hint Unfold RINIT RCUT : core.
 
@@ -726,11 +848,7 @@ Section Bipoles.
 
   (** [up] and [down] can be proved to be dual using the rules [RINIT] and [RCUT] *)
   Section Dualities.
-
-    Definition down' : uexp -> atm := down.
-    Definition up' : uexp -> atm := up.
     Hint Unfold down' up' : core .
-
 
     (* Cut and Init proves The dualities *)
     Theorem UpDownDuality1 : forall (th : oo -> Prop)  F,
@@ -995,8 +1113,8 @@ Section Bipoles.
   | oothc_init : forall OO, isOLFormula OO -> OLTheoryCut n (RINIT OO) 
   | oothc_cutn : forall OO, CutRuleN n OO -> OLTheoryCut n OO
   .
-  
-  Hint Constructors  OLTheoryCut OLTheory : core.
+
+  Hint Constructors  OLTheoryCut OLTheory   : core.
 
   (** Inversion lemmas when [RINI] is used *)
   Lemma Init_inversion1 : forall h Gamma N M F1 F2,
@@ -1086,13 +1204,11 @@ Section Bipoles.
     generalize (LengthFormula H1 H2);intro. omega.
   Qed.
 
-  
   Lemma TheoryEmb1 : forall n F  , OLTheory F -> (OLTheoryCut n) F.
     intros.
     inversion H;subst; solve[constructor;auto].
   Qed.
 
-  
   Lemma TheoryEmb2 : forall n F  , ((CutRuleN n) F) -> (OLTheoryCut) n F.
     intros.
     inversion H;subst.
@@ -1154,7 +1270,44 @@ Ltac WFSolver :=
         constructor ; solveF
       end);auto.
 
-(** In this section we define several useful instances of the above
+ (** During the proof of cut-elimination, there are many
+          subgoals related to [IsPositiveAtomFormulaL] predicates and
+          testing whether a rule belongs to the theory. This procedure
+          resolves most of these cases. Moreover, since the classical
+          and linear context only contain positive atoms, none of the
+          proofs (by inversion) may use [tri_dec1] nor [tri_dec2]. *)
+  Ltac CutTac :=
+    solveF; 
+    repeat 
+      match goal with
+      | [H : seqN _ _ _ (?L ++ [atom ?F ]) (> []) |- _] => rewrite (Permutation_app_comm L [atom F ]) in H
+      | [ H :  Permutation (?F :: ?N) (?G :: ?F :: ?M) |- _ ] => apply Perm_swap_inv in H
+      (* Positive Atom cases *)
+      | [ |-  IsPositiveAtomFormulaL _ ] => solve  IsPositiveLSolve 
+      | [ H : isOLAtom ?A |- Forall IsPositiveAtomFormula [atom (up ?A) ] ]=>
+        repeat constructor;inversion H3;auto
+      (* the following 3 cases solve the goal when the case of Dec1 appears *)
+      | [  H1 : IsPositiveAtomFormulaL ?L , H2 : ~ IsPositiveAtom ?F , H3 : Remove ?F ((_ ++ ?N)) _ |- _ ] =>
+        apply Remove_In in H3; destruct H3;solveF;
+        apply  Forall_forall  with (x:= F) in H1;auto;destruct H1;solveF
+      | [  H1 : IsPositiveAtomFormulaL ?N , H2 : ~ IsPositiveAtom ?F , H3 : Remove ?F ?N _ |- _ ] =>
+        apply Remove_In in H3;apply  Forall_forall  with (x:= F) in H1;auto;destruct H1;solveF
+      | [  H1 : IsPositiveAtomFormulaL ?N , H2 : ~ IsPositiveAtom ?F , H3 : Remove ?F (_ :: ?N) _ |- _ ] =>
+        apply Remove_In in H3;destruct H3;subst;solveF
+      | [ HIn :  In ?F ?B , HB : IsPositiveAtomFormulaL ?B , Hneg : ~ IsPositiveAtom ?F |- _]
+        => let HB' := fresh in
+           apply Forall_forall with (x:= F) in HB as HB';auto;subst;inversion HB';solveF
+      | [ HPos : IsPositiveAtomFormulaL ?N, HRem : Remove ?F ([ atom (up ?A)  ] ++ ?N) _, HNeg : ~ IsPositiveAtom ?F |- _] => let H' := fresh "H" in generalize (Remove_In HRem);intro H';inversion H2;subst;solveF;IsPositiveLSolve
+      | [ H : Permutation  (?F :: ?N) ( (?F :: ?M1) ++ ?M2) |- _ ] =>
+        simpl in H; apply Permutation_cons_inv in H
+      | [ H :  Permutation (?F :: ?N) (?X ++ ?F :: ?M) |- _ ] =>
+        apply Perm_swap_inv_app in H
+      | [ |- Forall IsPositiveAtomFormula ?M] => fold  (IsPositiveAtomFormulaL M)
+      | [ |- S _ = S _ ] => solve [lia]
+      end.
+
+
+  (** In this section we define several useful instances of the above
 bipole definitions. These instances are common place in different
 encodings of OLs as LL theories, thus facilitating the proof
 obligations showing that the rules adhere to the bipole requirements. *)
@@ -1413,5 +1566,4 @@ Section BipoleInstance.
       tensor'  (@nil oo) Delta1...
   Qed.
 End BipoleInstance.
-
 

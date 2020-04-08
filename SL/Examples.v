@@ -61,7 +61,6 @@ Module Example1 .
     solveLL'.
     decide1' (E{ fun t  => (atom (p t))}) ...
     existential' x.
-    solveLL'.
   Qed.
 
   Example Test2': |-- [] ; [] ; > [  perp (p (Var 0)) ; atom (p (Var 0))  ].

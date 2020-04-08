@@ -1,11 +1,12 @@
-(** * System LJ for propositional intuitionistic logic encoded as an LL theory
+(** * System LK for propositional classical logic encoded as an LL theory
 
-This file encodes the inference rules of the system LJ (propositional
-intuitionistic logic). Using [OLCutElimination] we prove the cut-elimination
+This file encodes the inference rules of the system LK (propositional
+classical logic). The cut-coherence and well-formedness properties are
+proved and then, using [OLCutElimination] we prove the cut-elimination
 theorem for this system .
  *)
 
-Require Export FLL.OL.OLCutElimTheoremPOS.
+Require Export FLL.OL.OLCutElimTheoremPOSNEG.
 Require Import Coq.Init.Nat.
 Require Import FLL.Misc.Permutations.
 
@@ -21,7 +22,7 @@ Inductive Constants := TT | FF  .
 Inductive Connectives := AND | OR | IMPL  .
 (* no quantifiers *)
 Inductive Quantifiers := .
-(* No unary connectives  *) 
+(* Although negation is not needed we keep it for illustrative purposes *) 
 Inductive UConnectives := .
 
 Instance SimpleOLSig : OLSyntax:=
@@ -43,14 +44,14 @@ Definition rulesCTE (c:constants) :=
   | FF => TOPZERO
   end.
 
-
 (** *** Binary connectives *)
 Definition rulesBC (c :connectives) :=
   match c with
   | AND => PARTENSOR
-  | OR =>  WITHPLUS
-  | IMPL => TENSORPAR
+  | OR =>  TENSORPAR
+  | IMPL => TENSORPAREXCH
   end.
+
 
 Instance SimpleOORUles : OORules :=
   {|
@@ -58,6 +59,5 @@ Instance SimpleOORUles : OORules :=
     rulesBin := rulesBC
   |}.
 
-(** The cut-elimination theorem instantiated for LJ *)
+(** The cut-elimination theorem instantiated for LK *)
 Check CutElimination.
-

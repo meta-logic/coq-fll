@@ -5,7 +5,7 @@ Misc/Hybrid.v
 Misc/Permutations.v
 
 # Specification Logic
-# First-order classical linear logic
+# Focused First-order classical linear logic
 SL/Syntax.v
 SL/Sequent.v
 SL/StructuralRules.v
@@ -20,8 +20,11 @@ SL/Examples.v
 OL/OLSyntax.v
 OL/OLDefinitions.v
 OL/OLCutElimTheorem.v
+OL/OLCutElimTheoremPOS.v
+OL/OLCutElimTheoremPOSNEG.v
 OL/OLExampleLJ.v
-OL/OLExampleLK.v
 OL/OLExampleLM.v
 OL/OLExampleMALL.v
 OL/OLExampleNDSeq.v
+OL/OLExampleLK.v
+OL/OLExampleLKPOSNEG.v

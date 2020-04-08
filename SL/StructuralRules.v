@@ -160,7 +160,6 @@ Section FLLBasicTheory.
         apply H in H5;auto.
         apply @tri_dec2 with (F:=F0);eauto.
     Qed.
-    
 
     Global Instance seq_morphismN  (n:nat) :
       Proper ((@Permutation oo) ==> (@Permutation oo) ==> eq ==> iff)
@@ -416,6 +415,15 @@ Section FLLBasicTheory.
 
     Axiom seqtoSeqN : forall Gamma Delta X ,
         (seq theory  Gamma Delta X) ->  exists n, (seqN theory n Gamma Delta X).
+
+    Theorem contraction  : forall CC LC  F X ,
+        ( seq theory   (F :: CC) LC X) -> In F CC -> (seq theory CC LC  X).
+      intros.
+      apply seqtoSeqN in H.
+      destruct H.
+      apply contractionN in H;auto.
+      eapply seqNtoSeq;eauto.
+    Qed.
   End Adequacy.
 
 

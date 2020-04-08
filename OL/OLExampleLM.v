@@ -6,15 +6,13 @@ proved and then, using [OLCutElimination] we prove the cut-elimination
 theorem for this system .
  *)
 
-Require Export FLL.OL.OLCutElimTheorem.
+Require Export FLL.OL.OLCutElimTheoremPOS.
 Require Import Coq.Init.Nat.
 Require Import FLL.Misc.Permutations.
 
 Export ListNotations.
 Export LLNotations.
 Set Implicit Arguments.
-
-
 (** ** Syntax *)
 (* No constants *)
 Inductive Constants := .
@@ -34,183 +32,28 @@ Instance SimpleOLSig : OLSyntax:=
     quantifiers := Quantifiers
   |}.
 
-
 (** ** Inference rules *)
 
 (** *** Constants *)
-Definition rulesCTE (c:constants) :=
-  match c return ruleCte with 
-  end.
-
-(** *** Unary connectives *)
-Definition rulesUC  (c:uconnectives) :=
-  match c return ruleUnary with
+Definition rulesCTE (c:constants) : ContantEnc:=
+  match c with
   end.
 
 (** *** Binary connectives *)
 Definition rulesBC (c :connectives) :=
   match c with
-  | AND => {| rb_rightBody := fun F G => (atom (up F)) ** (atom (up G) );
-              rb_leftBody  := fun F G => (atom (down F) ) $ (atom (down G)) |}
-  | OR => {| rb_rightBody := fun F G => (atom (up F)) op (atom (up G) );
-             rb_leftBody  := fun F G => (atom (down F) ) & (atom (down G)) |}
-  | IMPL => {| rb_rightBody := fun F G => (atom (down F)) $  (atom (up G) );
-               rb_leftBody  := fun F G => (atom (up F) ) ** (atom (down G)) |}
+  | AND => PARTENSOR
+  | OR =>  WITHPLUS
+  | IMPL => TENSORPAR
   end.
-
-(** *** Quantifiers *)
-Definition rulesQC (c :quantifiers) :=
-  match c return ruleQ with
-  end.
-
+Check rulesBC.
 
 Instance SimpleOORUles : OORules :=
   {|
     rulesCte := rulesCTE ;
-    rulesUnary := rulesUC ;
-    rulesBin := rulesBC;
-    rulesQ := rulesQC
+    rulesBin := rulesBC
   |}.
 
-(** ** Well-formedness conditions *)
+(** The cut-elimination theorem instantiated for LJ *)
+Check CutElimination.
 
-Definition down' : uexp -> atm := down.
-Definition up' : uexp -> atm := up.
-Hint Unfold down' up' : core .
-
-(** *** Constants *)
-Lemma wellFormedConstant_p : wellFormedCte.
-Proof with WFSolver.
-  unfold wellFormedCte;intros.
-  destruct lab.
-Qed.
-
-
-(** *** Unary connectives *)
-
-Lemma wellFormedUnary_p : wellFormedUnary.
-Proof with WFSolver.
-  unfold wellFormedUnary;intros.
-  destruct lab.
-Qed.
-
-
-(** *** Binary connectives *)
-Lemma wellFormedBinary_p : wellFormedBinary.
-Proof with WFSolver.
-  unfold wellFormedBinary;intros.
-  destruct lab;destruct s.
-  (* Conjunction left *)
-  exists BOneP...
-  apply ANDL_Par.
-
-  (* Conjunction right *)
-  exists BTwoPM...
-  eapply ANDR_Tensor.
-  
-  (* Disjunction left *)
-  exists BTwoPA...
-  apply ORL_With.
-
-  (* Disjunction right *)
-  exists BOneP...
-  apply ORR_Plus.
-  (* implication left *)
-  exists BTwoPM...
-  apply IMPL_Tensor.
-  (* implication right *)
-  exists BOneP...
-  apply IMPR_Par.
-Qed.
-
-
-(** *** Quantifiers *)
-Lemma wellFormedQuantifier_p : wellFormedQuantifier.
-Proof with solveF.
-  unfold wellFormedQuantifier. intros.
-  destruct lab.
-Qed.
-
-Lemma wellFormedTheory_p : wellFormedTheory.
-  split.
-  apply wellFormedConstant_p.
-  split.
-  apply wellFormedUnary_p.
-  split; [apply wellFormedBinary_p | apply wellFormedQuantifier_p].
-Qed.
-
-(** ** Cut-coherency properties *)
-
-(** *** Binary Connectives *)
-Lemma CutCoherenceAND: CutCoherenceBin (rulesBC AND).
-Proof with solveF.
-  unfold CutCoherenceBin;intros.
-  simpl.
-  solveLL'.
-  decide3' ((atom (up F) ) ** (atom (down F) )). econstructor;eauto using le_max_l.
-  tensor' [perp (up F) ] [ perp (up G) ; (perp (down F) ) ** perp (down G) ];solveLL'.
-  decide3' ((atom (up G) ) ** atom (down G) ). econstructor;eauto using le_max_r.
-  solveLL'.
-  tensor' [perp (up G)  ][ (perp (down F) ) ** perp (down G) ; atom (down F) ];solveLL'.
-  decide1' ((perp (down F) ) ** perp (down G) ).
-  tensor' [atom (down F) ] [atom (down G) ].
-Qed.
-
-Lemma CutCoherenceOR: CutCoherenceBin (rulesBC OR).
-Proof with solveF.
-  unfold CutCoherenceBin;intros.
-  simpl.
-  solveLL'.
-  decide3' ((atom (up F) ) ** (atom (down F) )). econstructor;eauto using le_max_l.
-  tensor' [perp (up F) ] [  perp (down F) op perp (down G)];solveLL'.
-  decide1' (perp (down F) op perp (down G)) .
-
-  decide3' ((atom (up G) ) ** (atom (down G) )). econstructor;eauto using le_max_r.
-  tensor' [perp (up G) ] [  perp (down F) op perp (down G)];solveLL'.
-  decide1' (perp (down F) op perp (down G)) .
-Qed.
-
-Lemma CutCoherenceIMPL: CutCoherenceBin (rulesBC IMPL).
-Proof with solveF.
-  unfold CutCoherenceBin;intros.
-  simpl.
-  solveLL'.
-  decide3' ((atom (up F) ) ** (atom (down F) )). econstructor;eauto using le_max_l.
-  tensor' [perp (up F)]  [perp (down F) ** perp (up G); perp (down G)];solveLL'. 
-  decide3' ((atom (up G) ) ** (atom (down G) )). econstructor;eauto using le_max_r.
-  tensor' [perp (down F) ** perp (up G); atom (down F)] [perp (down G)];solveLL'.
-  decide1' (perp (down F) ** perp (up G)) .
-  tensor' [atom (down F) ][ atom (up G)] . 
-Qed.
-
-
-Lemma CutCoherence_p : CutCoherence .
-  split;intros; try destruct lab.
-  split;intros; try destruct lab.
-  split;intros; try destruct lab;
-    auto using CutCoherenceAND, CutCoherenceOR, CutCoherenceIMPL .
-Qed.
-
-(** The theory is well formed: cut-coherence holds and all the rules
-are bipoles *)
-Lemma wellTheory_p : wellTheory.
-  split;auto using CutCoherence_p,  wellFormedTheory_p.
-Qed.
-
-Hint Unfold  OLTheoryIsFormula ConstantsFormulas UConnectivesFormulas ConnectivesFormulas QuantifiersFormulas : core .
-Hint Unfold  OLTheoryIsFormulaD ConstantsFormulasD UConnectivesFormulasD ConnectivesFormulasD QuantifiersFormulasD :core.
-
-Theorem  OLTheoryIsFormula_p :  OLTheoryIsFormula.
-Proof with SolveIsFormulas.
-  split;autounfold...
-  intro;destruct lab...
-Qed.
-
-Theorem  OLTheoryIsFormulaD_p :  OLTheoryIsFormulaD.
-Proof with SolveIsFormulas.
-  split;autounfold...
-  intro;destruct lab...
-Qed.
-  
-(** The cut-elimination theorem instantiated for LK *)
-Check OLCutElimination wellTheory_p OLTheoryIsFormula_p OLTheoryIsFormulaD_p.

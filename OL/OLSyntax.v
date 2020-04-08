@@ -327,3 +327,10 @@ Section OLSyntax.
     |}.
 
 End OLSyntax.
+
+(** Notation for atoms of the form [up] and [down] *)
+Notation "'u|' A '|'" := (atom (up A)) (at level 10) .
+Notation "'d|' A '|'" := (atom (down A)) (at level 10) .
+Notation "'u^|' A '|'" := (perp (up A)) (at level 10) .
+Notation "'d^|' A '|'" := (perp (down A)) (at level 10) .
+

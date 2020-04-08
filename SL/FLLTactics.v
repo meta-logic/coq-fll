@@ -31,6 +31,10 @@ Ltac solveF :=
   let H := fresh "H" in
   repeat
     match goal with
+    | [ |- _ <= _ ] => lia
+    | [ |- _ >= _ ] => lia
+    | [ |- _ < _ ] => lia
+    | [ |- _ > _ ] => lia
     | [ |- In ?F (?F :: _)] => constructor;auto
     | [H : False |- _] => contradiction
     | [H : ?F , H' : ~ ?F |- _ ] => contradiction
@@ -147,6 +151,31 @@ Ltac ExchangeApp' :=
     apply exchangeLC with (LC := B ++ A); [apply Permutation_app_comm |idtac]
   end.
 
+(** Finishes the proof if H is a sequent that only needs some exchanges to be
+equal to the goal *) 
+Ltac LLExact H :=
+  let G:= type of H in
+  match G with
+  | (seqN ?T _ ?Gamma ?Delta ?X) =>
+    match goal with
+    | [ |- seqN T _ ?Gamma' ?Delta' X ] =>
+      apply exchangeCCN with (CC:= Gamma);auto; try perm;
+      apply exchangeLCN with (LC:= Delta);auto;try perm
+    end 
+  end;auto.
+
+
+Ltac LLExact' H :=
+  let G:= type of H in
+  match G with
+  | (seq ?T ?Gamma ?Delta ?X) =>
+    match goal with
+    | [ |- seq T ?Gamma' ?Delta' X ] =>
+      apply exchangeCC with (CC:= Gamma);auto; try perm;
+      apply exchangeLC with (LC:= Delta);auto;try perm
+    end
+  end;auto.
+
 (** Splits the linear context L into L1 ++ L2 where L1 contains the first n elements of L *)
 Ltac SplitContext n :=
   match goal with
@@ -184,32 +213,14 @@ Ltac solveUniform :=
     end.
 
 
-(** Notation for forward reasoning on FLL sequents *)
-Tactic Notation "decide1"  constr(R) := eapply @tri_dec1 with (F:= R);solveF.
-Tactic Notation "decide2"  constr(R) := eapply @tri_dec2 with (F:= R);solveF.
-Tactic Notation "decide3"  constr(R) := eapply @tri_dec3 with (F:= R);solveF.
-Tactic Notation "tensor"  constr(Ctx1) constr(Ctx2) := eapply @tri_tensor with (M:=Ctx1) (N:=Ctx2);solveF.
-Tactic Notation "tensor"   := eapply @tri_tensor ;solveF.
-Tactic Notation "init" := first [apply tri_init1;auto | apply tri_init2;auto].
 Tactic Notation "store" := apply tri_store ;solveF.
-Tactic Notation "par" := apply tri_par.
-Tactic Notation "oplus1" := apply tri_plus1.
-Tactic Notation "oplus2" := apply tri_plus2.
-Tactic Notation "oplus1'" := apply tri_plus1'.
-Tactic Notation "oplus2'" := apply tri_plus2'.
-Tactic Notation "release" := apply tri_rel ; solveF.
-Tactic Notation "existential" constr(tt) := eapply @tri_ex with (t:=tt);try solveUniform; auto.
-Tactic Notation "decide1'"  constr(R) := eapply @tri_dec1' with (F:= R);solveF.
-Tactic Notation "decide2'"  constr(R) := eapply @tri_dec2' with (F:= R);solveF.
-Tactic Notation "decide3'"  constr(R) := eapply @tri_dec3' with (F:= R);solveF.
-Tactic Notation "tensor'"  constr(Ctx1) constr(Ctx2) := eapply @tri_tensor' with (M:=Ctx1) (N:=Ctx2);solveF.
-Tactic Notation "tensor'"  := eapply @tri_tensor' ;solveF.
-Tactic Notation "init'" := first [apply tri_init1' | apply tri_init2'].
 Tactic Notation "store'" := apply tri_store' ;solveF.
+Tactic Notation "par" := apply tri_par.
 Tactic Notation "par'" := apply tri_par'.
 Tactic Notation "release'" := apply tri_rel' ; solveF.
-Tactic Notation "existential'" constr(tt) := eapply @tri_ex' with (t:=tt);try solveUniform ; auto.
-
+Tactic Notation "release" := apply tri_rel ; solveF.
+Tactic Notation "init" := first [apply tri_init1;auto | apply tri_init2;auto].
+Tactic Notation "init'" := first [apply tri_init1' | apply tri_init2'].
 
 (** This tactic applies as many positive/negative rules as
   possible. Connectives as exists and tensor are not automatically
@@ -308,6 +319,25 @@ Ltac dec1 n :=
     [|- seqN _ _ _ (?G :: _) (> []) ] =>
     eapply tri_dec1 with (F:= G);solveF
   end.
+
+(** Notation for forward reasoning on FLL sequents *)
+Tactic Notation "decide1"  constr(R) := eapply @tri_dec1 with (F:= R);solveF.
+Tactic Notation "decide2"  constr(R) := eapply @tri_dec2 with (F:= R);solveF.
+Tactic Notation "decide3"  constr(R) := eapply @tri_dec3 with (F:= R);solveF.
+Tactic Notation "tensor"  constr(Ctx1) constr(Ctx2) := eapply @tri_tensor with (M:=Ctx1) (N:=Ctx2);solveF;solveLL.
+Tactic Notation "tensor"   := eapply @tri_tensor ;solveF;solveLL.
+Tactic Notation "oplus1" := apply tri_plus1;solveLL.
+Tactic Notation "oplus2" := apply tri_plus2;solveLL.
+Tactic Notation "oplus1'" := apply tri_plus1';solveLL'.
+Tactic Notation "oplus2'" := apply tri_plus2';solveLL'.
+Tactic Notation "existential" constr(tt) := eapply @tri_ex with (t:=tt);try solveUniform; auto;solveLL.
+Tactic Notation "decide1'"  constr(R) := eapply @tri_dec1' with (F:= R);solveF.
+Tactic Notation "decide2'"  constr(R) := eapply @tri_dec2' with (F:= R);solveF.
+Tactic Notation "decide3'"  constr(R) := eapply @tri_dec3' with (F:= R);solveF.
+Tactic Notation "tensor'"  constr(Ctx1) constr(Ctx2) := eapply @tri_tensor' with (M:=Ctx1) (N:=Ctx2);solveF;solveLL'.
+Tactic Notation "tensor'"  := eapply @tri_tensor' ;solveF;solveLL'.
+Tactic Notation "existential'" constr(tt) := eapply @tri_ex' with (t:=tt);try solveUniform ; auto;solveLL'.
+
 
 (** First splits the context L into L1 ++ L2 (where L1 contains
       the first n elements of L1) and then, it applied tensor where L2
@@ -498,5 +528,47 @@ Ltac CleanContext :=
     | [H : _ /\ _ |- _ ] => destruct H
     end;subst.
 
+(* Check if the permutation P applies to the sequent in H and rewrites it *)
+Ltac LLPermH H P :=
+  match goal with
+  | [ H : seqN _ _ ?Gamma ?Delta _ |- _] =>
+    let HP := fresh "H" in
+    first[
+        assert(HP : Permutation Gamma P ) by perm; rewrite HP in H;clear HP
+      | assert(HP : Permutation Delta P ) by perm; rewrite HP in H;clear HP
+      ]
+  |[ H : seq _ ?Gamma ?Delta _ |- _] =>
+   let HP := fresh "H" in
+   first[
+       assert(HP : Permutation Gamma P ) by perm; rewrite HP in H;clear HP
+     | assert(HP : Permutation Delta P ) by perm; rewrite HP in H;clear HP
+     ]
+  end.
+Ltac LLPerm P :=
+  match goal with
+  | [ |- seqN _ _ ?Gamma ?Delta _ ] =>
+    let HP := fresh "H" in
+    first[
+        assert(HP : Permutation Gamma P ) by perm; rewrite HP;clear HP
+      | assert(HP : Permutation Delta P ) by perm; rewrite HP;clear HP
+      ]
+  |[ |- seq _ ?Gamma ?Delta _ ] =>
+   let HP := fresh "H" in
+   first[
+       assert(HP : Permutation Gamma P ) by perm; rewrite HP;clear HP
+     | assert(HP : Permutation Delta P ) by perm; rewrite HP;clear HP
+     ]
+  end.
 
-
+(** "rewrite perm_swap in H" would be enough for exchanging the first 2
+elements of a list. However, such rewrite is quite slow (probably for
+Coq's search mechanism in Class Instances). This tactic implement the
+same step without using rewriting *)
+Ltac permswap H :=
+        let Hs := type of H in 
+        match Hs with
+        |  (seqN _ _ (?F :: ?G :: ?L) _ _) =>
+           apply exchangeCCN with (CC':= (G :: F :: L)) in H;[|perm]
+        |  (seq  _ (?F :: ?G :: ?L) _ _) =>
+           apply exchangeCC with (CC':= (G :: F :: L)) in H;[|perm]
+        end.
