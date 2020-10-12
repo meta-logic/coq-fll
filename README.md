@@ -12,7 +12,7 @@ This package is free software; you can redistribute it and/or modify it under th
 
 ## Getting Started
 
-The project was tested in Coq 8.11.0 No extra library is needed for compilation. 
+The project was tested in Coq 8.12.0 No extra library is needed for compilation. 
 
 ### Building 
 
