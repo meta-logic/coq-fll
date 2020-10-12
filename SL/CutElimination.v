@@ -676,7 +676,7 @@ Section CutElimination.
                                    S  n  |--- B; x; (>> C) ->
                                                     |-- B; N ++ x; (> [])) as UCut.
                 
-                eapply CutH;eauto;try omega.
+                eapply CutH;eauto;try lia.
                 
                 rewrite DualComplexity .
                 rewrite <- ng_involutive;auto.
@@ -798,7 +798,7 @@ Section CutElimination.
                                 n0 |--- B; M0; (>> F ^) -> 
                                                |-- B; M ++ M0; (> G :: L)) as HcutF.
               
-              eapply CutW with (m:=n1);eauto; try omega.
+              eapply CutW with (m:=n1);eauto; try lia.
               
               solveFormLL.
               inversion isFDC...
@@ -818,7 +818,7 @@ Section CutElimination.
                                      n0 |--- B; N0; (>> G ^) -> 
                                                     |-- B; (M ++ M0) ++ N0; > L) as HcutG.
 
-              eapply CutW with (m:=n2);auto;try omega.
+              eapply CutW with (m:=n2);auto;try lia.
               solveFormLL.
               inversion isFDC...
               rewrite H3 in isNAN.
@@ -847,7 +847,7 @@ Section CutElimination.
                                 n0 |--- B; N; (>> F ^) -> 
                                               |-- B; M ++ N; (> L)) as HcutF.
               
-              eapply CutW with (m:=n1);auto; try omega.
+              eapply CutW with (m:=n1);auto; try lia.
               solveFormLL.
               inversion isFDC...
               apply HcutF in H6;auto.
@@ -859,7 +859,7 @@ Section CutElimination.
                                 n0 |--- B; N; (>> G ^) -> 
                                               |-- B; M ++ N; (> L)) as HcutG.
               
-              eapply CutW with (m:=n1);auto; try omega.
+              eapply CutW with (m:=n1);auto; try lia.
               solveFormLL.
               inversion isFDC... 
               apply HcutG in H7;auto.

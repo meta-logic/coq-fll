@@ -38,7 +38,7 @@ Require Export Plus.
 Require Export Gt.
 Require Export BoolEq.
 Require Export Decidable.
-Require Export Omega.
+Require Export Lia.
 Require Export Max.
 Require Export List.
 Require Export Wf_nat.
@@ -51,10 +51,10 @@ Section utils.
 Theorem lt_non_zero : forall i j : nat, i < j -> exists j' : nat, j = j'+1.
 unfold lt in |- *.
 intros i j; simple induction 1.
-exists i; omega.
+exists i; lia.
 intros m H0 [j' H1].
 rewrite H1.
-exists (j'+1); omega.
+exists (j'+1); lia.
 Qed.
 
 Fixpoint blt_nat (n m : nat) {struct n} : bool :=
@@ -70,16 +70,12 @@ Definition ble_nat : nat -> nat -> bool :=
 
 Lemma max_le_l : forall (n m:nat), n <= (max n m).
 Proof.
-induction n.
-intro m; try omega.
-induction m; simpl; try omega.
-generalize (IHn m); intro h; omega.
+  lia.
 Qed.
 
 Lemma max_le_r : forall (n m:nat), m <= (max n m).
 Proof.
-intros n m; rewrite max_comm.
-apply max_le_l; auto.
+  lia.
 Qed.
 
 End utils.
@@ -128,7 +124,7 @@ Proof.
 intros i e; induction 1.
 apply level_CON.
 apply level_VAR.
-apply level_BND; omega.
+apply level_BND; lia.
 apply level_APP; auto.
 apply level_ABS; auto.
 Qed.
@@ -137,7 +133,7 @@ Lemma bnd_not_proper : forall i:bnd, ~(proper (BND i)).
 Proof.
 unfold proper; intros i H.
 inversion H.
-omega.
+lia.
 Qed.
 
 Lemma proper_VAR : forall x:var, (proper (VAR x)).
@@ -326,17 +322,17 @@ Qed.
 Lemma size_APP1 : forall e1 e2:expr, (size e1) < (size (APP e1 e2)).
 Proof.
 simpl; intros e1 e2.
-generalize (size_positive e2); omega.
+generalize (size_positive e2); lia.
 Qed.
 
 Lemma size_APP2 : forall e1 e2:expr, (size e2) < (size (APP e1 e2)).
 Proof.
 simpl; intros e1 e2.
-generalize (size_positive e1); omega.
+generalize (size_positive e1); lia.
 Qed.
 
 Lemma size_ABS :forall e:expr, (size e) < (size (ABS e)).
-simpl; intro e; omega.
+simpl; intro e; lia.
 Qed.
 
 Definition rank : (expr -> expr) -> nat := fun f => (size (f (VAR 0))).
@@ -462,12 +458,12 @@ Proof.
   induction e.
   - constructor.
   - constructor.
-  - intros j i H H0. inversion H; subst. constructor. omega.
+  - intros j i H H0. inversion H; subst. constructor. lia.
   - intros j i H H0. inversion H; subst; constructor.
     + apply IHe1 with i; auto.
     + apply IHe2 with i; auto.
   - intros j i H H0. inversion H; subst; constructor.
-    apply IHe with (i+1); auto; omega.
+    apply IHe with (i+1); auto; lia.
 Qed.
     
 Lemma lbnd_proper : forall (i:bnd) (e:expr) ,
@@ -475,7 +471,7 @@ Lemma lbnd_proper : forall (i:bnd) (e:expr) ,
 Proof.
   unfold proper; intros i e H. apply lbnd_level; auto.
   destruct i; auto.
-  apply level_greater with 0; auto; omega.
+  apply level_greater with 0; auto; lia.
 Qed.
     
 Lemma lbnd_CON_inv : forall (i:bnd) (a:con) (t:expr) (e:expr -> expr),
@@ -591,11 +587,14 @@ Fixpoint subterm (e M:expr) : Prop :=
            | (ABS s) => subterm e s
            end.
 
+
+
+
 Fixpoint bv_subst (i:bnd) (M e:expr) : expr :=
   match e with
   | (CON a) => (CON a)
   | (VAR n) => (VAR n)
-  | (BND j) => if (i =? j) then M else (BND j)
+  | (BND j) => if (Nat.eqb i j) then M else (BND j)
   | (APP s t) => (APP (bv_subst i M s) (bv_subst i M t))
   | (ABS s) => (ABS (bv_subst (i+1) M s))
   end.
@@ -603,7 +602,7 @@ Fixpoint bv_subst (i:bnd) (M e:expr) : expr :=
 Fixpoint fv_subst (m:var) (M e:expr) : expr :=
   match e with
   | (CON a) => (CON a)
-  | (VAR n) => if (m =? n) then M else (VAR n)
+  | (VAR n) => if (Nat.eqb m n) then M else (VAR n)
   | (BND j) => (BND j)
   | (APP s t) => (APP (fv_subst m M s) (fv_subst m M t))
   | (ABS s) => (ABS (fv_subst m M s))
@@ -1267,7 +1266,7 @@ Proof.
       try (unfold ext_eq in H3; unfold ext_eq in H1;
            specialize H3 with (1:=(proper_VAR 0)); specialize H1 with (1:=(proper_VAR 0));
            rewrite <- H3 in H1; inversion H1).
-    assert (h:i<>j0); try omega.
+    assert (h:i<>j0); try lia.
     rewrite <- beq_nat_false_iff in h. simpl. rewrite -> h; auto.
   - simpl. rewrite <- H1; auto. f_equal.
     + apply H with (size (f (VAR 0)));auto.
@@ -1309,22 +1308,22 @@ Qed.
 
 Lemma greater_newvar_var : forall v:var, newvar (VAR v) > v.
 Proof.
-  intros; simpl; omega.
+  intros; simpl; lia.
 Qed.
 
 Lemma fv_subst_id : forall (a:expr) (m:var) (e:expr),
     (newvar a) <= m -> fv_subst m e a = a.
 Proof.
   induction a; intros; auto.
-  - simpl in H.  assert (H0:false = (m =? v)).
+  - simpl in H.  assert (H0:false = (Nat.eqb m v)).
     { apply not_eq_false_beq; auto.
       { apply beq_nat_eq; auto. }
-      { omega. }}
+      { lia. }}
     simpl. rewrite <- H0; auto.
   - simpl. simpl in H.
     generalize (max_le_l (newvar a1) (newvar a2));
       generalize (max_le_r (newvar a1) (newvar a2)); intros H0 H1.
-    rewrite IHa1; try rewrite IHa2; auto; omega.
+    rewrite IHa1; try rewrite IHa2; auto; lia.
   - simpl. simpl in H.
     rewrite IHa; auto.
 Qed.
@@ -1350,8 +1349,8 @@ Proof.
   generalize (le_max_r (newvar a) (nvC l)); intro H0.
   generalize (le_max_l (newvar a) (nvC l)); intro H1.
   f_equal.
-  - apply fv_subst_id; omega.
-  - apply IHl; omega.
+  - apply fv_subst_id; lia.
+  - apply IHl; lia.
 Qed.
 
 Lemma subst_abst : forall (i:bnd) (f:expr->expr),
@@ -1783,7 +1782,7 @@ apply lbnd_VAR.
 apply abst_VAR.
 intros k h.
 subst.
-assert (S k > j); try omega.
+assert (S k > j); try lia.
 generalize (gt_S k j H0); intros [h | h].
 exists (fun x:expr con => (BND con j)); split.
 apply lbnd_BND; auto.
@@ -1799,7 +1798,7 @@ exists (fun x => (APP (E3 x) (E2 x))); split.
 apply lbnd_APP; auto.
 apply abst_APP; auto.
 intros j h.
-assert (j+1+1=i+1); try omega.
+assert (j+1+1=i+1); try lia.
 elim (IHlevel (j+1) H0); intros E2 [h1 h2].
 exists (fun x => (ABS (E2 x))); split.
 apply lbnd_ABS; auto.
@@ -1865,7 +1864,7 @@ Proof.
 unfold lambda, proper, uniform.
 intros E1 h.
 inversion h; subst.
-assert (0+1=0+1); try omega.
+assert (0+1=0+1); try lia.
 generalize (level_lbind_abst H1 0 H); intros [E2 [h1 h2]].
 exists E2; split; auto.
 rewrite <- h1; auto.
@@ -2139,9 +2138,9 @@ absurd (proper (BND con b)); auto.
 apply bnd_not_proper; auto.
 generalize (proper_APP1 H5); generalize (proper_APP2 H5); intros h1 h2.
 assert ((size e1) < n).
-generalize (size_APP1 e1 e2); intro; omega.
+generalize (size_APP1 e1 e2); intro; lia.
 assert ((size e2) < n).
-generalize (size_APP2 e1 e2); intro; omega.
+generalize (size_APP2 e1 e2); intro; lia.
 assert (size e1=size e1); auto.
 assert (size e2=size e2); auto.
 generalize (H (size e1) H6 e1 H8 h2); intro h3.
@@ -2150,11 +2149,11 @@ apply H2; auto.
 generalize (proper_lambda_uniform H5); intros [E2 [h1 h2]].
 rewrite h1; rewrite h1 in H5; rewrite h1 in H4.
 apply H3 with 0; auto.
-apply H with (n-1); try omega; auto.
-generalize (size_positive (lambda E2)); subst; omega.
+apply H with (n-1); try lia; auto.
+generalize (size_positive (lambda E2)); subst; lia.
 simpl in H4.
 rewrite <- (uniform_size_lbind h2 0 0).
-omega.
+lia.
 apply uniform_proper_e; auto.
 apply proper_VAR.
 Qed.

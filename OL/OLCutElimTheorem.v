@@ -397,14 +397,14 @@ decomposition (telling how to rebuild the proof from the presmies. *)
         | up =>
           (* Using the IH to obtain the cut-free proof *)
           assert (Hcut : seq (OLTheoryCut (pred n)) (Gamma ++ x0) (M ++ (M0 ++ x)) (> []))
-            by (eapply IH with (m:=  plus x2 (S (S x1))) (FCut := A) (h1 := (S (S x1))) (h2 := x2);auto;try omega;CutTac); 
+            by (eapply IH with (m:=  plus x2 (S (S x1))) (FCut := A) (h1 := (S (S x1))) (h2 := x2);auto;try lia;CutTac); 
           (* rebuilding the derivation from the cut-free proof *)
           rewrite app_assoc in Hcut
         | down =>
           assert (Hcut : seq (OLTheoryCut (pred n)) (Gamma ++ x0) ((M0 ++ x) ++ M) (> []))
             by (
                 (* rebuilding the derivation from the cut-free proof *)
-                eapply IH with (m:=  plus x2 (S (S x1))) (FCut := A) (h2 := (S (S x1))) (h1 := x2);auto;try omega;CutTac);                
+                eapply IH with (m:=  plus x2 (S (S x1))) (FCut := A) (h2 := (S (S x1))) (h1 := x2);auto;try lia;CutTac);                
           rewrite app_assoc_reverse in Hcut;
           rewrite (Permutation_app_comm x M) in Hcut;
           rewrite app_assoc in Hcut
@@ -430,7 +430,7 @@ decomposition (telling how to rebuild the proof from the presmies. *)
           (* Using the IH to obtain the cut-free proof *)
           assert (Hcut : seq (OLTheoryCut (pred n)) (Gamma ++ x0) (M ++ (M0 ++ x)) (> [])) 
             by (
-                eapply IH with (m:=  plus x2 (S (S x1))) (FCut := A) (h1 := (S (S x1))) (h2 := x2);auto;try omega;IsPositiveLSolve);
+                eapply IH with (m:=  plus x2 (S (S x1))) (FCut := A) (h1 := (S (S x1))) (h2 := x2);auto;try lia;IsPositiveLSolve);
           (* rebuilding the derivation from the cut-free proof *)
           rewrite app_assoc in Hcut;
           (* working on the second derivation *)
@@ -440,7 +440,7 @@ decomposition (telling how to rebuild the proof from the presmies. *)
           (* Using the IH to obtain the cut-free proof *)
           assert (Hcut : seq (OLTheoryCut (pred n)) (Gamma ++ x0) ( (M0 ++ x) ++ M) (> [])) 
             by (
-                eapply IH with (m:=  plus x2 (S (S x1))) (FCut := A) (h2 := (S (S x1))) (h1 := x2);auto;try omega; try IsPositiveLSolve) ;
+                eapply IH with (m:=  plus x2 (S (S x1))) (FCut := A) (h2 := (S (S x1))) (h1 := x2);auto;try lia; try IsPositiveLSolve) ;
           (* rebuilding the derivation from the cut-free proof *)
           rewrite (Permutation_app_comm M0 x) in Hcut;
           rewrite app_assoc_reverse in Hcut;
@@ -825,7 +825,7 @@ decomposition (telling how to rebuild the proof from the presmies. *)
     intros.
     inversion H4;subst.
     inversion H5;subst. inversion H7.
-    destruct n ;[ omega | simpl].
+    destruct n ;[ lia | simpl].
     apply seqtoSeqN in H2.     apply seqtoSeqN in H3.
     destruct H2 as [h1 H2].
     destruct H3 as [h2 H3].
@@ -873,7 +873,7 @@ decomposition (telling how to rebuild the proof from the presmies. *)
     intros.
     inversion H4;subst.
     inversion H5;subst. inversion H7.
-    destruct n ;[ omega | simpl].
+    destruct n ;[ lia | simpl].
     apply seqtoSeqN in H2.     apply seqtoSeqN in H3.
     destruct H2 as [h1 H2].
     destruct H3 as [h2 H3].
@@ -931,7 +931,7 @@ decomposition (telling how to rebuild the proof from the presmies. *)
     assert (ext_eq FX FX1). eapply lbindEq;eauto.
     assert (ext_eq FX FX2). eapply lbindEq;eauto.  rewrite <- H9. auto.
     inversion H6...
-    destruct n ;[ omega | simpl].
+    destruct n ;[ lia | simpl].
     assert (ext_eq FX M0). eapply lbindEq;eauto.
     generalize ( ( proj2 ( proj2 ( proj2 (proj1 LTWell)))) C) ;intro CutC.
     assert (Hsize: lengthUexp (FX (Var 0)) n0).
@@ -1306,7 +1306,7 @@ decomposition (telling how to rebuild the proof from the presmies. *)
 
     induction h using strongind;intros.
     (* base case... there is no proof of size 0 *)
-    assert (h1 = 0) by omega ...
+    assert (h1 = 0) by lia ...
     inversion Hseq1.
     
     (* Inductive case *)
@@ -2377,7 +2377,7 @@ decomposition (telling how to rebuild the proof from the presmies. *)
       apply OOTheryCut0.
 
       destruct m.
-      generalize(LengthFormula H7 H8);intro;omega.
+      generalize(LengthFormula H7 H8);intro;lia.
       assert (seq (OLTheoryCut (pred  (S (n)))) B (M ++ N0) (> [])) .
       rewrite Permutation_app_comm.
       eapply OLCutElimStep;eauto...

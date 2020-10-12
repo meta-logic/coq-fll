@@ -326,7 +326,7 @@ Section Bipoles.
     intros.
     split;intro H ;inversion H;subst;auto.
     inversion H0.
-    assert (m =  0) by omega;subst.
+    assert (m =  0) by lia;subst.
     generalize (LengthFormula H1 H2);intro.
     lia.
   Qed.

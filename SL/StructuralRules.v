@@ -265,6 +265,16 @@ Section FLLBasicTheory.
       repeat constructor.
       apply tri_init1.
     Qed.
+    
+    Theorem InitPosNegN' : forall Gamma A,
+        seqN theory 2 Gamma [perp A ; atom A ] (UP []).
+      intros.
+      eapply tri_dec1 with (F:= (perp A )).
+      intro;inversion H.
+      repeat constructor.
+      apply tri_init1.
+    Qed.
+    
 
     Theorem InitPosNegDw : forall Gamma A,
         seq theory Gamma [perp A ] (DW (atom A)).
@@ -287,6 +297,16 @@ Section FLLBasicTheory.
       repeat constructor.
       apply tri_init1'.
     Qed.
+
+    Theorem InitPosNeg' : forall Gamma A,
+        seq theory Gamma [perp A ; atom A ] (UP []).
+      intros.
+      eapply tri_dec1' with (F:= (perp A)).
+      intro;inversion H.
+      repeat constructor.
+      apply tri_init1'.
+    Qed.
+    
   End AdmissibleRules.
 
   (** Some simple invertibility lemmas *)
@@ -376,14 +396,14 @@ Section FLLBasicTheory.
       + inversion H ...
       + inversion H;subst; try mgt0;intuition.
         (* tensor *)
-        eapply tri_tensor;eauto;eapply IHn;try omega ...
+        eapply tri_tensor;eauto;eapply IHn;try lia ...
         
         (* dec *)
-        eapply @tri_dec1 with (F:=F);eauto;eapply IHn;try omega...
-        eapply @tri_dec2 with (F:=F);eauto;eapply IHn;try omega...
-        eapply @tri_dec3 with (F:=F);eauto;eapply IHn;try omega...
+        eapply @tri_dec1 with (F:=F);eauto;eapply IHn;try lia...
+        eapply @tri_dec2 with (F:=F);eauto;eapply IHn;try lia...
+        eapply @tri_dec3 with (F:=F);eauto;eapply IHn;try lia...
         (* exists*)
-        eapply tri_ex;eauto;eapply IHn;try omega ...
+        eapply tri_ex;eauto;eapply IHn;try lia...
     Qed.
 
     (** HeightGeq with Exchange Linear Context *)

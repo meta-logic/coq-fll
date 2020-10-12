@@ -29,7 +29,7 @@ Section InvNPhase .
   Proof.
     intros.
     assert(complexity l > 0%nat) by (apply Complexity0).
-    omega.
+    lia.
   Qed.
   
   Theorem EquivAuxBot :  forall CC LC M M',
@@ -57,7 +57,7 @@ Section InvNPhase .
           end.
     assert (Hvar : proper (VAR con 0)) by constructor.
     generalize (ComplexityUniformEq H5 properX Hvar);intro.
-    omega.
+    lia.
   Qed.
 
   Theorem EquivAuxWith :  forall F G CC LC M M',
@@ -349,7 +349,7 @@ Section InvNPhase .
         
         destruct H2 as [Heq | Heq].
         ++ destruct Heq;subst.
-           inversion H0;subst;try(simpl in Heqw; inversion Heqw; subst;simpl;try(omega)).
+           inversion H0;subst;try(simpl in Heqw; inversion Heqw; subst;simpl;try(lia)).
            +++  (* top *)
              eapply tri_top'.
            +++ (* bottom *)
@@ -366,17 +366,17 @@ Section InvNPhase .
              apply ForallApp;auto.
              apply ForallApp;auto.
              
-             simpl. omega.
+             simpl. lia.
            +++ (* with *)
              eapply IH with (m:= complexityL (F::L)) (L:= F ::L) (L' := F :: L') in H8;auto.
              eapply IH with (m:= complexityL (G::L)) (L := G :: L) (L' := G :: L') in H9;auto.
              apply tri_with';auto.
-             simpl. omega.
+             simpl. lia.
              inversion H;subst.
              inversion H5;subst.
              change (G :: L') with ([G] ++ L').
              apply ForallApp;auto.
-             simpl. omega.
+             simpl. lia.
              inversion H;subst.
              inversion H5;subst.
              change (F :: L') with ([F] ++ L').
@@ -384,13 +384,13 @@ Section InvNPhase .
            +++  (* quest *)
              eapply IH with (m:= complexityL L) (L' :=L') in H7;auto.
              apply tri_quest';auto.
-             omega.
+             lia.
              inversion H;subst;auto.
            +++  (* store *)
              eapply IH with (m:= complexityL L) (L' :=L') in H9;auto.
              apply tri_store';auto.
              assert (complexity l' > 0) by (apply Complexity0).
-             omega.
+             lia.
              inversion H;subst;auto.
            +++ (* forall *)
              eapply tri_fx';auto;intros.
@@ -647,12 +647,12 @@ Section InvNPhase .
       ++ (* bot *)
         apply IH with (m:= complexityL L) in H5;auto.
         destruct H5 as [n'  [IHn IHd]].
-        exists (S n');split;auto. omega. simpl. eapply tri_bot;auto.
+        exists (S n');split;auto. lia. simpl. eapply tri_bot;auto.
       ++  (* PAR *)
         apply IH with (m:= complexity F0 + complexity  G + complexityL  L) in H5;auto.
         destruct H5 as [n'  [IHn IHd]].
-        exists (S n');split;auto. omega. simpl. eapply tri_par;auto.
-        simpl. omega.
+        exists (S n');split;auto. lia. simpl. eapply tri_par;auto.
+        simpl. lia.
       ++ (* with *)
         apply IH with (m:= complexity  F0 + complexityL  L) in H6;try lia;auto.
         apply IH with (m:= complexity  G + complexityL L) in H7;try lia;auto.
@@ -670,8 +670,8 @@ Section InvNPhase .
       ++  (* quest *)
         apply IH with (m:= complexityL  L) in H5;auto.
         destruct H5 as [n'  [IHn IHd]].
-        exists (S n');split;auto. omega. simpl; eauto.
-        omega.
+        exists (S n');split;auto. lia. simpl; eauto.
+        lia.
       ++ (* Store *)
         assert(exists m0 : nat, m0 <= S n0 /\ m0 |--- B; M ++ [o]; UP (L ++ [F])).
         apply IH with (m:= complexityL L);auto.
@@ -686,7 +686,7 @@ Section InvNPhase .
         perm.
         
         destruct H1 as [n'  [IHn IHd]].
-        exists (S n');split;auto. omega. simpl;eauto.
+        exists (S n');split;auto. lia. simpl;eauto.
         
       ++  (* FORALL *)
         assert(forall x, proper x -> exists m, m <= S n0 /\  m |--- B; M; UP ((FX x :: L)  ++ [F])).
@@ -701,7 +701,7 @@ Section InvNPhase .
         lia.
         
         exists (S (S n0)). split.
-        omega.
+        lia.
         simpl.
         eapply tri_fx;auto. intros.
         

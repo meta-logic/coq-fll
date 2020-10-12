@@ -1035,7 +1035,7 @@ Section Bipoles.
   Proof with solveF.
     intros F Hn.
     inversion Hn...
-    generalize (LengthFormula H H0); intro. omega.
+    generalize (LengthFormula H H0); intro. lia.
   Qed.
   
   
@@ -1200,8 +1200,8 @@ Section Bipoles.
     intros.
     split;intro H ;inversion H;subst;auto.
     inversion H0.
-    assert (m =  0) by omega;subst.
-    generalize (LengthFormula H1 H2);intro. omega.
+    assert (m =  0) by lia;subst.
+    generalize (LengthFormula H1 H2);intro. lia.
   Qed.
 
   Lemma TheoryEmb1 : forall n F  , OLTheory F -> (OLTheoryCut n) F.

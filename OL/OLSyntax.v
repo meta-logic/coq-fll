@@ -136,11 +136,11 @@ Section OLSyntax.
   Lemma LengthFormula : forall F n, isOLFormula F -> lengthUexp F n -> n > 0.
     intros.
     induction H;simpl.
-    - inversion H0; omega.
-    - inversion H;subst. inversion H0;omega.
-    - inversion H0;subst;  omega.
-    - inversion H0; omega.
-    - inversion H0; omega.
+    - inversion H0; lia.
+    - inversion H;subst. inversion H0;lia.
+    - inversion H0;subst;  lia.
+    - inversion H0; lia.
+    - inversion H0; lia.
   Qed.
 
   Lemma lengthAtom : forall id t, isOLFormula (t_atom id t)  -> lengthUexp (t_atom id t) 1.
@@ -170,7 +170,7 @@ Section OLSyntax.
 
   (** [lengthUexp] is indeed a function *)
   Lemma lengthFunction : forall n F , isOLFormula F -> lengthUexp F n -> forall n', lengthUexp F n' -> n = n'.
-  Proof with auto;subst;try omega.
+  Proof with auto;subst;try lia.
     induction n using strongind;intros ...
     apply LengthFormula in H0...
     
@@ -185,7 +185,7 @@ Section OLSyntax.
     inversion H2...
     inversion H1...
     assert (n = n1). eapply H with (F:= F0)...
-    omega.
+    lia.
  
     inversion H2...
     inversion H1...
@@ -194,7 +194,7 @@ Section OLSyntax.
     
     assert (n3 = n2).
     eapply H with (F:= G)...
-    omega.
+    lia.
 
     inversion H2...
     inversion H1...
@@ -217,7 +217,7 @@ Section OLSyntax.
     
     generalize (H10 (Var 0) H13);intro...
     rewrite H14 in H9...
-    omega.
+    lia.
   Qed.
 
     
@@ -226,7 +226,7 @@ Section OLSyntax.
       isOLFormula F -> isOLFormula G ->
       lengthUexp (t_bin C F G) n -> lengthUexp F n' ->
       n' < n.
-  Proof with auto;subst;try omega.
+  Proof with auto;subst;try lia.
     intros.
     inversion H1... 
     generalize (lengthFunction H H7);intros.
@@ -238,7 +238,7 @@ Section OLSyntax.
                        lengthUexp (t_bin C F G) n ->
                        lengthUexp G n' ->
                        n' < n.
-    Proof with auto;subst;try omega.
+    Proof with auto;subst;try lia.
     intros.
     inversion H1...
     generalize (lengthFunction H0 H8);intros.
@@ -252,16 +252,16 @@ Section OLSyntax.
     intros.
     inversion H ...
     - inversion H0...
-      generalize (LengthFormula H1 H3);omega.
+      generalize (LengthFormula H1 H3);lia.
     - inversion H0...
-      assert (n1 = 0) by omega.
-      generalize (LengthFormula H2 H8);intro. omega.
+      assert (n1 = 0) by lia.
+      generalize (LengthFormula H2 H8);intro. lia.
     -  inversion H0 ...
        generalize (lbindEq  H6  H1 H4);intro.
        assert (proper (Var 0)). constructor.
        generalize (H3 _ H5);intro. rewrite H8 in H7.
        apply H2 in H5.
-       generalize (LengthFormula H5 H7 );omega.
+       generalize (LengthFormula H5 H7 );lia.
        
   Qed.
 

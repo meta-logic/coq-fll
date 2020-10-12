@@ -1664,7 +1664,7 @@ proper t -> *)
         simpl. apply tri_bot'.
         apply EquivUpArrow2 with (L:= L1 ++ L2) (L' := L2 ++ L1);eauto ...
         apply ForallApp;auto.
-        assert(HUp : RUpTensor(n' + n)) by (apply IH;omega) ...
+        assert(HUp : RUpTensor(n' + n)) by (apply IH;lia) ...
         eapply HUp with(n0:=n') (m:=n) ...
       +
         simpl. apply tri_par'.
@@ -1672,7 +1672,7 @@ proper t -> *)
         inversion isFl...
         change  (F0 :: G0 :: L2 ++ L1) with  ((F0 :: G0 :: L2) ++ L1).
         apply ForallApp;auto.
-        assert(HUp : RUpTensor(n' + n)) by (apply IH;omega) ...
+        assert(HUp : RUpTensor(n' + n)) by (apply IH;lia) ...
         eapply HUp with(n0:=n') (m:=n) ...
         inversion isFl...
       +
@@ -1683,7 +1683,7 @@ proper t -> *)
         change  (F0 :: L2 ++ L1) with  ((F0 :: L2) ++ L1).
         apply ForallApp;auto.
 
-        assert(HUp : RUpTensor(n' + n)) by (apply IH;omega) ...
+        assert(HUp : RUpTensor(n' + n)) by (apply IH;lia) ...
         eapply HUp with(n0:=n') (m:=n) ...
 
         inversion isFl...
@@ -1695,7 +1695,7 @@ proper t -> *)
         apply ForallApp;auto.
 
 
-        assert(HUp : RUpTensor(n' + n)) by (apply IH;omega) ...
+        assert(HUp : RUpTensor(n' + n)) by (apply IH;lia) ...
         eapply HUp with(n0:=n') (m:=n) ...
         inversion isFl...
       +
@@ -1704,7 +1704,7 @@ proper t -> *)
 
         apply ForallApp;auto.
 
-        assert(HUp : RUpTensor(n' + n)) by (apply IH;omega) ...
+        assert(HUp : RUpTensor(n' + n)) by (apply IH;lia) ...
         eapply HUp with(n0:=n') (m:=n) ...
         inversion isFl...
         apply ForallApp;auto.
@@ -1716,7 +1716,7 @@ proper t -> *)
 
         apply ForallApp;auto.
 
-        assert(HUp : RUpTensor(n' + n)) by (apply IH;omega). 
+        assert(HUp : RUpTensor(n' + n)) by (apply IH;lia). 
         assert(|-- B; M1 ++ (M2 ++ [l]) ++ [F ** G]; (> L1 ++ L2)).
         eapply HUp with(n0:=n') (m:=n) ...
 
@@ -1727,7 +1727,7 @@ proper t -> *)
         simpl. apply tri_fx'...
         intros.
         generalize (H5 x H);intro.
-        assert(HUp : RUpTensor(n' + n)) by (apply IH;omega).
+        assert(HUp : RUpTensor(n' + n)) by (apply IH;lia).
 
         apply EquivUpArrow2 with (L:= L1 ++ FX x ::L2) (L' := FX x :: L2 ++ L1);eauto ...
 
@@ -1801,9 +1801,9 @@ proper t -> *)
           apply Remove_app_in.
 
           assert(IH2 : RIndTensor(n + S n0)) by(  apply IH;auto); destruct IH2 as [HUp HDw].
-          assert(Hn : n + S n0 -1 = n + n0) by omega;rewrite Hn in HDw;clear Hn.
+          assert(Hn : n + S n0 -1 = n + n0) by lia;rewrite Hn in HDw;clear Hn.
           assert(|-- B;x ++ M1 ++ [G ** F]; (>> F0)).
-          eapply HDw with (m:= n) (n1:= n0);try(omega)...
+          eapply HDw with (m:= n) (n1:= n0);try(lia)...
           change  (F0 :: x) with  ([F0]++x) in H0. 
           rewrite H0 in HM2.
           apply ForallAppInv2 in HM2...
@@ -1841,10 +1841,10 @@ proper t -> *)
           ++ 
             assert(IH2 : RIndTensor(n + S n0)) by(  apply IH;auto);
               destruct IH2 as [HUp HDw].
-            assert(Hn : n + S n0 -1 = n + n0) by omega;rewrite Hn in HDw;clear Hn.
+            assert(Hn : n + S n0 -1 = n + n0) by lia;rewrite Hn in HDw;clear Hn.
             eapply tri_dec2' with (F1:=F0) ...
             assert(|-- B; M2 ++ M1 ++ [G ** F]; (>> F0)).
-            eapply HDw with (m:= n) (n1:= n0);try(omega)...
+            eapply HDw with (m:= n) (n1:= n0);try(lia)...
 
             apply isFormulaIn in H0...
             inversion isFMT...
@@ -1855,10 +1855,10 @@ proper t -> *)
           ++ 
             assert(IH2 : RIndTensor(n + S n0)) by(  apply IH;auto);
               destruct IH2 as [HUp HDw].
-            assert(Hn : n + S n0 -1 = n + n0) by omega;rewrite Hn in HDw;clear Hn.
+            assert(Hn : n + S n0 -1 = n + n0) by lia;rewrite Hn in HDw;clear Hn.
             eapply tri_dec3' with (F1:=F0) ...
             assert(|-- B; M2 ++ M1 ++ [G ** F]; (>> F0)).
-            eapply HDw with (m:= n) (n1:= n0);try(omega)...
+            eapply HDw with (m:= n) (n1:= n0);try(lia)...
             inversion isFMT...
             assert(|-- B; (M1 ++ M2) ++ [F ** G]; (>> F0)).
             apply TensorComm'.
@@ -1888,7 +1888,7 @@ proper t -> *)
         inversion H;subst;inversion AG...
         assert(~asynchronous F) by auto using IsPositiveAtomNotAssync.
         inversion HD2;subst ...
-        eapply ITAsyncSync with (nm:=nm) (n:= S n) (m:= m) ;eauto. omega.
+        eapply ITAsyncSync with (nm:=nm) (n:= S n) (m:= m) ;eauto. lia.
       + (* G is a positive atom *)
         assert(~asynchronous G) by auto using IsPositiveAtomNotAssync.
         assert(~asynchronous F).
@@ -1896,7 +1896,7 @@ proper t -> *)
         inversion H0;subst;inversion AF...
         inversion HD1;subst ...
         assert(|-- B; M2 ++ M1 ++ [G ** F]; (> [])).
-        eapply ITAsyncSync with (nm:=nm) (n:= S m) (m:= n) ;eauto. omega.
+        eapply ITAsyncSync with (nm:=nm) (n:= S m) (m:= n) ;eauto. lia.
         inversion isFT...
         assert(|-- B; (M1 ++ M2) ++ [F ** G]; (> [])).
         apply TensorComm'.
@@ -1926,9 +1926,9 @@ proper t -> *)
           eapply Remove_Permutation_Ex2 with (M:=M2) in H13.
           do 2 destruct H13.
 
-          assert (IH' : RIndTensor (S n + S (S n0))) by ( apply IH; omega).
+          assert (IH' : RIndTensor (S n + S (S n0))) by ( apply IH; lia).
           destruct IH' as [HUp  HDw].
-          assert(Hn : S n + S (S n0) - 1 = n + S (S n0)) by omega;rewrite Hn in HDw;clear Hn.
+          assert(Hn : S n + S (S n0) - 1 = n + S (S n0)) by lia;rewrite Hn in HDw;clear Hn.
           eapply tri_dec1' with (F2:= F1) (L'1:= M1 ++ x1 ++ [F ** G])...
           do  2 rewrite app_assoc.
           apply Remove_app_tail.
@@ -1973,9 +1973,9 @@ proper t -> *)
           apply Remove_app_tail.
           apply Remove_app_tail...
 
-          assert (IH' : RIndTensor (S n0 + S (S n))) by ( apply IH; omega).
+          assert (IH' : RIndTensor (S n0 + S (S n))) by ( apply IH; lia).
           destruct IH' as [HUp  HDw].
-          assert(Hn : S n0 + S (S n) - 1 = n0 + S (S n)) by omega;rewrite Hn in HDw;clear Hn.
+          assert(Hn : S n0 + S (S n) - 1 = n0 + S (S n)) by lia;rewrite Hn in HDw;clear Hn.
           eapply  HDw with (n1:= n0) (m:= S ( S n))...
           apply Remove_Permute in H5;auto.
           rewrite H5 in HM1.
@@ -2009,10 +2009,10 @@ proper t -> *)
           do 2 apply Remove_app_tail;auto.
 
 
-          assert (IH' : RIndTensor (S n0 + S (S n))) by ( apply IH; omega).
+          assert (IH' : RIndTensor (S n0 + S (S n))) by ( apply IH; lia).
           destruct IH' as [HUp  HDw].
-          assert(Hn : S n0 + S (S n) - 1 = n0 + S (S n)) by omega;rewrite Hn in HDw;clear Hn.
-          eapply  HDw with (n1:= n) (m:= S ( S n0))... omega.
+          assert(Hn : S n0 + S (S n) - 1 = n0 + S (S n)) by lia;rewrite Hn in HDw;clear Hn.
+          eapply  HDw with (n1:= n) (m:= S ( S n0))... lia.
           apply Remove_Permute in H2;auto.
           rewrite H2 in HM2.
           inversion HM2...
@@ -2059,9 +2059,9 @@ proper t -> *)
           perm.
         ++  (* DEC 1 DEC 2 *)
           eapply tri_dec2' with (F2:=F1) ...
-          assert (IH' : RIndTensor (S n + S (S n0))) by ( apply IH; omega).
+          assert (IH' : RIndTensor (S n + S (S n0))) by ( apply IH; lia).
           destruct IH' as [HUp  HDw].
-          assert(Hn : S n + S (S n0) - 1 = n + S (S n0)) by omega;rewrite Hn in HDw;clear Hn.
+          assert(Hn : S n + S (S n0) - 1 = n + S (S n0)) by lia;rewrite Hn in HDw;clear Hn.
           assert(|-- B; M2 ++ M1 ++ [G ** F]; (>> F1)).
           eapply  HDw with (n1:= n) (m:= S ( S n0))...
           apply isFormulaIn in H5...
@@ -2073,9 +2073,9 @@ proper t -> *)
           refine(exchangeLC _ H11);perm.
         ++ (* DEC 1 DEC 3 *)
           eapply tri_dec3' with (F2:=F1) ...
-          assert (IH' : RIndTensor (S n + S (S n0))) by ( apply IH; omega).
+          assert (IH' : RIndTensor (S n + S (S n0))) by ( apply IH; lia).
           destruct IH' as [HUp  HDw].
-          assert(Hn : S n + S (S n0) - 1 = n + S (S n0)) by omega;rewrite Hn in HDw;clear Hn.
+          assert(Hn : S n + S (S n0) - 1 = n + S (S n0)) by lia;rewrite Hn in HDw;clear Hn.
           assert(|-- B; M2 ++ M1 ++ [G ** F]; (>> F1)).
           eapply  HDw with (n1:= n) (m:= S ( S n0))...
           inversion isFT...
@@ -2084,43 +2084,43 @@ proper t -> *)
           refine(exchangeLC _ H11);perm.
         ++ (* DEC 2 DEC 1 *)
           eapply tri_dec2' with (F2:=F0) ...
-          assert (IH' : RIndTensor (S n + S (S n0))) by ( apply IH; omega).
+          assert (IH' : RIndTensor (S n + S (S n0))) by ( apply IH; lia).
           destruct IH' as [HUp  HDw].
-          assert(Hn : S n + S (S n0) - 1 = n + S (S n0)) by omega;rewrite Hn in HDw;clear Hn.
+          assert(Hn : S n + S (S n0) - 1 = n + S (S n0)) by lia;rewrite Hn in HDw;clear Hn.
 
-          eapply  HDw with (n1:= n0) (m:= S ( S n))... omega.
+          eapply  HDw with (n1:= n0) (m:= S ( S n))... lia.
           apply isFormulaIn  in H2...
         ++ (* DEC 2 DEC 2 *)
           eapply tri_dec2' with (F2:=F0) ...
-          assert (IH' : RIndTensor (S n0 + S (S n))) by ( apply IH; omega).
+          assert (IH' : RIndTensor (S n0 + S (S n))) by ( apply IH; lia).
           destruct IH' as [HUp  HDw].
-          assert(Hn : S n0 + S (S n) - 1 = n0 + S (S n)) by omega;rewrite Hn in HDw;clear Hn.
+          assert(Hn : S n0 + S (S n) - 1 = n0 + S (S n)) by lia;rewrite Hn in HDw;clear Hn.
           eapply  HDw with (n1:= n0) (m:= S ( S n))... 
           apply isFormulaIn  in H2...
         ++ (* DEC 2 DEC 3 *)
           eapply tri_dec2' with (F2:=F0) ...
-          assert (IH' : RIndTensor (S n0 + S (S n))) by ( apply IH; omega).
+          assert (IH' : RIndTensor (S n0 + S (S n))) by ( apply IH; lia).
           destruct IH' as [HUp  HDw].
-          assert(Hn : S n0 + S (S n) - 1 = n0 + S (S n)) by omega;rewrite Hn in HDw;clear Hn.
+          assert(Hn : S n0 + S (S n) - 1 = n0 + S (S n)) by lia;rewrite Hn in HDw;clear Hn.
           eapply  HDw with (n1:= n0) (m:= S ( S n))... 
           apply isFormulaIn  in H2...
         ++ (* DEC 3 DEC 1 *)  
           eapply tri_dec3' with (F2:=F0) ...
-          assert (IH' : RIndTensor (S n0 + S (S n))) by ( apply IH; omega).
+          assert (IH' : RIndTensor (S n0 + S (S n))) by ( apply IH; lia).
           destruct IH' as [HUp  HDw].
-          assert(Hn : S n0 + S (S n) - 1 = n0 + S (S n)) by omega;rewrite Hn in HDw;clear Hn.
+          assert(Hn : S n0 + S (S n) - 1 = n0 + S (S n)) by lia;rewrite Hn in HDw;clear Hn.
           eapply  HDw with (n1:= n0) (m:= S ( S n))...
         ++ (* DEC 3 DEC 2 *)  
           eapply tri_dec3' with (F2:=F0) ...
-          assert (IH' : RIndTensor (S n0 + S (S n))) by ( apply IH; omega).
+          assert (IH' : RIndTensor (S n0 + S (S n))) by ( apply IH; lia).
           destruct IH' as [HUp  HDw].
-          assert(Hn : S n0 + S (S n) - 1 = n0 + S (S n)) by omega;rewrite Hn in HDw;clear Hn.
+          assert(Hn : S n0 + S (S n) - 1 = n0 + S (S n)) by lia;rewrite Hn in HDw;clear Hn.
           eapply  HDw with (n1:= n0) (m:= S ( S n))...
         ++ (* DEC 3 DEC 3 *)  
           eapply tri_dec3' with (F2:=F0) ...
-          assert (IH' : RIndTensor (S n0 + S (S n))) by ( apply IH; omega).
+          assert (IH' : RIndTensor (S n0 + S (S n))) by ( apply IH; lia).
           destruct IH' as [HUp  HDw].
-          assert(Hn : S n0 + S (S n) - 1 = n0 + S (S n)) by omega;rewrite Hn in HDw;clear Hn.
+          assert(Hn : S n0 + S (S n) - 1 = n0 + S (S n)) by lia;rewrite Hn in HDw;clear Hn.
           eapply  HDw with (n1:= n0) (m:= S ( S n))...
     Qed.
 
@@ -2144,19 +2144,19 @@ proper t -> *)
                 else idtac;eauto
               end)...
 
-        eapply ITAsyncSync with  (nm := nm) (n:= n') (m:=n0) ;try omega;solveF;eauto.
+        eapply ITAsyncSync with  (nm := nm) (n:= n') (m:=n0) ;try lia;solveF;eauto.
         left;constructor.
 
-        eapply ITAsyncSync with  (nm := nm) (n:= S n) (m:=n0) ;try omega;solveF;eauto.
+        eapply ITAsyncSync with  (nm := nm) (n:= S n) (m:=n0) ;try lia;solveF;eauto.
         left;constructor.
 
-        eapply ITAsyncSync with  (nm := nm) (n:= S n) (m:=n0) ;try omega;solveF;eauto.
+        eapply ITAsyncSync with  (nm := nm) (n:= S n) (m:=n0) ;try lia;solveF;eauto.
         left;constructor.
 
-        eapply ITAsyncSync with  (nm := nm) (n:= S n) (m:=n0) ;try omega;solveF;eauto.
+        eapply ITAsyncSync with  (nm := nm) (n:= S n) (m:=n0) ;try lia;solveF;eauto.
         left;constructor.
 
-        eapply ITAsyncSync with  (nm := nm) (n:= S n) (m:=n0) ;try omega;solveF;eauto.
+        eapply ITAsyncSync with  (nm := nm) (n:= S n) (m:=n0) ;try lia;solveF;eauto.
         left;constructor.
 
         assert(|-- B; M2 ++ M1 ++ [F ** top]; (> [])).
@@ -2164,7 +2164,7 @@ proper t -> *)
         apply TensorComm'.
         rewrite <- app_assoc.
 
-        eapply ITAsyncSync with  (nm := nm) (n:= m') (m:=n) ;try omega;solveF;eauto.
+        eapply ITAsyncSync with  (nm := nm) (n:= m') (m:=n) ;try lia;solveF;eauto.
         left;constructor.
         inversion isFT...
 
@@ -2175,7 +2175,7 @@ proper t -> *)
         apply TensorComm'.
         rewrite <- app_assoc.
 
-        eapply ITAsyncSync with  (nm := nm) (n:= S n0) (m:=n) ;try omega;solveF;eauto.
+        eapply ITAsyncSync with  (nm := nm) (n:= S n0) (m:=n) ;try lia;solveF;eauto.
         left;constructor.
         inversion isFT...
 
@@ -2186,7 +2186,7 @@ proper t -> *)
         apply TensorComm'.
         rewrite <- app_assoc.
 
-        eapply ITAsyncSync with  (nm := nm) (n:=S n0) (m:=n) ;try omega;solveF;eauto.
+        eapply ITAsyncSync with  (nm := nm) (n:=S n0) (m:=n) ;try lia;solveF;eauto.
         left;constructor.
         inversion isFT...
 
@@ -2197,7 +2197,7 @@ proper t -> *)
         apply TensorComm'.
         rewrite <- app_assoc.
 
-        eapply ITAsyncSync with  (nm := nm) (n:=S n0) (m:=n) ;try omega;solveF;eauto.
+        eapply ITAsyncSync with  (nm := nm) (n:=S n0) (m:=n) ;try lia;solveF;eauto.
         left;constructor.
         inversion isFT...
 
@@ -2208,7 +2208,7 @@ proper t -> *)
         apply TensorComm'.
         rewrite <- app_assoc.
 
-        eapply ITAsyncSync with  (nm := nm) (n:=S n0) (m:=n) ;try omega;solveF;eauto.
+        eapply ITAsyncSync with  (nm := nm) (n:=S n0) (m:=n) ;try lia;solveF;eauto.
         left;constructor.
         inversion isFT...
 
@@ -2222,13 +2222,13 @@ proper t -> *)
         apply TensorComm'.
         rewrite <- app_assoc.
 
-        eapply ITAsyncSync with  (nm := nm) (n:=S n0) (m:=n) ;try omega;solveF;eauto.
+        eapply ITAsyncSync with  (nm := nm) (n:=S n0) (m:=n) ;try lia;solveF;eauto.
         left;constructor.
         inversion isFT...
 
         refine(exchangeLC _ H);perm.
 
-        eapply ITAsyncSync with  (nm := nm) (n:=S n) (m:=n0) ;try omega;solveF;eauto.
+        eapply ITAsyncSync with  (nm := nm) (n:=S n) (m:=n0) ;try lia;solveF;eauto.
         left;constructor.
       + (* L1 is empty and L2 is not empty *)
         eapply InvTensorConsNil with (nm:=nm) (n':=n') (m':=m') (L1 := [])...
@@ -2236,7 +2236,7 @@ proper t -> *)
         inversion isFF...
       + (* L1 is not empty and L2 is empty *)
         assert( |-- B; M2 ++ M1 ++ [G ** F]; UP ([] ++ o :: L1 )).
-        eapply InvTensorConsNil with (nm:=nm) (n':=m') (m':=n') ... omega.
+        eapply InvTensorConsNil with (nm:=nm) (n':=m') (m':=n') ... lia.
         inversion isFT...
         inversion isFG...
         inversion isFG...
@@ -2272,13 +2272,13 @@ proper t -> *)
         destruct H1.
         ++ 
           destruct H...
-          assert(HRI: RIndTensor (S m + n1)).  apply IH. omega. 
+          assert(HRI: RIndTensor (S m + n1)).  apply IH. lia. 
           destruct HRI as [HUp  HDown] ...
           simpl in HDown.
           rewrite Nat.sub_0_r in HDown.    
           eapply tri_tensor' with (N0:=N ) (M1:=x ++ M' ++ [F ** G])...
           rewrite <- H0. perm.
-          eapply HDown with (n:=n1) (m0:=m)... omega.
+          eapply HDown with (n:=n1) (m0:=m)... lia.
 
           rewrite <- H0 in HM1pos.
           apply ForallAppInv1 in HM1pos...
@@ -2289,7 +2289,7 @@ proper t -> *)
           apply seqNtoSeq in H6;auto.
         ++ 
           destruct H...
-          assert(HRI: RIndTensor (S m + n1)).  apply IH. omega. 
+          assert(HRI: RIndTensor (S m + n1)).  apply IH. lia. 
 
           destruct HRI as [HUp  HDown] ...
           simpl in HDown.
@@ -2297,7 +2297,7 @@ proper t -> *)
           eapply tri_tensor' with (N0:=x ++ M' ++ [F ** G] ) (M1:=M0 )...
           rewrite <- H0. perm.
           apply seqNtoSeq in H2;auto.  
-          eapply HDown with (n:=n1) (m0:=m)... omega.
+          eapply HDown with (n:=n1) (m0:=m)... lia.
 
           rewrite <- H0 in HM1pos.
           apply ForallAppInv2 in HM1pos...
@@ -2306,22 +2306,22 @@ proper t -> *)
           inversion isFH...
           rewrite <- H;auto.
       +
-        assert(HRI: RIndTensor (S m +n1)) by (apply IH ; omega).
+        assert(HRI: RIndTensor (S m +n1)) by (apply IH ; lia).
         destruct HRI as [HUp  HDown] ...
-        assert(Hn : S m + n1 -1 =  m + n1) by omega;rewrite Hn in HDown;clear Hn.
+        assert(Hn : S m + n1 -1 =  m + n1) by lia;rewrite Hn in HDown;clear Hn.
         apply tri_plus1'. 
         eapply HDown  with (n:=n1)... 
         3:{ exact HD2. }
-        omega.
+        lia.
         inversion isFH...
       +
-        assert(HRI: RIndTensor (S m +n1)) by (apply IH ; omega).
+        assert(HRI: RIndTensor (S m +n1)) by (apply IH ; lia).
         destruct HRI as [HUp  HDown] ...
-        assert(Hn : S m + n1 -1 =  m + n1) by omega;rewrite Hn in HDown;clear Hn.
+        assert(Hn : S m + n1 -1 =  m + n1) by lia;rewrite Hn in HDown;clear Hn.
         apply tri_plus2'. 
         eapply HDown  with (n:=n1)... 
         3:{ exact HD2. }
-        omega.
+        lia.
         inversion isFH...
       + solveList.
       +
@@ -2329,20 +2329,20 @@ proper t -> *)
         destruct H5.
         destruct H0.
 
-        assert(HRI: RIndTensor (m + x)). apply IH. omega.
+        assert(HRI: RIndTensor (m + x)). apply IH. lia.
         eapply tri_rel' ...
         destruct HRI as [HUp  HDown]. clear HDown.
         assert(|-- B; M ++ M' ++ [F ** G]; UP ( [H] ++ [])).
-        eapply HUp with (n:= x )(m0:= m) ... omega.
+        eapply HUp with (n:= x )(m0:= m) ... lia.
         rewrite app_nil_r in H3;auto.
         apply PosConc...
       +   
-        assert(HRI: RIndTensor (m + S n1 )) by ( apply IH;omega).
+        assert(HRI: RIndTensor (m + S n1 )) by ( apply IH;lia).
         destruct HRI as [HUp  HDown] ...
-        assert(Hn : m + S n1 -1 =  m + n1) by omega;rewrite Hn in HDown;clear Hn.
+        assert(Hn : m + S n1 -1 =  m + n1) by lia;rewrite Hn in HDown;clear Hn.
         eapply tri_ex'... exact H2.
         eapply HDown with (n:=n1) (m0:=m)...  
-        omega.
+        lia.
         inversion isFH...
     Qed.
 

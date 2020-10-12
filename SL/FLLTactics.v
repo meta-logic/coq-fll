@@ -82,8 +82,8 @@ Ltac solveF :=
     | [H: context[nil ++ _] |- _] => rewrite app_nil_l in H
     | [|- context[sub _ 0]] => rewrite Nat.sub_0_r
     | [H: context[sub _ 0] |- _] => rewrite Nat.sub_0_r in H
-    | [ |- _ >= _] => subst; omega
-    | [ |- _ <= _] => subst; omega
+    | [ |- _ >= _] => subst; lia
+    | [ |- _ <= _] => subst; lia
     end;auto;
   try(match goal with
       | [ |- Permutation _ _] =>  perm
@@ -233,7 +233,7 @@ Ltac solveLL :=
     | [|- seqN _ _ _ [] (>>  One)] => apply tri_one
     | [|- seqN _ _ _ [perp ?A] (>> (atom ?A))] => apply InitPosNegDwN
     | [|- seqN _ _ _ [atom ?A ; perp ?A] (> [])] => apply InitPosNegN
-    | [|- seqN _ _ _ [perp ?A; atom ?A ] (> [])] => rewrite Permutation_cons_append with (x:= (perp A)); apply InitPosNegN
+    | [|- seqN _ _ _ [perp ?A; atom ?A ] (> [])] => apply InitPosNegN'
     (* Change of polarity *)
     | [|- seqN _ _ _ _ (>>  ?F)] =>
       match F with
@@ -273,7 +273,7 @@ Ltac solveLL' :=
     | [|- seq _ _ [] (>>  One)] => apply tri_one'
     | [|- seq _ _ [perp ?A] (>> (atom ?A))] => apply InitPosNegDw
     | [|- seq _ _ [atom ?A ; perp ?A] (> [])] => apply InitPosNeg
-    | [|- seq _ _ [perp ?A; atom ?A ] (> [])] => rewrite Permutation_cons_append with (x:= (perp A)); apply InitPosNeg
+    | [|- seq _ _ [perp ?A; atom ?A ] (> [])] => apply InitPosNeg'
     (* Change of polarity *)
     | [|- seq _ _ _ (>>  ?F)] =>
       match F with
@@ -498,7 +498,7 @@ Ltac InvTriAll' :=
 Ltac HProof :=
   match goal with
   | [ H : seqN _ ?n ?G ?M ?X |- seqN _ ?m ?G ?M ?X ] =>
-    eapply HeightGeq;[eauto | omega]
+    eapply HeightGeq;[eauto | lia]
   end.
 Ltac HProof' :=
   match goal with
