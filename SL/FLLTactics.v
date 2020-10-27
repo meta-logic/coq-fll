@@ -542,6 +542,7 @@ Ltac LLPermH H P :=
    first[
        assert(HP : Permutation Gamma P ) by perm; rewrite HP in H;clear HP
      | assert(HP : Permutation Delta P ) by perm; rewrite HP in H;clear HP
+                                               
      ]
   end.
 Ltac LLPerm P :=
@@ -559,6 +560,7 @@ Ltac LLPerm P :=
      | assert(HP : Permutation Delta P ) by perm; rewrite HP;clear HP
      ]
   end.
+  
 
 (** "rewrite perm_swap in H" would be enough for exchanging the first 2
 elements of a list. However, such rewrite is quite slow (probably for

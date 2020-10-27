@@ -7,7 +7,7 @@ these systems
  *)
 
 Require Import FLL.SL.CutElimination.
-Require Export FLL.OL.OLCutElimTheoremPOS.
+Require Export FLL.OL.OLCutPOS.
 Require Export FLL.OL.OLDefinitions.
 Require Import Coq.Init.Nat.
 Require Import FLL.Misc.Permutations.

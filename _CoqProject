@@ -20,8 +20,8 @@ SL/Examples.v
 OL/OLSyntax.v
 OL/OLDefinitions.v
 OL/OLCutElimTheorem.v
-OL/OLCutElimTheoremPOS.v
 OL/OLCutElimTheoremPOSNEG.v
+OL/OLCutPOS.v
 OL/LJ.v
 OL/OLExampleLM.v
 OL/OLExampleMALL.v
