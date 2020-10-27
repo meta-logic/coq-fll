@@ -22,9 +22,8 @@ OL/OLDefinitions.v
 OL/OLCutElimTheorem.v
 OL/OLCutElimTheoremPOS.v
 OL/OLCutElimTheoremPOSNEG.v
-OL/OLExampleLJ.v
+OL/LJ.v
 OL/OLExampleLM.v
 OL/OLExampleMALL.v
 #OL/OLExampleNDSeq.v
-OL/OLExampleLK.v
-OL/OLExampleLKPOSNEG.v
+OL/LK.v

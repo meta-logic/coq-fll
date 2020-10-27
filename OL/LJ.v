@@ -84,12 +84,13 @@ Theorem Soundeness: forall L F, LJSeq L F ->
     intros.
     induction H.
 
-  admit.
-  simpl.
+    (* init *)
+    admit.
 
-  decide3' (makeRuleBin AND Left F G)...
-  constructor.
-  admit.
-  tensor' (@nil oo) [REncode R]...
-  admit.
-  
+    simpl.
+    decide3' (makeRuleBin AND Left F G)...
+    constructor.
+    admit.
+    tensor' (@nil oo) [REncode R]...
+    admit.
+Admitted.

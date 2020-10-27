@@ -48,7 +48,6 @@ Hint Unfold makeLRuleConstant makeRRuleConstant makeLRuleUnary makeRRuleUnary ma
 Hint Unfold BiPoleCte BiPoleUnary BiPoleBinary BiPoleQuantifier : core .
 Hint Unfold RINIT RCUT : core.
 Hint Constructors theoryInitCut theoryCut : core.
-Hint Constructors CutRuleN : core.
 Hint Constructors  OLTheoryCut OLTheory : core.
 
 (** ** Rules of the encoded proof system *)
@@ -105,14 +104,13 @@ classical context.
   
 
   (** Cut Rule storing the left formulas into the classical context *)
-  Definition RINIT (F:uexp) : oo := (u^| F|)  ** (d^| F| ) .
-  Definition RCUT  (F:uexp) : oo := (? d|F|)  ** (? u|F|).
+  Definition RCUTPOSNEG  (F:uexp) : oo := (? d|F|)  ** (? u|F|).
 
   (** The cut rule applied on object level terms of a given size  *)
-  Inductive CutRuleN (n:nat) : oo -> Prop :=
+  Inductive CutRulePOSNEGN (n:nat) : oo -> Prop :=
   | ctn : forall (F:uexp) m , isOLFormula F ->
                               lengthUexp F m -> m <= n ->
-                              CutRuleN n (RCUT F).
+                              CutRulePOSNEGN n (RCUTPOSNEG F).
 
   (** We assume an external definition mapping each
     connective/quantifier with a left and right rule *) 
@@ -128,7 +126,7 @@ End OLInferenceRules.
 Section CutCoherence.
   Context `{OLR: OORules}.
 
-  Hint Constructors CutRuleN : core.
+  Hint Constructors CutRulePOSNEGN : core.
   
   (** Now we can prove that all the above definitions are cut-coherent
   in the sense below *)
@@ -146,15 +144,15 @@ Section CutCoherence.
     lengthUexp B m ->
     isOLFormula A ->
     isOLFormula B ->
-    seq (CutRuleN (max n m)) [] [] (> [ dual ( RulesDefs R Left A B );  dual ( RulesDefs R Right A B)]).
+    seq (CutRulePOSNEGN (max n m)) [] [] (> [ dual ( RulesDefs R Left A B );  dual ( RulesDefs R Right A B)]).
   Proof with solveF.
     intros.
     destruct R; simpl.
     + solveLL'...
-      decide3' (RCUT A)...
+      decide3' (RCUTPOSNEG A)...
       apply @ctn with (m:=n)...
       tensor'     [ (! d^| A |) ** (! d^| B |); ! u^| B |] [! u^| A |] .
-      decide3' (RCUT B)...
+      decide3' (RCUTPOSNEG B)...
       apply @ctn with (m:=m)...
       tensor'   [(! d^| A |) ** (! d^| B |)][! u^| B |].
       decide1' ((! d^| A |) ** (! d^| B |)).
@@ -166,13 +164,13 @@ Section CutCoherence.
       decide1' (! u^|A|). solveLL'.
       decide1' (u^|A|). init'...
     + solveLL'...
-      decide3' (RCUT A)...
+      decide3' (RCUTPOSNEG A)...
       apply @ctn with (m:=n)...
       tensor' [! d^| A |][ ! d^| B |; (! u^| A |) ** (! u^| B |)].
       decide1' (! d^|A|). solveLL'.
       decide1' (d^|A|). init'...
 
-      decide3' (RCUT B)...
+      decide3' (RCUTPOSNEG B)...
       apply @ctn with (m:=m)...
       tensor' [! d^| B | ][ (! u^| A |) ** (! u^| B |)].
       decide1' (! d^|B|). solveLL'.
@@ -182,11 +180,11 @@ Section CutCoherence.
       decide1' (u^|A|). init'...
       decide1' (u^|B|). init'...
     + solveLL'.
-      decide3' (RCUT A)...
+      decide3' (RCUTPOSNEG A)...
       apply @ctn with (m:=n)...
       tensor' [ ! d^| B |; (! d^| A |) ** (! u^| B |)] [! u^| A |].
 
-      decide3' (RCUT B)...
+      decide3' (RCUTPOSNEG B)...
       apply @ctn with (m:=m)...
       tensor'  [! d^| B |] [ (! d^| A |) ** (! u^| B |)] ...
       decide1' (!d^|B|). solveLL'.
@@ -261,16 +259,16 @@ Section Bipoles.
   | bconnL : forall C F G, isOLFormula ( t_bin C F G) -> buildTheory  (makeRuleBin C Left F G)
   .
 
-  Lemma CuteRuleNBound : forall h n B L X ,  seqN (CutRuleN n) h B L X ->
-                                             forall m, n<=m -> seq (CutRuleN m) B L X .
+  Lemma CuteRuleNBound : forall h n B L X ,  seqN (CutRulePOSNEGN n) h B L X ->
+                                             forall m, n<=m -> seq (CutRulePOSNEGN m) B L X .
   Proof with solveF.
     induction h using strongind ; intros.
     inversion H ...
     inversion H0;solveF;
       repeat match goal with
-             | [ Hs : seqN (CutRuleN n) h ?B1 ?N1 ?X1 |- _] =>
+             | [ Hs : seqN (CutRulePOSNEGN n) h ?B1 ?N1 ?X1 |- _] =>
                let Hs1 := fresh in
-               assert (Hs1 : seq (CutRuleN m) B1 N1 X1) by
+               assert (Hs1 : seq (CutRulePOSNEGN m) B1 N1 X1) by
                    (
                      eapply H  with (m:= h) (n:= n)  (m0:=m) (B:= B1);solveF 
                    );clear Hs
@@ -288,15 +286,15 @@ Section Bipoles.
   Qed.
 
   Lemma CuteRuleNBound' : forall n B L X ,
-      seq (CutRuleN n)  B L X ->
-      forall m, n<=m -> seq (CutRuleN m) B L X .
+      seq (CutRulePOSNEGN n)  B L X ->
+      forall m, n<=m -> seq (CutRulePOSNEGN m) B L X .
     intros.
     apply seqtoSeqN in H. destruct H.
     eapply CuteRuleNBound;eauto.
   Qed.
   
   (** There are no (object logic) formulas of size 0 *)
-  Lemma CuteRuleN0 : forall F, ~ (CutRuleN 0 F).
+  Lemma CuteRuleN0 : forall F, ~ (CutRulePOSNEGN 0 F).
   Proof with solveF.
     intros F Hn.
     inversion Hn...
@@ -314,11 +312,11 @@ Section Bipoles.
   Inductive OLTheoryCut (n:nat) : oo -> Prop :=
   | oothc_theory : forall OO, buildTheory OO ->  OLTheoryCut n OO
   | oothc_init : forall OO, isOLFormula OO -> OLTheoryCut n (RINIT OO) 
-  | oothc_cutn : forall OO, CutRuleN n OO -> OLTheoryCut n OO
+  | oothc_cutn : forall OO, CutRulePOSNEGN n OO -> OLTheoryCut n OO
   .
 
   Hint Constructors  OLTheoryCut OLTheory  : core.
-  Hint Unfold RINIT RCUT : core.
+  Hint Unfold RINIT RCUTPOSNEG : core.
   Hint Constructors isFormula : core.
 
   (** Some easy equivalences on the  above theories *)
@@ -336,7 +334,7 @@ Section Bipoles.
     inversion H;subst; solve[constructor;auto].
   Qed.
 
-  Lemma TheoryEmb2 : forall n F  , ((CutRuleN n) F) -> (OLTheoryCut) n F.
+  Lemma TheoryEmb2 : forall n F  , ((CutRulePOSNEGN n) F) -> (OLTheoryCut) n F.
     intros.
     inversion H;subst.
     apply oothc_cutn;auto.
@@ -587,10 +585,10 @@ Ltac CutTacPOSNEG :=
 
 Section OLCutElimination.
   Context `{OLR: OORules}.
-  Hint Constructors CutRuleN : core.
+  Hint Constructors CutRulePOSNEGN : core.
   Hint Unfold makeRuleConstant makeRuleBin (*makeLRuleQ makeRRuleQ*) : core.
   Hint Constructors  OLTheoryCut OLTheory  : core.
-  Hint Unfold RINIT RCUT : core.	
+  Hint Unfold RINIT RCUTPOSNEG : core.	
   Hint Unfold down' up' : core .
 
   Theorem TheoryCutIsFormula n F:
