@@ -20,7 +20,7 @@ Inductive Constants := TT | FF  .
 (* conjunction, disjunction and implication *)
 Inductive Connectives := AND | OR | IMPL  .
 (* no quantifiers *)
-Inductive Quantifiers := .
+Inductive Quantifiers := ALL .
 (* No unary connectives  *) 
 Inductive UConnectives := .
 
@@ -52,10 +52,19 @@ Definition rulesBC (c :connectives) :=
   | IMPL => TENSORPAR
   end.
 
+(** *** Quantifiers *)
+Definition rulesQD (q :quantifiers) :=
+  match q with
+  | ALL => ALLSOME
+  end
+.
+
+
 Instance SimpleOORUles : OORules :=
   {|
     rulesCte := rulesCTE ;
-    rulesBin := rulesBC
+    rulesBin := rulesBC;
+    rulesQ := rulesQD
   |}.
 
 (** The cut-elimination theorem instantiated for LJ *)

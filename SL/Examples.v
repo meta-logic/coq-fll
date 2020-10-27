@@ -78,15 +78,16 @@ Module Example1 .
     existential' (VAR con 0).
   Qed.
 
-
-  Example Test4: |-- [atom (p (CON 0)) ] ; [] ; > [  perp (p (CON 0))  ].
-  Proof with solveF.
-    solveLL'.
-    decide1' (perp (p (CON 0)))...
-    solveLL'.
-    constructor...
+  Definition Nat (n:nat) := CON n .
+  
+  Example Test4: forall n:nat,  |-- [atom (p (Nat n)) ] ; [] ; > [  perp (p (Nat n))  ].
+  Proof with solveLL'.
+    intros...
+    decide1' (perp (p (Nat n)))...
+    solveF.
   Qed.
-
+  
+  
 End Example1.
 
 Module Example2.
@@ -132,16 +133,15 @@ Module Example2.
   Definition ONE := (SUC  Z) .
   Definition TWO := SUC (SUC  Z) .
 
-  Example test2 : |-- []; []; > [? E{ step}; perp (p Z) -o perp (p TWO) ].
+  Example test2 : |-- []; []; > [? E{ step}; perp (p Z) -o perp (p (SUC (SUC Z))) ].
   Proof with solveLL'.
     simpl...
     decide2' (E{ step})...
     existential' Z ... 
-    tensor' [atom (p Z)] [perp (p TWO) ] ...
+    tensor' [atom (p Z)] [perp (p (SUC (SUC Z))) ] ...
     decide2' (E{ step}) ...
     existential' (SUC Z)...
-    tensor' [atom (p (SUC Z)) ] [perp (p TWO) ] ...
-    unfold TWO ...
+    tensor' [atom (p (SUC Z)) ] [perp (p (SUC (SUC Z))) ] ...
   Qed.
 
   Definition stepPerp := fun t:uexp => atom (p t) ** perp (p (SUC t)).
@@ -179,3 +179,4 @@ Module Example2.
     existential' x.
   Qed.
 End Example2.
+

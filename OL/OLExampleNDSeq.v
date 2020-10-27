@@ -7,9 +7,11 @@ these systems
  *)
 
 Require Import FLL.SL.CutElimination.
+Require Export FLL.OL.OLCutElimTheoremPOS.
 Require Export FLL.OL.OLDefinitions.
 Require Import Coq.Init.Nat.
 Require Import FLL.Misc.Permutations.
+
 
 Export ListNotations.
 Export LLNotations.
@@ -47,11 +49,11 @@ Instance SimpleOLSig : OLSyntax:=
 
 (** Definition for Elimination and introduction rules of implication,
 conjunction and universal quantification in natural deduction *)
-Definition IMP_ELIMINATION F G:= ((perp (up G)) ** (atom (up F)) ** (atom (up (t_bin IMPL F G))) ).
+Definition IMP_ELIMINATION F G:= ((perp (up G)) ** (! atom (up F)) ** (! atom (up (t_bin IMPL F G))) ).
 Definition IMP_INTRO F G := ( ( perp ( up  ( t_bin IMPL F G))) ** ( ! (atom (up F)) -o (atom (up G )) )).
-Definition CONJ_ELIMINATION F G :=  ( (perp (up F)) op  (perp (up G)) ) ** (atom (up (t_bin CONJ F G))) .
-Definition CONJ_INTRO F G := (perp (up (t_bin CONJ F G))) ** ( (atom (up F)) & (atom (up G))) .
-Definition ALL_ELIMINATION FX := E{ fun t => (perp ( up (FX t))) ** (atom (up( t_quant ALL FX)))}.
+Definition CONJ_ELIMINATION F G :=  ( (perp (up F)) op  (perp (up G)) ) ** (! atom (up (t_bin CONJ F G))) .
+Definition CONJ_INTRO F G := (perp (up (t_bin CONJ F G))) ** (  (atom (up F)) & (atom (up G))) .
+Definition ALL_ELIMINATION FX := E{ fun t => (perp ( up (FX t))) ** (! atom (up( t_quant ALL FX)))}.
 Definition ALL_INTRO FX  := (perp (up ( t_quant ALL FX))) ** F{ fun t => atom (up (FX t))}.
 
 (** Natural deduction system *)
@@ -73,10 +75,10 @@ Inductive NM : oo -> Prop :=
 (** Right and left rules for implication, conjunction 
 and universal quantification  in sequent calculus *)
 
-Definition IMP_RIGHT F G :=  (perp (up (t_bin IMPL F G))) ** ( (atom (down F)) $ (atom (up G))).
-Definition IMP_LEFT F G := ( (perp (down (t_bin IMPL F G))) ** ( (atom (up F)) ** (atom (down G)) )).
+Definition IMP_RIGHT F G :=  (perp (up (t_bin IMPL F G))) ** ( (? atom (down F)) $ (atom (up G))).
+Definition IMP_LEFT F G := ( (perp (down (t_bin IMPL F G))) ** ( ! (atom (up F)) ** (? atom (down G)) )).
 Definition CONJ_RIGHT F G := (perp (up (t_bin CONJ F G)))  ** ( (atom (up F)) & (atom (up G)) ).
-Definition CONJ_LEFT F G := (perp (down (t_bin CONJ F G))) **  ( (atom (down F)) op (atom (down G)) ).
+Definition CONJ_LEFT F G := (perp (down (t_bin CONJ F G))) **  ( ?(atom (down F)) op ?(atom (down G)) ).
 Definition ALL_RIGHT FX := (perp (up (t_quant ALL FX))) ** F{ fun t => atom (up (FX t))}.
 Definition ALL_LEFT FX := (perp (down (t_quant ALL FX))) ** E{ fun t => atom (down (FX t))}.
 
@@ -104,11 +106,29 @@ Inductive SEQSTR : oo -> Prop :=
 | sq_rl : forall F, SEQ F -> SEQSTR F
 | sq_str: forall F, StrRulesPos F -> SEQSTR F.
 
+(*!! MOVE THIS *)
+Inductive StrRulesPOS : oo -> Prop :=
+| stp_cut : forall F, isOLFormula F -> StrRulesPOS (RCUTPOS F)
+| stp_init : forall F, isOLFormula F -> StrRulesPOS (RINIT F)
+.
 
+
+Inductive NMSTRPOS : oo -> Prop :=
+| nm_rlP : forall F, NM F -> NMSTRPOS F
+| np_cutP : forall F, StrRulesPOS F ->   NMSTRPOS F
+.
+
+Inductive SEQSTRPOS : oo -> Prop :=
+| sq_rlP : forall F, SEQ F -> SEQSTRPOS F
+| sq_cutP : forall F, StrRulesPOS F -> SEQSTRPOS F
+.
+                                    
 Hint Constructors StrRulesPos NM SEQ NMSTR SEQSTR  : core.
+Hint Constructors NMSTRPOS SEQSTRPOS : core.
 Hint Unfold IMP_ELIMINATION IMP_INTRO  IMP_RIGHT IMP_LEFT POS RCUT RINIT CONJ_ELIMINATION CONJ_INTRO  CONJ_RIGHT CONJ_LEFT : core .
 Hint Unfold ALL_ELIMINATION ALL_INTRO  ALL_RIGHT ALL_LEFT  : core.
 
+Hint Constructors StrRulesPOS.
 Definition down' : uexp -> atm := down.
 Definition up' : uexp -> atm := up.
 Hint Unfold down' up' : core .
@@ -142,36 +162,52 @@ Qed.
 (** Proving dualities beween Left (resp. right) introduction rules in 
 sequent calculus and Elimination (resp. Introduction) rules in 
 Natural Deduction *)
-
+Hint Unfold POS.
 Theorem ImplLeftElimination1 :
   forall F G, isOLFormula F -> isOLFormula G ->
               (seq StrRulesPos [] [] (> [ (IMP_LEFT F G) ^ ; (IMP_ELIMINATION F G)])).
-Proof with SolveIsFormulas.
+Proof with SolveIsFormulas;solveF.
   intros F G isF isG; autounfold;simpl;solveLL'.
   ExchangeFront' 3.
-  eapply DualityCut1...
-  ExchangeFront' 3.
-  decide1' ((perp (up G) ** atom (up F)) ** atom (up (t_bin IMPL F G))).
-  tensor' [perp (up F); atom (up G)] [atom (down (t_bin IMPL F G))];solveLL'.
-  tensor' [atom (up G)] [perp (up F)] ;solveLL'.
-  ExchangeFront' 2.
-  apply DualityCut2...
-  decide1' (perp (down (t_bin IMPL F G))).
+  decide3' (POS ( t_bin IMPL F G))...
+  tensor' [d| t_bin IMPL F G | ] [(u^| G | ** (! u| F |)) ** (! u| t_bin IMPL F G |);  ! d^| G |] .
+  simpl.
+  decide3' (RCUT G).
+  tensor'  [(u^| G | ** (! u| F |)) ** (! u| t_bin IMPL F G |) ] [! d^| G |].
+  decide1' ((u^| G | ** (! u| F |)) ** (! u| t_bin IMPL F G |)).
+  tensor' [u| G |] (@nil oo).
+  tensor' [u| G |] (@nil oo).
+  decide2' (u^| F |).
+  decide3' (RINIT ( t_bin IMPL F G)).
+  tensor' [u| t_bin IMPL F G |] (@nil oo)...
+
+  decide3' (POS G).
+  tensor' [d| G |] [! d^| G |]. simpl.
+  decide1' (! d^| G|).
+  solveLL'...
+  decide1' (d^| G|)...
+  solveLL'...
 Qed.
 
 Theorem ImplLeftElimination2 :
   forall F G, isOLFormula F -> isOLFormula G ->
-              (seq StrRulesPos [] [] (> [ (IMP_ELIMINATION F G) ^ ; (IMP_LEFT F G)])).
+              (seq StrRulesPOS [] [] (> [ (IMP_ELIMINATION F G) ^ ; (IMP_LEFT F G)])).
 Proof with SolveIsFormulas.
   intros F G isF isG; autounfold;simpl;solveLL'.
-  ExchangeFront' 3.
-  eapply DualityCut4...
-  decide1' (perp (down (t_bin IMPL F G)) ** (atom (up F) ** atom (down G))).
-  tensor' [atom (down (t_bin IMPL F G))] [atom (up G); perp (up F)].
-  tensor' [ perp (up F)] [atom (up G)];solveLL'.
-  apply DualityCut2...
-  decide1' (perp (down G)).
+  decide3' (RCUTPOS (t_bin IMPL F G))...
+  tensor'   [u| G |; d^| t_bin IMPL F G | ** ((! u| F |) ** (? d| G |))] (@nil oo);simpl.
+  decide1' (d^| t_bin IMPL F G | ** ((! u| F |) ** (? d| G |))).
+  tensor' (@nil oo) [u| G |].
+  right...
+  tensor' (@nil oo) [u| G |].
+  decide2' (u^|F|).
+  simpl.
+  decide3'( RINIT (G))...
+  tensor'  [u| G |] (@nil oo).
+  right ...
+  decide2' (u^| t_bin IMPL F G |).
 Qed.
+
 
 
 Theorem ImplRightIntroduction1 :
@@ -179,34 +215,26 @@ Theorem ImplRightIntroduction1 :
               (seq StrRulesPos [] [] (> [ (IMP_RIGHT F G) ^ ; (IMP_INTRO F G)])).
 Proof with SolveIsFormulas.
   intros F G isF isG; autounfold;simpl;solveLL'.
-  ExchangeFront' 3.
-  decide1' (perp (up (t_bin IMPL F G)) ** ((? perp (up F)) $ atom (up G))).
-  tensor' [atom (up (t_bin IMPL F G))] [perp (down F) ** perp (up G)].
-  solveLL'.
-  apply DualityCut4C...
-  decide1' (perp (down F) ** perp (up G))...
-  tensor' (@nil oo)  [atom (up G)].
-  solveLL'...
+  decide1' (u^| t_bin IMPL F G | ** ((? u^| F |) $ u| G |))...
+  tensor' [u| t_bin IMPL F G |] [ (! d^| F |) ** u^| G |].
+  decide1' ((! d^| F |) ** u^| G |).
+  tensor' (@nil oo) [u| G |].
+  decide3' (RCUT F).
+  tensor' (@nil oo) [d^| F |].
+  decide2' (u^| F |).
 Qed.
 
 Theorem ImplRightIntroduction2 :
   forall F G, isOLFormula F -> isOLFormula G ->
-              (seq StrRulesPos [] [] (> [ (IMP_INTRO F G) ^ ; (IMP_RIGHT F G)])).
+              (seq StrRulesPOS [] [] (> [ (IMP_INTRO F G) ^ ; (IMP_RIGHT F G)])).
 Proof with SolveIsFormulas.
   intros F G isF isG; autounfold;simpl;solveLL'.
-  decide1' (perp (up (t_bin IMPL F G)) ** (atom (down F) $ atom (up G))).
-  tensor'  [atom (up (t_bin IMPL F G))] [(! atom (up F)) ** perp (up G)].
-  solveLL'.
-  ExchangeFront' 2.
-  decide3' (POS F)...
-  tensor'  [atom (down F)] [(! atom (up F)) ** perp (up G); atom (up G)].
-  solveLL'. simpl.
-  decide1' ((! atom (up F)) ** perp (up G)).
-  tensor' (@nil oo) [atom (up G)].
-  solveLL'.
-  apply DualityCut2...
-  decide1' (perp (down F)).
-  solveLL'...
+  decide1' (u^| t_bin IMPL F G | ** ((? d| F |) $ u| G |)).
+  tensor'  [u| t_bin IMPL F G |][ (! u| F |) ** u^| G |].
+  decide1' ((! u| F |) ** u^| G |).
+  tensor' (@nil oo)  [u| G |].
+  decide3' (RINIT F).
+  tensor'  [u| F |] (@nil oo) ...
 Qed.
 
 
@@ -215,43 +243,56 @@ Theorem ConjLeftElimination1 :
               (seq StrRulesPos [] [] (> [ (CONJ_LEFT F G) ^ ; (CONJ_ELIMINATION F G)])).
 Proof with SolveIsFormulas.
   intros F G isF isG; autounfold;simpl;solveLL'.
-  + ExchangeFront' 2.
-    eapply DualityCut1...
-    decide1' ( (perp (up F) op perp (up G)) ** atom (up (t_bin CONJ F G))).
-    tensor' [atom (up F)] [atom (down (t_bin CONJ F G))].
+  + decide3' (RCUT F).
+    tensor'  [d| t_bin CONJ F G |; (u^| F | op u^| G |) ** (! u| t_bin CONJ F G |)] [! d^| F |].
+    decide3' (POS (t_bin CONJ F G)).
+    tensor' [d| t_bin CONJ F G |][ (u^| F | op u^| G |) ** (! u| t_bin CONJ F G |); u| F |] ...
+    decide1' ((u^| F | op u^| G |) ** (! u| t_bin CONJ F G |)).
+    tensor' [ u| F |]  (@nil oo).
+    decide3' (RINIT (t_bin CONJ F G)).
+    tensor' [u| t_bin CONJ F G |] (@nil oo)...
+    decide3' (POS F).
+    tensor' [ d| F |][! d^| F |]...
+    decide1' (! d^| F |)...
     solveLL'.
-    eapply DualityCut3...
-    decide1' (perp (up (t_bin CONJ F G))).
-  + ExchangeFront' 2.
-    eapply DualityCut1...
-    decide1' ((perp (up F) op perp (up G)) ** atom (up (t_bin CONJ F G))).
-    tensor'  [atom (up G)]  [atom (down (t_bin CONJ F G))].
+    decide1' ( d^| F |);solveLL'...
+  + decide3' (POS (t_bin CONJ F G)).
+    tensor'  [d| t_bin CONJ F G |][ ! d^| G |; (u^| F | op u^| G |) ** (! u| t_bin CONJ F G |)]...
+    decide3' (RCUT G).
+    tensor' [(u^| F | op u^| G |) ** (! u| t_bin CONJ F G |)] [! d^| G |].
+    decide1' ((u^| F | op u^| G |) ** (! u| t_bin CONJ F G |)).
+    tensor' [u| G |] (@nil oo).
+    decide3' (RINIT (t_bin CONJ F G)).
+    tensor' [u| t_bin CONJ F G |] (@nil oo)...
+    decide3' (POS G).
+    tensor' [d| G |] [! d^| G |]...
+    decide1' (! d^| G |)...
     solveLL'.
-    eapply DualityCut3...
-    decide1' (perp (up (t_bin CONJ F G))).
+    decide1' ( d^| G |)...
+    solveLL'...
 Qed.
 
 Theorem ConjLeftElimination2 :
   forall F G, isOLFormula F -> isOLFormula G ->
-              (seq StrRulesPos [] [] (> [ (CONJ_ELIMINATION F G) ^ ; (CONJ_LEFT F G)])).
+              (seq StrRulesPOS [] [] (> [ (CONJ_ELIMINATION F G) ^ ; (CONJ_LEFT F G)])).
 Proof with SolveIsFormulas.
   intros F G isF isG; autounfold;simpl;solveLL'.
-  + ExchangeFront' 2.
-    eapply DualityCut4...
-    decide1' (perp (down (t_bin CONJ F G)) ** (atom (down F) op atom (down G))).
-    tensor'  [atom (down (t_bin CONJ F G))] [atom (up F)].
-    apply tri_plus1'.
-    solveLL'.
-    eapply DualityCut2...
-    decide1' (perp (down F)).
-  + ExchangeFront' 2.
-    eapply DualityCut4...
-    decide1' (perp (down (t_bin CONJ F G)) ** (atom (down F) op atom (down G))).
-    tensor'  [atom (down (t_bin CONJ F G))] [atom (up G)].
-    apply tri_plus2'.
-    solveLL'.
-    eapply DualityCut2...
-    decide1' (perp (down G)).
+  + decide3' (RCUTPOS ( t_bin CONJ F G)).
+    tensor'  [u| F |; d^| t_bin CONJ F G | ** ((? d| F |) op (? d| G |))] (@nil oo)...
+    decide1' (d^| t_bin CONJ F G | ** ((? d| F |) op (? d| G |))).
+    tensor' (@nil oo) [u| F |]...
+    oplus1'...
+    decide3' (RINIT F).
+    tensor' ([u| F |]) (@nil oo)...
+    decide2' (u^| t_bin CONJ F G |).
+  +  decide3' (RCUTPOS ( t_bin CONJ F G)).
+     tensor' [u| G |; d^| t_bin CONJ F G | ** ((? d| F |) op (? d| G |))] (@nil oo)...
+     decide1' (d^| t_bin CONJ F G | ** ((? d| F |) op (? d| G |))).
+     tensor' (@nil oo) [u| G |]...
+     oplus2'...
+     decide3' (RINIT G).
+    tensor' ([u| G |]) (@nil oo)...
+    decide2' (u^| t_bin CONJ F G |).
 Qed.
 
 
@@ -262,54 +303,57 @@ Proof with SolveIsFormulas.
   intros F G isF isG; autounfold;simpl;solveLL'.
   decide1' (perp (up (t_bin CONJ F G)) ** (atom (up F) & atom (up G))).
   tensor' [atom (up (t_bin CONJ F G)) ] [perp (up F) op perp (up G)].
-  solveLL'.
   decide1' (perp (up F) op perp (up G)).
   decide1' (perp (up F) op perp (up G)).
 Qed.
 
 Theorem ConjRightIntroduction2 :
   forall F G, isOLFormula F -> isOLFormula G ->
-              (seq StrRulesPos [] [] (> [ (CONJ_INTRO F G) ^ ; (CONJ_RIGHT F G)])).
+              (seq StrRulesPOS [] [] (> [ (CONJ_INTRO F G) ^ ; (CONJ_RIGHT F G)])).
 Proof with SolveIsFormulas.
   intros F G isF isG; autounfold;simpl;solveLL'.
-  decide1' (perp (up (t_bin CONJ F G)) ** (atom (up F) & atom (up G))).
-  tensor' [atom (up (t_bin CONJ F G))] [perp (up F) op perp (up G)].
-  solveLL'.
-  decide1' (perp (up F) op perp (up G)).
-  decide1' (perp (up F) op perp (up G)).
+  decide1' ( u^| t_bin CONJ F G | ** (u| F | & u| G |)).
+  tensor' [u| t_bin CONJ F G |][ u^| F | op u^| G |].
+  decide1' (u^| F | op u^| G |).
+  decide1' (u^| F | op u^| G |).
 Qed.
 
 
 Theorem AllLeftElimination1 : forall FX, uniform FX ->  (forall x, proper x -> isOLFormula( FX x)) ->
                                          (seq StrRulesPos [] [] (> [ (ALL_LEFT FX) ^ ; (ALL_ELIMINATION FX)])).
 Proof with SolveIsFormulas'.
-  intros FX  isFX isFXt; autounfold;simpl.
-  solveLL'.
-  ExchangeFront' 2.
-  eapply DualityCut1...
-  decide1' (E{ fun t => perp (up (FX t)) ** atom (up (t_quant ALL FX))}).
+  intros FX  isFX isFXt; autounfold;simpl;solveLL'.
+  decide3'( RCUT ( t_quant ALL FX)).
+  tensor' [d| t_quant ALL FX |] [ d^| FX x |; E{ fun t  => u^| FX t | ** (! u| t_quant ALL FX |)}].
+  decide3' (RINIT (t_quant ALL FX)).
+  tensor'  [ u| t_quant ALL FX |] [d| t_quant ALL FX | ].
+  decide3' (RCUT (FX x)).
+  tensor' [ E{ fun t  => u^| FX t | ** (! u| t_quant ALL FX |)}; d| t_quant ALL FX |] [d^| FX x |].
+  decide3' (POS (t_quant ALL FX)).
+  tensor' [d| t_quant ALL FX |] [E{ fun t  => u^| FX t | ** (! u| t_quant ALL FX |)}; u| FX x |]...
+  decide1' (E{ fun t => u^| FX t | ** (! u| t_quant ALL FX |)}).
   existential' x...
-  tensor' [atom (up (FX x))] [atom (down (t_quant ALL FX))].
-  solveLL'.
-  apply DualityCut3...
-  decide1' (perp (up (t_quant ALL FX))).
-Qed.
+  tensor'  [u| FX x |] (@nil oo).
+  decide3' (RINIT (t_quant ALL FX)).
+  tensor'  [u| t_quant ALL FX |] (@nil oo)...
+Qed. 
+  
 
 Theorem AllLeftElimination2 : forall FX, uniform FX ->  (forall x, proper x -> isOLFormula( FX x)) ->
-                                         (seq StrRulesPos [] [] (> [ (ALL_ELIMINATION FX) ^ ; (ALL_LEFT FX)])).
+                                         (seq StrRulesPOS [] [] (> [ (ALL_ELIMINATION FX) ^ ; (ALL_LEFT FX)])).
 Proof with SolveIsFormulas'.
   intros FX  isFX isFXt; autounfold;simpl.
   apply tri_fx'...
   intros.
   solveLL'.
-  ExchangeFront' 2.
-  eapply DualityCut4...
-  decide1' (perp (down (t_quant ALL FX)) ** E{ fun t => atom (down (FX t))}).
-  tensor' [atom (down (t_quant ALL FX))] [atom (up (FX x))].
+  decide3'( RCUTPOS ( t_quant ALL FX)).
+  tensor' [u| FX x |; d^| t_quant ALL FX | ** E{ fun t => d| FX t |}] (@nil oo) ...
+  decide1' (d^| t_quant ALL FX | ** E{ fun t => d| FX t |}).
+  tensor' (@nil oo)  [u| FX x |]...
   existential' x.
-  solveLL'.
-  eapply DualityCut2...
-  decide1' (perp (down (FX x))).
+  decide3' (RINIT (FX x)).
+  tensor'  [u| FX x |][ d| FX x |].
+  decide2' (u^| t_quant ALL FX |).
 Qed.
 
 Theorem AllRightIntroduction1 : forall FX, uniform FX ->  (forall x, proper x -> isOLFormula( FX x)) ->
@@ -325,7 +369,7 @@ Proof with SolveIsFormulas.
 Qed.
 
 Theorem AllRightIntroduction2 : forall FX, uniform FX ->  (forall x, proper x -> isOLFormula( FX x)) ->
-                                           (seq StrRulesPos [] [] (> [ (ALL_INTRO FX) ^ ; (ALL_RIGHT FX)])).
+                                           (seq StrRulesPOS [] [] (> [ (ALL_INTRO FX) ^ ; (ALL_RIGHT FX)])).
 Proof with SolveIsFormulas.
   intros FX  isFX isFXt; autounfold;simpl.
   solveLL'.
@@ -336,6 +380,69 @@ Proof with SolveIsFormulas.
   existential' x.
 Qed.
 
+(******************************)
+
+
+Theorem NMNMCUTPOS : forall n B M X,
+    isFormulaL B -> isFormulaL M -> isNotAsyncL M -> isArrow X -> 
+    (seqN NMSTR n B M X ) ->
+    (seq NM B M X ).
+  Proof with solveF;SolveIsFormulas.
+    induction n using strongind; intros B M arrow isB isM isNoatAsyncM isArr Hseq.
+    inversion Hseq...
+    inversion Hseq;solveF;simpl in isArr;
+    try solve [inversion isArr ; solveF; try(apply H in H1);solveF;SolveIsFormulas ].
+    inversion isArr...
+    apply H in H2...
+    apply H in H3...
+    tensor' M0 N.
+
+    apply H in H2...
+    inversion isArr...
+    inversion H3...
+    apply H in H1...
+
+    inversion isArr... inversion H4...
+    apply H in H1...
+    apply H in H2...
+
+    admit.
+    admit.
+
+    decide1' F...
+    eauto...
+    apply H in H3...
+    
+    decide2' F...
+    apply H in H3...
+    admit.
+
+    
+    { (* from the theory *)
+      apply H in H3...
+      inversion H1...
+      (* from the rules *)
+      decide3' (F)...
+      (* structural rules *)
+      inversion H0...
+      admit.
+      admit.
+      admit.
+      admit.
+    }
+
+    existential' t...
+    inversion isArr...
+    apply H in H3...
+
+    inversion isArr...
+    inversion H4...
+    solveLL'.
+    specialize (H2 x properX).
+    apply H in H2...
+  Admitted.
+    
+  
 
 Theorem SEQtoNM: forall n B M X , isFormulaL B -> isFormulaL M -> isNotAsyncL M -> isArrow X -> 
                                   (seqN SEQSTR n B M X ) ->

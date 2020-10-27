@@ -727,7 +727,7 @@ Section Bipoles.
       | Left => (makeLRuleConstant,  rc_leftBody, down)
       | Right => (makeRRuleConstant, rc_rightBody, up)
       end.
-    
+
     Definition sideUnary (s:Side) :=
       match s with
       | Left => (makeLRuleUnary,  ru_leftBody, down)
@@ -795,6 +795,10 @@ Section Bipoles.
   (** INIT and CUT rules *)
   Definition RINIT (F:uexp) : oo := (perp (up  F) )  ** (perp (down F) ) .
   Definition RCUT  (F:uexp) : oo := (atom (up  F) )  ** (atom (down F) ).
+  (** Cut Rule storing the left formulas into the classical context *)
+  Definition RCUTPOS  (F:uexp) : oo := (? d|F|)  ** (! u|F|).
+
+
   (** Allowing contraction and weakening on the left side of the sequent *)
   Definition POS F := ((perp (down F)) ** ? atom (down F)).
   (** Allowing contraction and weakening on the right side of the sequent *)

@@ -24,6 +24,7 @@ Import FLL.Misc.Permutations.
 Export ListNotations.
 Export LLNotations.
 
+
 Set Implicit Arguments.
 
 
@@ -98,6 +99,7 @@ Section OLInferenceRules.
 
    *)
   Inductive RulesEnc := PARTENSOR | WITHPLUS | TENSORPAR .
+  Inductive QEnc := ALLSOME .
 
   
 
@@ -112,15 +114,21 @@ Section OLInferenceRules.
     | TENSORPAR, Right => (? d|A|) $ (u|B|)
     end.
 
-  (** Cut Rule storing the left formulas into the classical context *)
-  Definition RINIT (F:uexp) : oo := (u^| F|)  ** (d^| F| ) .
-  Definition RCUT  (F:uexp) : oo := (? d|F|)  ** (! u|F|).
+  Definition QDefs (t:QEnc) (s:Side) (FX : uexp -> uexp):=
+    match t,s with 
+    | ALLSOME, Left =>  E{ fun x => ? d| (FX x)|} 
+    | ALLSOME, Right => F{ fun x =>  u| (FX x)|}
+    end
+  .
+  
 
+  
+  
   (** The cut rule applied on object level terms of a given size  *)
-  Inductive CutRuleN (n:nat) : oo -> Prop :=
+  Inductive CutRulePOSN (n:nat) : oo -> Prop :=
   | ctn : forall (F:uexp) m , isOLFormula F ->
                               lengthUexp F m -> m <= n ->
-                              CutRuleN n (RCUT F). 
+                              CutRulePOSN n (RCUTPOS F). 
 
 
   (** We assume an external definition mapping each
@@ -131,14 +139,14 @@ Section OLInferenceRules.
       right encoding *)
       rulesCte : constants -> ContantEnc ; 
       rulesBin : connectives -> RulesEnc;
-      (*rulesQ :   quantifiers -> ruleQ*)
+      rulesQ :   quantifiers -> QEnc
     }.
 End OLInferenceRules.
 
 Section CutCoherence.
   Context `{OLR: OORules}.
 
-  Hint Constructors CutRuleN : core.
+  Hint Constructors CutRulePOSN : core.
   
   (** Now we can prove that all the above definitions are cut-coherent
   in the sense below *)
@@ -156,7 +164,7 @@ Section CutCoherence.
     lengthUexp B m ->
     isOLFormula A ->
     isOLFormula B ->
-    seq (CutRuleN (max n m)) [] [] (> [ dual ( RulesDefs R Left A B );? dual ( RulesDefs R Right A B)]).
+    seq (CutRulePOSN (max n m)) [] [] (> [ dual ( RulesDefs R Left A B );? dual ( RulesDefs R Right A B)]).
   Proof with solveF.
     intros.
     destruct R; simpl.
@@ -165,13 +173,13 @@ Section CutCoherence.
       rewrite Permutation_app_comm...
       decide1' ((! d^| A |) ** (! d^| B |)).
       tensor' (@nil oo)(@nil oo).
-      decide3' (RCUT A)...
+      decide3' (RCUTPOS A)...
       apply @ctn with (m:=n)...
       tensor'    [( d^| A |)]  (@nil oo)...
       decide1' (d^|A|). init'...
       decide2' (u^|A|).
       
-      decide3' (RCUT B)...
+      decide3' (RCUTPOS B)...
       apply @ctn with (m:=m)... 
       tensor'   [ d^| B |]  (@nil oo).
       rewrite Permutation_app_comm...
@@ -182,7 +190,7 @@ Section CutCoherence.
 
       decide1' ((! d^| A |) op (! d^| B |)).
       oplus1'.
-      decide3' (RCUT A)...
+      decide3' (RCUTPOS A)...
       apply @ctn with (m:=n)...
       tensor'    [( d^| A |)]  (@nil oo)...
       decide1' (d^|A|). init'...
@@ -190,7 +198,7 @@ Section CutCoherence.
 
       decide1' ((! d^| A |) op (! d^| B |)).
       oplus2'.
-      decide3' (RCUT B)...
+      decide3' (RCUTPOS B)...
       apply @ctn with (m:=m)...
       tensor'    [( d^| B |)]  (@nil oo)...
       decide1' (d^|B|). init'...
@@ -198,7 +206,7 @@ Section CutCoherence.
     + solveLL'.
       decide1' (! d^| B |); solveLL'.
 
-      decide3' (RCUT B)...
+      decide3' (RCUTPOS B)...
       apply @ctn with (m:=m)...
       tensor'    [( d^| B |)]  (@nil oo)...
       decide1' (d^|B|). init'...
@@ -206,12 +214,42 @@ Section CutCoherence.
       decide2' ((! d^| A |) ** u^| B |).
       tensor' (@nil oo) [u| B |].
 
-      decide3' (RCUT A)...
+      decide3' (RCUTPOS A)...
       apply @ctn with (m:=n)...
       tensor'    [( d^| A |)]  (@nil oo)...
       decide1' (d^|A|). init'...
       decide2' (u^|A|).
   Qed.
+
+  Theorem CutCoherenceQ (R: QEnc) (FX FX' : uexp -> uexp) (n : nat) :
+    uniform FX ->
+    uniform FX' ->
+    ext_eq FX FX' ->
+    lengthUexp (FX (Var 0))  n ->
+    (forall t, proper t -> isOLFormula (FX t)) ->
+    seq (CutRulePOSN n) [] [] (> [ dual (QDefs R Left FX) ; ? dual ((QDefs R Right FX') ) ]) .
+  Proof with solveF.
+    intros.
+    destruct R; simpl.
+    solveLL'.
+    decide3' (RCUTPOS (FX x)).
+    apply @ctn with (m:=n)...
+    admit. (* This needs an axiom *)
+    tensor'  [!d^| FX x |] (@nil oo).
+    simpl.
+    decide1' (! d^| FX x |).
+    solveLL'.
+    decide1' ( d^| FX x |).
+    solveLL'.
+    right...
+    
+    decide2' (E{ fun x0  =>  u^| FX' x0 |}).
+    existential' x.
+    rewrite H1...
+    
+  Admitted.
+    
+    
 End CutCoherence.
 
 (** Building the inference rules (bipoles) *)
@@ -233,7 +271,15 @@ Section Bipoles.
       | Left => (d^| t_bin lab A B|) ** (RulesDefs (rulesBin lab) s A B)
       end.
 
-  Hint Unfold makeRuleConstant makeRuleBin  : core.
+  (** building rules for quantifiers *)
+  Definition makeRuleQ (lab : quantifiers) (s:Side):=
+    fun (FX :uexp -> uexp) =>
+      match s with
+      | Right => (u^| t_quant lab FX|) ** (QDefs (rulesQ lab) s FX)
+      | Left => (d^| t_quant lab FX|) **  (QDefs (rulesQ lab) s FX)
+      end.
+
+  Hint Unfold makeRuleConstant makeRuleBin makeRuleQ : core.
 
   Hint Constructors isFormula : core.
   Theorem RulesIsFormula : forall T S A B,
@@ -256,6 +302,25 @@ Section Bipoles.
     destruct T;destruct S;simpl;auto.
   Qed.
 
+  Theorem QPerpIsFormula: forall T S FX,
+      uniform FX -> 
+      isFormula ((QDefs T S FX) ^).
+    intros.
+    destruct T;destruct S;simpl;auto.
+    repeat constructor;auto.
+    repeat constructor;auto.
+  Qed.
+
+  Theorem QIsFormula: forall T S FX,
+      uniform FX -> 
+      isFormula ((QDefs T S FX) ).
+    intros.
+    destruct T;destruct S;simpl;auto.
+    repeat constructor;auto.
+    repeat constructor;auto.
+  Qed.
+      
+
   Theorem RulesBangIsFormula : forall T S A B,
       isFormula (! (RulesDefs T S A B) ).
     intros.
@@ -269,6 +334,16 @@ Section Bipoles.
     destruct (rulesCte C);simpl;auto.
     destruct (rulesCte C);simpl;auto.
   Qed.
+
+  Theorem RulesQIsFormula : forall T S FX,
+      uniform FX ->
+      isFormula ((makeRuleQ T S FX) ).
+    intros.
+    destruct S;simpl; destruct (rulesQ T).
+    repeat constructor;auto.
+    repeat constructor;auto.
+  Qed.
+  
     
   (** This is the FLL logical theory including the right and left
     rules for the connectives and constants *)
@@ -277,18 +352,20 @@ Section Bipoles.
   | bcteL : forall C, isOLFormula (t_cons C) -> buildTheory (makeRuleConstant C Left)
   | bconnR : forall C F G, isOLFormula ( t_bin C F G) -> buildTheory  (makeRuleBin C Right F G)
   | bconnL : forall C F G, isOLFormula ( t_bin C F G) -> buildTheory  (makeRuleBin C Left F G)
+  | bqR : forall C FX, uniform FX -> isOLFormula (t_quant C FX) -> buildTheory  (makeRuleQ C Right FX)
+  | bqL : forall C FX, uniform FX -> isOLFormula (t_quant C FX) -> buildTheory  (makeRuleQ C Left FX)
   .
 
-  Lemma CuteRuleNBound : forall h n B L X ,  seqN (CutRuleN n) h B L X ->
-                                             forall m, n<=m -> seq (CutRuleN m) B L X .
+  Lemma CuteRuleNBound : forall h n B L X ,  seqN (CutRulePOSN n) h B L X ->
+                                             forall m, n<=m -> seq (CutRulePOSN m) B L X .
   Proof with solveF.
     induction h using strongind ; intros.
     inversion H ...
     inversion H0;solveF;
       repeat match goal with
-             | [ Hs : seqN (CutRuleN n) h ?B1 ?N1 ?X1 |- _] =>
+             | [ Hs : seqN (CutRulePOSN n) h ?B1 ?N1 ?X1 |- _] =>
                let Hs1 := fresh in
-               assert (Hs1 : seq (CutRuleN m) B1 N1 X1) by
+               assert (Hs1 : seq (CutRulePOSN m) B1 N1 X1) by
                    (
                      eapply H  with (m:= h) (n:= n)  (m0:=m) (B:= B1);solveF 
                    );clear Hs
@@ -306,15 +383,15 @@ Section Bipoles.
   Qed.
 
   Lemma CuteRuleNBound' : forall n B L X ,
-      seq (CutRuleN n)  B L X ->
-      forall m, n<=m -> seq (CutRuleN m) B L X .
+      seq (CutRulePOSN n)  B L X ->
+      forall m, n<=m -> seq (CutRulePOSN m) B L X .
     intros.
     apply seqtoSeqN in H. destruct H.
     eapply CuteRuleNBound;eauto.
   Qed.
   
   (** There are no (object logic) formulas of size 0 *)
-  Lemma CuteRuleN0 : forall F, ~ (CutRuleN 0 F).
+  Lemma CuteRuleN0 : forall F, ~ (CutRulePOSN 0 F).
   Proof with solveF.
     intros F Hn.
     inversion Hn...
@@ -332,11 +409,11 @@ Section Bipoles.
   Inductive OLTheoryCut (n:nat) : oo -> Prop :=
   | oothc_theory : forall OO, buildTheory OO ->  OLTheoryCut n OO
   | oothc_init : forall OO, isOLFormula OO -> OLTheoryCut n (RINIT OO) 
-  | oothc_cutn : forall OO, CutRuleN n OO -> OLTheoryCut n OO
+  | oothc_cutn : forall OO, CutRulePOSN n OO -> OLTheoryCut n OO
   .
 
   Hint Constructors  OLTheoryCut OLTheory  : core.
-  Hint Unfold RINIT RCUT : core.
+  Hint Unfold RINIT RCUTPOS : core.
   Hint Constructors isFormula : core.
 
   (** Some easy equivalences on the  above theories *)
@@ -354,7 +431,7 @@ Section Bipoles.
     inversion H;subst; solve[constructor;auto].
   Qed.
 
-  Lemma TheoryEmb2 : forall n F  , ((CutRuleN n) F) -> (OLTheoryCut) n F.
+  Lemma TheoryEmb2 : forall n F  , ((CutRulePOSN n) F) -> (OLTheoryCut) n F.
     intros.
     inversion H;subst.
     apply oothc_cutn;auto.
@@ -467,6 +544,38 @@ Section Bipoles.
     simpl in H3. inversion H3...
     eexists;eauto.
     apply NotUpInLAtom in H6...
+  Qed.
+
+  Theorem FocusingRightQ : forall n Gamma R  C FX th,
+      (seqN th n Gamma [u| R|] (>> makeRuleQ C Right FX)) ->
+      IsPositiveLAtomFormulaL Gamma ->
+      exists m , n = S m /\
+                 R = t_quant C FX /\
+                 seqN th m Gamma []  (>> QDefs (rulesQ C) Right FX).
+  Proof with solveF.
+    intros.
+    InvTriAll.
+    simpl in H3.
+    inversion H3...
+    eexists;eauto.
+    apply NotUpInLAtom in H2... 
+  Qed.
+
+  Theorem FocusingLeftQ : forall n Gamma R  C FX th,
+      (seqN th n Gamma [u| R|] (>> makeRuleQ C Left FX)) ->
+      IsPositiveLAtomFormulaL Gamma ->
+      exists m , n = S m /\
+                  In (d| t_quant C FX|) Gamma /\
+                  seqN th m Gamma [u| R|]  (>> QDefs (rulesQ C) Left FX).
+  Proof with solveF.
+    intros.
+    InvTriAll.
+    simpl in H3.
+    inversion H3...
+    eexists;eauto.
+    split;eauto.
+    split;eauto.
+    subst...
   Qed.
 
   Theorem FocusingLeftRule : forall n Gamma R C A B th,
@@ -587,10 +696,55 @@ Section Bipoles.
     rewrite H2...
   Qed.
 
+  Theorem AppALLSOMERight :
+    forall n  Gamma FX th,
+      seqN th n Gamma [] (>> QDefs ALLSOME Right FX) ->
+      exists m  ,  n =  S(S(S m))  /\
+                  forall x, proper x -> 
+                            ( seqN th m Gamma [u| FX x |] (> [])).
+  Proof with solveF.
+    intros.
+    simpl in H.
+    InvTriAll.
+    destruct n.
+    specialize (H7 (Var 0) (proper_VAR _ 0)).
+    inversion H7.
+    assert(forall x, proper x -> seqN th n Gamma [u| FX x |] (> [])).
+    intros.
+    specialize(H7 x H) as H7'.
+    invTri H7'...
+    eexists.
+    split;eauto.
+  Qed.
+
+  Theorem AppALLSOMELeft :
+    forall n  Gamma Delta FX th,
+      seqN th n Gamma Delta (>> QDefs ALLSOME Left FX) ->
+      exists m t ,  n =  S(S(S m))  /\
+                    proper t /\
+                    ( seqN th m (d| FX t| :: Gamma) Delta (> [])).
+  Proof with solveF.
+    intros.
+    simpl in H.
+    InvTriAll.
+    eexists.
+    eexists;eauto.
+    split;eauto.
+    split;eauto.
+    LLExact H6.
+  Qed.
+    
+    
+    
+
+
+    
+       
+
   Theorem PARTensorInv : forall A B Gamma R n,
       ( seq (OLTheoryCut (pred n)) (d| A | :: d| B | :: Gamma) [u| R |] (> [])) ->
       seq (OLTheoryCut (pred n)) Gamma [u| R |] (>> RulesDefs PARTENSOR Left A B ) .
-    intros;simpl;solveLL'.
+    intros;simpl; solveLL'.
     LLExact' H.
   Qed.
 
@@ -638,25 +792,26 @@ Ltac CutTacPOS :=
   | [ |- OLTheoryCut _ _ ]=> solve [repeat (constructor;auto)]
   | [ |- OLTheory _ ]=> solve [repeat (constructor;auto)]
   | [ H : isOLConstant (t_bin _ _ _) |- _] => inversion H (* this is inconsistent *)
-                                                        
+  | [ H : isOLConstant (t_quant _ _) |- _] => inversion H (* this is inconsistent *)
+
   end.
 
   Section OLCutElimination.
     Context `{OLR: OORules}.
-    Hint Constructors CutRuleN : core.
+    Hint Constructors CutRulePOSN : core.
     Hint Constructors IsPositiveLAtomFormula : core .
     Hint Unfold IsPositiveLAtomFormulaL : core. 
     Hint Unfold makeRuleConstant makeRuleBin (*makeLRuleQ makeRRuleQ*) : core.
     Hint Constructors  OLTheoryCut OLTheory  : core.
-    Hint Unfold RINIT RCUT : core.	
+    Hint Unfold RINIT RCUTPOS : core.	
     Hint Unfold down' up' : core .
 
     Theorem TheoryCutIsFormula n F:
     OLTheoryCut n F -> isFormula F.
   Proof with CutTacPOS.
     intros.
-    inversion H...
-    inversion H0; auto using CtesIsFormula, RulesIsFormula,MRulesIsFormula.
+    inversion H...  
+    inversion H0; auto using CtesIsFormula, RulesIsFormula,MRulesIsFormula, RulesQIsFormula.
     constructor...
     inversion H0...
     constructor...
@@ -733,6 +888,42 @@ Ltac CutTacPOS :=
       rewrite perm_swap...
       eapply weakeningN...
   Qed.
+
+  (** Assuming that both premises of the cut use a right rule (and
+  then, the cut rule is not principal in the left premise *)
+  Theorem LeftPremiseRightQCases n n' h h1 h2 Gamma R FX FCut C:
+    (seqN OLTheory h1 (d| FCut |:: Gamma) [u| R |]
+          (>> makeRuleQ C Right FX)) ->
+    (seqN OLTheory (S h1) (d| FCut | ::Gamma) [u| R |] (> [])) ->
+    ( seqN OLTheory (S (S h2)) Gamma [u| FCut |] (> [])) ->
+    IsPositiveLAtomFormulaL Gamma ->
+    S h = S h1 + S (S h2) ->
+    n' <= n ->
+    lengthUexp (FCut) n' ->
+    isOLFormula (FCut) ->
+    isOLFormula R ->
+    isOLFormula (t_quant C FX) ->
+    uniform FX -> 
+    CUTDefinition n' h ->
+    seq (OLTheoryCut (pred n)) Gamma [u| R |] (> []).
+  Proof with CutTacPOS.
+    intros Hseq1 Hseq1' Hseq2 IsGamma Hh Hn Hluexp HisC HisR HisAB FXUnif IH.
+    apply FocusingRightQ in Hseq1...
+    CleanContext.
+    remember (rulesQ C).
+    destruct q.
+    + apply AppALLSOMERight in H1...
+      CleanContext.
+      inversion HisR...
+      decide3' (makeRuleQ C Right FX)...
+      tensor'  [u| t_quant C FX |] (@nil oo)...
+      apply lbindEq in H1...
+      rewrite <- Heqq...
+      solveLL'.
+      eapply IH with (h1:= x0) (h2:= S ( S h2)) (m := x0 + S ( S h2)) (FCut:=FCut);eauto...
+      rewrite <- H1...
+  Qed.
+  
   
   (** Assuming that the cut formula in the right premise of the cut
   was principal, we analyze the cases of the left premise.
@@ -858,6 +1049,60 @@ Ltac CutTacPOS :=
            permswap H7.
            apply IH with (m:=x0 + S (S h2)) (h2:=S (S h2))  (h1:= x0) (FCut:=(t_cons C))...
            eapply weakeningN...
+      + (*  Right quantifier... never principal *)
+        remember (rulesQ C0).
+        destruct q...
+        
+        invTri H2.
+        invTri H11.
+        ++
+          destruct H2...
+          assert(N = []).
+          { simpl in H8.
+            inversion H8...
+          }
+          subst.
+          remember (rulesQ C0).
+          destruct q.
+          apply AppALLSOMERight in H12.
+          CleanContext.
+          rewrite app_nil_r in H8.
+          inversion H8...
+          decide3' (makeRuleQ C0 Right FX)...
+          tensor' [u| t_quant C0 FX |] (@nil oo).
+          rewrite <- Heqq0;simpl.
+          solveLL'.
+          specialize (H2 x0 properX).
+          apply IH with (m:=x + S (S h2)) (h2:=S (S h2))  (h1:= x) (FCut:=(t_cons C))...
+          inversion HisR...
+          apply lbindEq in H5...
+          rewrite <- H5...
+        ++ (*  H6 is inconsistent *)
+          inversion H6...
+          apply NotUpInLAtom with (R0:= t_quant C0 FX) in IsGamma .
+          contradiction.
+      + (* Left Quantifier *)
+        invTri H2.
+        remember (rulesQ C0).
+        destruct q.
+        invTri H11.
+        destruct H2...
+        simpl in H8... inversion H8.
+        CleanContext.
+        inversion H6...
+        apply AppALLSOMELeft in H12.
+        CleanContext.
+        LLPermH H8 (d| t_cons C| :: d| FX x0 | :: Gamma) .
+        decide3' (makeRuleQ C0 Left FX).
+        tensor' (@nil oo) [u| R |].
+        rewrite <- Heqq;simpl.
+        existential' x0.
+        LLPerm (d| FX x0 | :: Gamma).
+        apply IH with (m:=x + S (S h2)) (h2:=S (S h2))  (h1:= x) (FCut:=(t_cons C))...
+        eapply weakeningN...
+        inversion H4...
+        apply lbindEq in H9...
+        rewrite <- H9...
     }
     { (* init *)
       apply Init_inversion1  in H2...
@@ -911,6 +1156,238 @@ Ltac CutTacPOS :=
     apply weakeningGen...
   Qed.
 
+  (* Using Cut-coherence on quantifiers *)
+  Theorem CutObjectQLL: forall T FX FX' C  Gamma R n n',  
+      (seq (OLTheoryCut (pred n)) Gamma [u| R |] (>> QDefs T Left FX)) ->
+      (seq (OLTheoryCut (pred n)) Gamma [] (>> ! QDefs T Right FX')) ->
+      uniform FX ->
+      uniform FX' ->
+      ext_eq FX FX' ->
+      lengthUexp (t_quant C FX') n' ->
+      n' <= n ->
+      IsPositiveLAtomFormulaL Gamma ->
+      (forall t : expr Econ, proper t -> isOLFormula (FX t)) ->
+      seq (OLTheoryCut (pred n)) Gamma [u| R |] (> []).
+  Proof with CutTacPOS.
+    intros.
+    LLPerm ([ u|R|] ++ []).
+    
+    apply @GeneralCut' with (dualC:= ! QDefs T Right FX') (C := ? ( QDefs T Right FX')^);CutTac;SolveIsFormulas;eauto using QPerpIsFormula, QIsFormula, IsPositiveLIsFormula,TheoryCutIsFormula.
+    rewrite <- ng_involutive...
+    unfold Notasynchronous...
+    LLPerm ([] ++ [ u|R|] ).
+    
+    apply @GeneralCut' with (dualC:=  QDefs T Left FX ) (C:= ( QDefs T Left FX) ^);CutTac;eauto using RulesPerpIsFormula,QPerpIsFormula, QIsFormula, IsPositiveLIsFormula,TheoryCutIsFormula; SolveIsFormulas.
+    rewrite <- ng_involutive...
+    unfold Notasynchronous...
+    inversion H4...
+    apply lbindEq in H9...
+    rewrite H9 in H12...
+    apply WeakTheory with (theory := CutRulePOSN (pred n)); auto using TheoryEmb2...
+    apply CuteRuleNBound' with (n1:= n0)...
+    LLPerm (Gamma ++ []).
+    apply weakeningGen.
+    eapply CutCoherenceQ;eauto.
+    rewrite H3...
+    apply proper_VAR.
+    apply proper_VAR.
+  Qed.
+    
+
+  (** Assuming that the cut formula in the right premise of the cut
+  was principal, we analyze the cases of the left premise.
+  Here we assume that the cut-formula is a quantifier 
+   *)
+
+  Theorem QPrincipalLCases n n' h h1 h2 Gamma R C FX:
+    (seqN OLTheory h1 (d|t_quant C FX|::Gamma) [u| R |] (> [])) ->
+    (seqN OLTheory h2 Gamma [] (>> QDefs (rulesQ C) Right FX)) ->
+    (seqN OLTheory (S (S h2)) Gamma [u| t_quant C FX |] (> [])) ->
+    IsPositiveLAtomFormulaL Gamma ->
+    S h = h1 + S (S h2) ->
+    n' <= n ->
+    lengthUexp (t_quant C FX) n' ->
+    isOLFormula (t_quant C FX) ->
+    uniform FX -> 
+    isOLFormula R ->
+    CUTDefinition n' h ->
+    seq (OLTheoryCut (pred n)) Gamma [u| R |] (> []).
+  Proof with CutTacPOS.
+    intros Hseq1 Hseq2 Hseq2' IsGamma Hh Hn Hluexp HisC FXUni HisR IH.
+    (** By case analysis on the continuation of HSeq1 *)
+    inversion Hseq1...
+    inversion H0...
+    inversion H...
+    { (* Rule *)
+      inversion H2...
+      + (* right cte never principal *)
+        apply FocusingRightCte in H1...
+        CleanContext.
+        remember (rulesCte C0).
+        destruct c;simpl in H4...
+        decide3' (makeRuleConstant C0 Right)...
+        tensor' [u| t_cons C0 |] (@nil oo).
+        rewrite <- Heqc... solveLL'.
+      + (* left cte *)
+        apply FocusingLeftCte in H1...
+        CleanContext.
+        destruct H1;CleanContext.
+        inversion H0...
+        remember (rulesCte C0).
+        destruct c;simpl in *...
+        decide3' (makeRuleConstant C0 Left)...
+        tensor'  (@nil oo) [u| R |].
+        rewrite <- Heqc... solveLL'.
+      + (* right rule never principal *)
+        eapply LeftPremiseRightRuleCases;eauto.
+      + (* left rule never principal *)
+        apply FocusingLeftRule in H1.
+        CleanContext.
+        inversion H1...
+        inversion H3...
+        remember (rulesBin C0).
+        destruct r.
+        ++ apply AppPARTENSORLeft in H4.
+           CleanContext.
+           decide3' (makeRuleBin C0 Left F0 G)...
+           tensor' (@nil oo) [u| R |].
+           rewrite <- Heqr...
+           solveLL'.
+           LLPermH H5 (d| t_quant C FX | :: d| F0 | :: d| G | :: Gamma).
+           LLPerm  (d| F0 | ::  d| G | :: Gamma) .
+           apply IH with (h1 := x0) (h2:=S (S h2)) (m := x0+ S (S h2)) (FCut:= t_quant C FX)...
+           eapply weakeningN...
+           eapply weakeningN...
+        ++ apply AppWITHPLUSLeft in H4.
+           CleanContext.
+           decide3' (makeRuleBin C0 Left F0 G)...
+           tensor' (@nil oo) [u| R |].
+           rewrite <- Heqr...
+           solveLL'.
+           LLPermH H5 (d| t_quant C FX | :: d| F0 | :: Gamma).
+           LLPerm  (d| F0 | :: Gamma) .
+           apply IH with (h1 := x0) (h2:=S (S h2)) (m := x0+ S (S h2)) (FCut:= t_quant C FX)...
+           eapply weakeningN...
+           
+           LLPermH H5 (d| t_quant C FX | :: d| G | :: Gamma).
+           LLPerm  (d| G | :: Gamma) .
+           apply IH with (h1 := x0) (h2:=S (S h2)) (m := x0+ S (S h2)) (FCut:= t_quant C FX)...
+           eapply weakeningN...
+        ++ apply AppTENSORPARLeft in H4.
+           CleanContext.
+           decide3' (makeRuleBin C0 Left F0 G)...
+           tensor' (@nil oo) [u| R |].
+           rewrite <- Heqr...
+           tensor' (@nil oo) [u| R |].
+           apply IH with (h1 := x0) (h2:=S (S h2)) (m := x0+ S (S h2)) (FCut:= t_quant C FX)...
+           LLPermH H6 (d| t_quant C FX | :: d| G | :: Gamma).
+           LLPerm  (d| G | :: Gamma) .
+           apply IH with (h1 := x0) (h2:=S (S h2)) (m := x0+ S (S h2)) (FCut:= t_quant C FX)...
+           eapply weakeningN...
+        ++ inversion HisC...
+      + (* Right quantifier: never principal *)
+        apply FocusingRightQ in H1.
+        CleanContext.
+        remember (rulesQ C0).
+        destruct q.
+        invTri H5.
+        invTri H9.
+        decide3' ( makeRuleQ C0 Right FX0).
+        tensor' [u| t_quant C0 FX0 |] (@nil oo).
+        rewrite <- Heqq. simpl.
+        solveLL'.
+        specialize (H11 x properX).
+        invTri H11. simpl in H12.
+        apply IH with (h1 := n0) (h2:=S (S h2)) (m := n0+ S (S h2)) (FCut:= t_quant C FX)...
+        inversion HisR...
+        apply lbindEq in H5...
+        rewrite <- H5...
+
+        inversion HisC...
+      +  (* Left quantifier: may or may not be principal *)
+        apply FocusingLeftQ in H1.
+        CleanContext.
+        remember (rulesQ C0).
+        destruct q.
+        inversion H1...
+        subst... 
+        ++ (* principal case *)
+          apply lbindEq in H8...
+          rewrite <- Heqq in Hseq2.
+          invTri H5.
+          invTri H12.
+          invTri H13.
+          LLPermH H12  (d| t_quant C0 FX| :: d| FX0 t | :: Gamma ).
+          assert (Cut1: seq (OLTheoryCut (pred n)) (d| FX0 t| :: Gamma) [u| R |] (> [])) .
+          {
+            apply IH with (h1 := n0) (h2:=S (S h2)) (m := n0+ S (S h2)) (FCut:= t_quant C0 FX)...
+            eapply weakeningN...
+            inversion H4...
+            apply lbindEq in H9...
+            rewrite <- H9...
+          }
+          assert (Cut2: seq (OLTheoryCut (pred n))  Gamma [u| R |] (>> QDefs ALLSOME Left FX0)).
+          { existential' t.
+            LLExact' Cut1.
+          }
+          assert (Cut3: seq OLTheory  Gamma [] (>> ! QDefs ALLSOME Right FX)).
+          {
+            invTri Hseq2.
+            invTri H14.
+            simpl. solveLL'.
+            specialize (H17 x properX).
+            invTri H17. simpl in H18.
+            eapply seqNtoSeq;eauto.
+          }
+          inversion Hluexp...
+          apply lbindEq in H9...
+
+
+          eapply CutObjectQLL with (C:= C0);eauto...
+          simpl in Cut3.
+          invTri' Cut3.
+          invTri' H14.
+          solveLL'.
+          specialize(H18 x properX)...
+          invTri' H18. simpl in H19.
+          rewrite H9...
+          apply WeakTheory with (theory := OLTheory);auto using TheoryEmb1.
+          apply ext_eq_Econ_Symmetric.
+          eapply ext_eq_Econ_Transitive;eauto.
+          constructor...
+          inversion H4...
+          intros.
+          apply lbindEq in H11...
+          rewrite <- H11...
+        ++ (* non-principal case *)
+          invTri H5.
+          invTri H12.
+          invTri H13.
+          decide3' ( makeRuleQ C0 Left FX0).
+          tensor' (@nil oo) [u| R |].
+          rewrite <- Heqq.
+          existential' t...
+          LLPermH  H12 (d| t_quant C FX | :: d| FX0 t| :: Gamma).
+          LLPerm  (d| FX0 t | :: Gamma ).
+          apply IH with (h1 := n0) (h2:=S (S h2)) (m := n0+ S (S h2)) (FCut:= t_quant C FX)...
+          eapply weakeningN...
+          inversion H4...
+          apply lbindEq in H9...
+          rewrite <- H9...
+        ++  inversion H4...
+    }
+    { (* init *)
+      apply Init_inversion1  in H1...
+      inversion H3...
+      subst.
+      apply WeakTheory with (theory := OLTheory);auto using TheoryEmb1.
+      apply seqNtoSeq in Hseq2'...
+      decide3' (RINIT OO).
+      tensor' [u| OO |] (@nil oo).
+    }
+  Qed.
+
+    
     
   (** Assuming that the cut formula in the right premise of the cut
   was principal, we analyze the cases of the left premise.
@@ -987,7 +1464,7 @@ Ltac CutTacPOS :=
               apply IH with (h1 := x0) (h2:=S (S h2)) (m := x0+ S (S h2)) (FCut:= t_bin C0 F0 G)...
               apply weakeningN...
               
-              
+
               assert(Cut2: seq (OLTheoryCut (pred n)) Gamma [u| R |] (>> RulesDefs WITHPLUS Left F0 G )) by (apply WITHPlusInv;auto).
               assert(Cut3: seq (OLTheoryCut (pred n)) Gamma [] (>> ! RulesDefs WITHPLUS Right F0 G)) by (eapply WITHPlusInvR;eauto).
               eapply CutObjectLL;eauto.
@@ -1042,6 +1519,41 @@ Ltac CutTacPOS :=
               rewrite Permutation_app_comm...
               eapply IH with (h1 := x0) (h2:=S (S h2)) (m := x0+ S (S h2)) (FCut:= t_bin C A B)...
               eapply weakeningN...
+      + (* Quantifier Right Never principal *)
+        apply FocusingRightQ in H1...
+        CleanContext.
+        remember (rulesQ C0).
+        destruct q.
+        apply AppALLSOMERight in H5.
+        CleanContext.
+        decide3' (makeRuleQ C0 Right FX)...
+        tensor' [u| t_quant C0 FX |] (@nil oo).
+        rewrite <- Heqq... solveLL'.
+        specialize (H1 x properX).
+        eapply IH with (h1 := x0) (h2:=S (S h2)) (m := x0+ S (S h2)) (FCut:= t_bin C A B)...
+        inversion HisR...
+        apply lbindEq in H5...
+        rewrite <- H5...
+        
+      + (* Quantifier Left never principal *)
+        apply FocusingLeftQ in H1...
+        CleanContext.
+        remember (rulesQ C0).
+        destruct q.
+        apply AppALLSOMELeft in H5...
+        CleanContext.
+        decide3' (makeRuleQ C0 Left FX)...
+        tensor'  (@nil oo) [u| R |].
+        inversion H1...
+        rewrite <- Heqq...
+        existential' x1.
+        eapply IH with (h1 := x0) (h2:=S (S h2)) (m := x0+ S (S h2)) (FCut:= t_bin C A B)...
+        LLExact H6.
+        LLPerm ( d| FX x1 | :: Gamma ) .
+        eapply weakeningN...
+        inversion H4...
+        apply lbindEq in H7...
+        rewrite <- H7...
     } 
     { (* init *)
       apply Init_inversion1  in H1...
@@ -1185,8 +1697,31 @@ Ltac CutTacPOS :=
           + (* Left rule may or may not be principal *)
             apply FocusingLeftRule in H5...
             CleanContext.
-            destruct H5;CleanContext;
-              eapply RCtePrincipalLCases with (h1:= x0) (h2:= x);eauto.
+            inversion H5...
+            eapply RCtePrincipalLCases with (h1:= x0) (h2:= x);eauto.
+          + (* Right quantifier *)
+            eapply LeftPremiseRightQCases;eauto.
+          +  (* left quantifier *)
+            apply FocusingLeftQ in H5...
+            CleanContext.
+            destruct H5;CleanContext.
+            inversion H1...
+            remember (rulesQ C0).
+            destruct q...
+            invTri H9.
+            invTri H15.
+            invTri H16.
+            decide3' (makeRuleQ C0 Left FX)...
+            tensor' (@nil oo)  [u| R |].
+            rewrite <- Heqq.
+            existential' t .
+            LLPermH H15 (d| t_cons C | :: ( d| FX t | :: Gamma)).
+            LLPerm (d| FX t| :: Gamma).
+            apply IH with (m:=n0 + S (S x)) (h2:=S (S x))  (h1:= n0) (FCut:=(t_cons C))...
+            eapply weakeningN...
+            inversion H8...
+            apply lbindEq in H12...
+            rewrite <- H12...
         }
         { (* init was applied *)
           apply Init_inversion1  in H5...
@@ -1218,6 +1753,32 @@ Ltac CutTacPOS :=
       }
       { (* left rule --- never principal ---*)
         eapply LeftRuleOnRightPremise;eauto.
+      }
+      { (* Right quant *)
+        apply FocusingRightQ in H1...
+        CleanContext.
+        eapply QPrincipalLCases with (h1:=h1) (h2:=x);eauto.
+      }
+      { (* Left quant --- never principal --- *)
+        apply FocusingLeftQ in H1...
+        CleanContext.
+        remember (rulesQ C).
+        destruct q.
+        invTri H5.
+        invTri H11.
+        invTri H12.
+        LLPermH H11 (d| FX t| :: Gamma).
+        decide3' (makeRuleQ C Left FX).
+        tensor' (@nil oo) [u| R |].
+        rewrite <- Heqq.
+        existential' t.
+        LLPerm (d| FX t| :: Gamma).
+        eapply IH with (h2:= n0) (h1:= h1) (m := h1 + n0) (FCut:=FCut);eauto...
+        LLPerm (d| FX t | :: d| FCut | :: Gamma).
+        eapply weakeningN...
+        inversion H4...
+        apply lbindEq in H8...
+        rewrite <- H8...
       }
     }
     { (* init *)
@@ -1333,6 +1894,38 @@ Ltac CutTacPOS :=
              rewrite <- Heqr...
              tensor' (@nil oo) [u|R|].
              LLExact' H9.
+      ++ apply FocusingRightQ in H6...
+         CleanContext.
+         remember (rulesQ C).
+         destruct q...
+         +++ apply AppALLSOMERight in H9.
+             CleanContext.
+             inversion H8...
+             apply lbindEq in H9...
+             decide3' (makeRuleQ C Right FX).
+             tensor' [u| t_quant C FX |] (@nil oo).
+             rewrite <- Heqq .
+             simpl; solveLL'.
+             specialize (H6 x properX).
+             apply H in H6...
+             rewrite <- H9...
+      ++ apply FocusingLeftQ in H6...
+         CleanContext.
+         remember (rulesQ C).
+         destruct q...
+         +++ apply AppALLSOMELeft in H9.
+             CleanContext.
+             inversion H8...
+             apply lbindEq in H11...
+             decide3' (makeRuleQ C Left FX).
+             tensor' (@nil oo) [u| R |] .
+             rewrite <- Heqq ;simpl.
+             existential' x1.
+             apply H in H10...
+             LLExact' H10.
+             constructor...
+             rewrite <- H11...
+         
     + apply Init_inversion1 in H6...
       decide3' (RINIT OO).
       tensor' [u| OO|] (@nil oo).
@@ -1354,4 +1947,60 @@ Ltac CutTacPOS :=
       CleanContext.
       apply IHn in H10...
   Qed.
-End OLCutElimination.
+
+  Definition RLCUT  (F:uexp) : oo := (d|F|)  ** (u|F|).
+
+  (** The linear-cut rule applied on object level terms of a given size  *)
+  Inductive LCutRulePOSN (n:nat) : oo -> Prop :=
+  | ctnL : forall (F:uexp) m , isOLFormula F ->
+                              lengthUexp F m -> m <= n ->
+                              LCutRulePOSN n (RLCUT F). 
+
+  (** A theory including cuts of size [n] and POS *)
+  Inductive OLTheoryLCut (n:nat) : oo -> Prop :=
+  | oothc_theory' : forall OO, buildTheory OO ->  OLTheoryLCut n OO
+  | oothc_init' : forall OO, isOLFormula OO -> OLTheoryLCut n (RINIT OO) 
+  | oothc_cutn' : forall OO, LCutRulePOSN n OO -> OLTheoryLCut n OO
+  | oothc_pos' : forall OO, isOLFormula OO -> OLTheoryLCut n (POS OO)                                             .
+  Hint Constructors LCutRulePOSN  OLTheoryLCut : core.
+
+  Theorem CutLCutAdq:
+    forall n h  Gamma R,
+      (seqN (OLTheoryCut n) h Gamma [u|R|]  (> [])) ->
+      IsPositiveLAtomFormulaL Gamma ->
+      isOLFormula R ->
+      (seq  (OLTheoryLCut n) Gamma [u|R|]  (> [])).
+  Proof with CutTacPOS.
+    intro n.
+    induction h using strongind ; intros ; try solve[inversion H].
+    inversion H0...
+    inversion H4...
+    + (* from the theory *)
+      admit.
+    + (* from init *)
+      apply Init_inversion1 in H6 as H6';auto.
+      destruct H6'...
+      decide3' (RINIT OO).
+      tensor' [u| OO |] (@nil oo) ...
+    + (* a cut rule *)
+      inversion H3...
+      invTri H6.
+      inversion H17...
+      inversion H14...
+      inversion H16...
+      inversion H20...
+      rewrite app_nil_r in H12...
+      decide3' (RLCUT F0)...
+      apply  oothc_cutn'...
+      econstructor;eauto.
+      tensor' [u| R |] (@nil oo) ...
+
+      (* Apply pos *)
+      decide3' (POS F0).
+      tensor'  [d| F0 |] [u| R | ] .
+      apply H in H21...
+      
+      apply H in H19...
+  Admitted.
+
+  End OLCutElimination.
