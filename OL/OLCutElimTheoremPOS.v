@@ -98,7 +98,7 @@ Section OLInferenceRules.
      of [!] to neatly control this behavior.
 
    *)
-  Inductive RulesEnc := PARTENSOR | WITHPLUS | TENSORPAR .
+  Inductive RulesEnc := PARTENSOR | WITHPLUS | TENSORPAR | PLUSWITH .
   Inductive QEnc := ALLSOME .
 
   
@@ -112,6 +112,8 @@ Section OLInferenceRules.
     | WITHPLUS, Right => ( !u|A|) op ( !u|B|)
     | TENSORPAR, Left => (! u|A|) ** (? d|B|)
     | TENSORPAR, Right => (? d|A|) $ (u|B|)
+    | PLUSWITH, Left => (? d|A|) op (? d|B|)
+    | PLUSWITH, Right => ( u|A|) & ( u|B|)
     end.
 
   Definition QDefs (t:QEnc) (s:Side) (FX : uexp -> uexp):=
@@ -120,9 +122,6 @@ Section OLInferenceRules.
     | ALLSOME, Right => F{ fun x =>  u| (FX x)|}
     end
   .
-  
-
-  
   
   (** The cut rule applied on object level terms of a given size  *)
   Inductive CutRulePOSN (n:nat) : oo -> Prop :=
@@ -176,24 +175,23 @@ Section CutCoherence.
       decide3' (RCUTPOS A)...
       apply @ctn with (m:=n)...
       tensor'    [( d^| A |)]  (@nil oo)...
-      decide1' (d^|A|). init'...
+      decide1' (d^|A|)...
       decide2' (u^|A|).
       
       decide3' (RCUTPOS B)...
       apply @ctn with (m:=m)... 
       tensor'   [ d^| B |]  (@nil oo).
-      rewrite Permutation_app_comm...
-      decide1' (d^|B|). init'...
+      decide1' (d^|B|)...
       decide2' (u^|B|).
-    + solveLL'...
-      decide2' ((? u^| A |) & (? u^| B |));solveLL';rewrite Permutation_app_comm...
+    + solveLL'.
+      decide2' ((? u^| A |) & (? u^| B |)). 
 
       decide1' ((! d^| A |) op (! d^| B |)).
       oplus1'.
       decide3' (RCUTPOS A)...
       apply @ctn with (m:=n)...
       tensor'    [( d^| A |)]  (@nil oo)...
-      decide1' (d^|A|). init'...
+      decide1' (d^|A|)...
       decide2' (u^|A|).
 
       decide1' ((! d^| A |) op (! d^| B |)).
@@ -201,7 +199,7 @@ Section CutCoherence.
       decide3' (RCUTPOS B)...
       apply @ctn with (m:=m)...
       tensor'    [( d^| B |)]  (@nil oo)...
-      decide1' (d^|B|). init'...
+      decide1' (d^|B|)...
       decide2' (u^|B|).
     + solveLL'.
       decide1' (! d^| B |); solveLL'.
@@ -209,7 +207,7 @@ Section CutCoherence.
       decide3' (RCUTPOS B)...
       apply @ctn with (m:=m)...
       tensor'    [( d^| B |)]  (@nil oo)...
-      decide1' (d^|B|). init'...
+      decide1' (d^|B|)...
 
       decide2' ((! d^| A |) ** u^| B |).
       tensor' (@nil oo) [u| B |].
@@ -217,8 +215,26 @@ Section CutCoherence.
       decide3' (RCUTPOS A)...
       apply @ctn with (m:=n)...
       tensor'    [( d^| A |)]  (@nil oo)...
-      decide1' (d^|A|). init'...
+      decide1' (d^|A|)...
       decide2' (u^|A|).
+    + solveLL'...
+      decide1' (! d^| A |)...
+      solveLL'.
+      decide3' (RCUTPOS A)...
+      apply @ctn with (m:=n)...
+      tensor' [d^| A |] (@nil oo)...
+      decide1' (d^|A|)...
+      solveLL'...
+      decide2'(u^| A | op u^| B |).
+
+      decide1' (! d^| B |)...
+      solveLL'.
+      decide3' (RCUTPOS B)...
+      apply @ctn with (m:=m)...
+      tensor' [d^| B |] (@nil oo)...
+      decide1' (d^|B|)...
+      solveLL'...
+      decide2'(u^| A | op u^| B |).
   Qed.
 
   Theorem CutCoherenceQ (R: QEnc) (FX FX' : uexp -> uexp) (n : nat) :
@@ -238,18 +254,12 @@ Section CutCoherence.
     tensor'  [!d^| FX x |] (@nil oo).
     simpl.
     decide1' (! d^| FX x |).
-    solveLL'.
-    decide1' ( d^| FX x |).
-    solveLL'.
-    right...
+    decide1' ( d^| FX x |)...
     
     decide2' (E{ fun x0  =>  u^| FX' x0 |}).
     existential' x.
     rewrite H1...
-    
   Admitted.
-    
-    
 End CutCoherence.
 
 (** Building the inference rules (bipoles) *)
@@ -477,6 +487,17 @@ Section Bipoles.
     decide1' ((! u| A |) op (! u| B |));auto.
   Qed.
 
+  Theorem PlusWithInvR : forall h Gamma A B n,
+      (seqN OLTheory h Gamma [] (>> RulesDefs PLUSWITH Right A B)) ->
+      seq (OLTheoryCut (pred n)) Gamma [] (>> ! RulesDefs PLUSWITH Right A B).
+    intros;simpl in *.
+    apply seqNtoSeq in H.
+    InvTriAll'.
+    simpl in *.
+    apply WeakTheory with (theory := OLTheory);auto using TheoryEmb1.
+  Qed.
+  
+
   Theorem TENSORParInv : forall A B Gamma R n,
           ( seq (OLTheoryCut (pred n)) Gamma [u| A |] (> [])) ->
           ( seq (OLTheoryCut (pred n)) (d| B | :: Gamma) [u| R |] (> [])) ->
@@ -486,6 +507,23 @@ Section Bipoles.
     rewrite Permutation_app_comm;simpl.
     LLExact' H0.
   Qed.
+
+  Theorem PLUSWithInv1 : forall A B Gamma R n,
+          ( seq (OLTheoryCut (pred n)) (d| A | :: Gamma) [u| R |] (> [])) ->
+          seq (OLTheoryCut (pred n)) Gamma [u| R |] (>> RulesDefs PLUSWITH Left A B ) .
+    intros;simpl;solveLL'.
+    oplus1'.
+    LLExact' H.
+  Qed.
+
+  Theorem PLUSWithInv2 : forall A B Gamma R n,
+          ( seq (OLTheoryCut (pred n)) (d| B | :: Gamma) [u| R |] (> [])) ->
+          seq (OLTheoryCut (pred n)) Gamma [u| R |] (>> RulesDefs PLUSWITH Left A B ) .
+    intros;simpl;solveLL'.
+    oplus2'.
+    LLExact' H.
+  Qed.
+  
 
   Theorem TENSORParInvR : forall h Gamma A B n,
       (seqN OLTheory h Gamma [] (>> RulesDefs TENSORPAR Right A B)) ->
@@ -647,6 +685,22 @@ Section Bipoles.
     split;eauto.
   Qed.
 
+  Theorem AppPLUSWITHRight :
+    forall n  Gamma A B th,
+      (seqN th n Gamma [] (>> RulesDefs PLUSWITH Right A B)) ->
+      exists m , n = S(S(S m))  /\
+                 ( (seqN th m Gamma [u| A |] (> []) ) /\
+                   (seqN th m Gamma [u| B |] (> []) )) .
+  Proof with solveF.
+    intros.
+    simpl in H.
+    InvTriAll.
+    simpl in *.
+    eexists.
+    split;eauto.
+  Qed.
+  
+
   Theorem AppWITHPLUSLeft :
     forall n  Gamma Delta A B th,
       (seqN th n Gamma Delta (>> RulesDefs WITHPLUS Left A B)) ->
@@ -663,6 +717,25 @@ Section Bipoles.
     LLExact H5.
     LLExact H4.
   Qed.
+
+  Theorem AppPLUSWITHLeft :
+    forall n  Gamma Delta A B th,
+      (seqN th n Gamma Delta (>> RulesDefs PLUSWITH Left A B)) ->
+      exists m , n = S(S(S m))  /\
+                 ( (seqN th m (d| A|::Gamma) Delta (> []) ) \/
+                   (seqN th m (d| B|::Gamma) Delta (> []) )) .
+  Proof with solveF.
+    intros.
+    simpl in H.
+    InvTriAll.
+    eexists.
+    split;eauto.
+    left. LLExact H4.
+    eexists.
+    split;eauto.
+    right. LLExact H4.
+  Qed.
+  
 
   Theorem AppTENSORPARRight :
     forall n  Gamma Delta A B th,
@@ -734,13 +807,6 @@ Section Bipoles.
     LLExact H6.
   Qed.
     
-    
-    
-
-
-    
-       
-
   Theorem PARTensorInv : forall A B Gamma R n,
       ( seq (OLTheoryCut (pred n)) (d| A | :: d| B | :: Gamma) [u| R |] (> [])) ->
       seq (OLTheoryCut (pred n)) Gamma [u| R |] (>> RulesDefs PARTENSOR Left A B ) .
@@ -887,6 +953,14 @@ Ltac CutTacPOS :=
       apply IH with (m:=x0 + S (S h2)) (h2 := S (S h2))  (h1:= x0) (FCut:=FCut)...
       rewrite perm_swap...
       eapply weakeningN...
+    + apply AppPLUSWITHRight in H1.
+      CleanContext.
+      inversion HisR...
+      decide3' (makeRuleBin C Right A B)...
+      tensor'  [u| t_bin C A B |] (@nil oo).
+      rewrite <- Heqr... solveLL'.
+      apply IH with (m:=x0 + S (S h2)) (h2 := S (S h2))  (h1:= x0) (FCut:=FCut)...
+      apply IH with (m:=x0 + S (S h2)) (h2 := S (S h2))  (h1:= x0) (FCut:=FCut)...
   Qed.
 
   (** Assuming that both premises of the cut use a right rule (and
@@ -1004,6 +1078,15 @@ Ltac CutTacPOS :=
            rewrite perm_swap in H4.
            apply IH with (m:=x0 + S (S h2)) (h2:=S (S h2))  (h1:= x0) (FCut:=(t_cons C))...
            apply weakeningN...
+        ++ apply AppPLUSWITHRight in H4.
+           CleanContext.
+           inversion H3...
+           decide3' (makeRuleBin C0 Right F0 G)...
+           tensor' [u| t_bin C0 F0 G |] (@nil oo).
+           rewrite <- Heqr...
+           solveLL';
+             apply IH with (m:=x0 + S (S h2)) (h2:=S (S h2))  (h1:= x0) (FCut:=(t_cons C))...
+           
       + (* left Rule Can be principal or not *)
         apply FocusingLeftRule in H2...
         CleanContext.
@@ -1049,6 +1132,27 @@ Ltac CutTacPOS :=
            permswap H7.
            apply IH with (m:=x0 + S (S h2)) (h2:=S (S h2))  (h1:= x0) (FCut:=(t_cons C))...
            eapply weakeningN...
+        ++ apply AppPLUSWITHLeft in H4.
+           CleanContext.
+           inversion H3...
+           decide3' (makeRuleBin C0 Left F0 G)...
+           tensor' (@nil oo) [u| R |].
+           destruct H6.
+           
+           permswap H4.
+           rewrite <- Heqr...
+           oplus1'.
+           rewrite Permutation_app_comm...
+           apply IH with (m:=x0 + S (S h2)) (h2:=S (S h2))  (h1:= x0) (FCut:=(t_cons C))...
+           eapply weakeningN...
+
+           permswap H4.
+           rewrite <- Heqr...
+           oplus2'.
+           rewrite Permutation_app_comm...
+           apply IH with (m:=x0 + S (S h2)) (h2:=S (S h2))  (h1:= x0) (FCut:=(t_cons C))...
+           eapply weakeningN...
+           
       + (*  Right quantifier... never principal *)
         remember (rulesQ C0).
         destruct q...
@@ -1284,6 +1388,23 @@ Ltac CutTacPOS :=
            LLPerm  (d| G | :: Gamma) .
            apply IH with (h1 := x0) (h2:=S (S h2)) (m := x0+ S (S h2)) (FCut:= t_quant C FX)...
            eapply weakeningN...
+        ++ apply AppPLUSWITHLeft in H4.
+           CleanContext.
+           decide3' (makeRuleBin C0 Left F0 G)...
+           tensor' (@nil oo) [u| R |].
+           rewrite <- Heqr...
+           destruct H5.
+           oplus1'.
+           apply IH with (h1 := x0) (h2:=S (S h2)) (m := x0+ S (S h2)) (FCut:= t_quant C FX)...
+           LLExact H4.
+           LLPerm  (d| F0 | :: Gamma) .
+           eapply weakeningN...
+
+           oplus2'.
+           apply IH with (h1 := x0) (h2:=S (S h2)) (m := x0+ S (S h2)) (FCut:= t_quant C FX)...
+           LLExact H4.
+           LLPerm  (d|  G| :: Gamma) .
+           eapply weakeningN...
         ++ inversion HisC...
       + (* Right quantifier: never principal *)
         apply FocusingRightQ in H1.
@@ -1483,7 +1604,30 @@ Ltac CutTacPOS :=
               
               assert(Cut3: seq (OLTheoryCut (pred n)) Gamma [] (>> ! RulesDefs TENSORPAR Right F0 G)) by (eapply TENSORParInvR;eauto).
               eapply CutObjectLL;eauto.
-              
+          +++ apply AppPLUSWITHLeft in H5.
+              CleanContext.
+              inversion H3...
+              destruct H5.
+              {permswap H0.
+                assert(Cut1:  seq (OLTheoryCut (pred n))  (d| F0 | :: Gamma) [u| R |] (> [])).
+                apply IH with (h1 := x0) (h2:=S (S h2)) (m := x0+ S (S h2)) (FCut:= t_bin C0 F0 G)...
+                apply weakeningN...
+                
+                assert(Cut2: seq (OLTheoryCut (pred n)) Gamma [u| R |] (>> RulesDefs PLUSWITH Left F0 G )) by (apply PLUSWithInv1;auto).
+
+                assert(Cut3: seq (OLTheoryCut (pred n)) Gamma [] (>> ! RulesDefs PLUSWITH Right F0 G)) by (eapply PlusWithInvR;eauto).
+                eapply CutObjectLL;eauto.
+              }
+              {permswap H0.
+                assert(Cut1:  seq (OLTheoryCut (pred n))  (d| G | :: Gamma) [u| R |] (> [])).
+                apply IH with (h1 := x0) (h2:=S (S h2)) (m := x0+ S (S h2)) (FCut:= t_bin C0 F0 G)...
+                apply weakeningN...
+                
+                assert(Cut2: seq (OLTheoryCut (pred n)) Gamma [u| R |] (>> RulesDefs PLUSWITH Left F0 G )) by (apply PLUSWithInv2;auto).
+
+                assert(Cut3: seq (OLTheoryCut (pred n)) Gamma [] (>> ! RulesDefs PLUSWITH Right F0 G)) by (eapply PlusWithInvR;eauto).
+                eapply CutObjectLL;eauto.
+              }
         ++ (* None Principal *)
           inversion H3...
           remember (rulesBin C0).
@@ -1519,6 +1663,27 @@ Ltac CutTacPOS :=
               rewrite Permutation_app_comm...
               eapply IH with (h1 := x0) (h2:=S (S h2)) (m := x0+ S (S h2)) (FCut:= t_bin C A B)...
               eapply weakeningN...
+          +++ apply AppPLUSWITHLeft in H5.
+              CleanContext.
+              decide3' (makeRuleBin C0 Left F0 G  ) .
+              tensor' (@nil oo) [u| R |].
+              destruct H6.
+              {
+                rewrite <- Heqr... 
+                oplus1'.
+                eapply IH with (h1 := x0) (h2:=S (S h2)) (m := x0+ S (S h2)) (FCut:= t_bin C A B)...
+                LLExact H5.
+                LLPerm (d| F0 | :: Gamma).
+                eapply weakeningN...
+              }
+              {
+                rewrite <- Heqr... 
+                oplus2'.
+                eapply IH with (h1 := x0) (h2:=S (S h2)) (m := x0+ S (S h2)) (FCut:= t_bin C A B)...
+                LLExact H5.
+                LLPerm (d| G | :: Gamma).
+                eapply weakeningN...
+              }
       + (* Quantifier Right Never principal *)
         apply FocusingRightQ in H1...
         CleanContext.
@@ -1627,6 +1792,25 @@ Ltac CutTacPOS :=
       apply weakeningGenN with (CC':= [atom (down'  B)]) in Hseq1.
       eapply IH with (h1 := h1) (h2:=x0) (m := h1+ x0) (FCut := FCut)...
       LLPerm ([atom (down' B)] ++ d| FCut | :: Gamma)...
+    + apply AppPLUSWITHLeft in H1...
+      CleanContext.
+      decide3' ( makeRuleBin C Left A B)...
+      tensor' (@nil oo)  [u| R |].
+      rewrite <-  Heqr...
+      destruct H1.
+      { oplus1'.
+        eapply IH with (h1 := h1) (h2:=x0) (m := h1+ x0) (FCut := FCut)...
+        LLPerm (d| A | :: d| FCut | :: Gamma).
+        eapply weakeningN...
+        LLExact H.
+      }
+      { oplus2'.
+        eapply IH with (h1 := h1) (h2:=x0) (m := h1+ x0) (FCut := FCut)...
+        LLPerm (d| B | :: d| FCut | :: Gamma).
+        eapply weakeningN...
+        LLExact H.
+      }
+       
   Qed.
 
 
@@ -1860,6 +2044,15 @@ Ltac CutTacPOS :=
              rewrite <- Heqr...
              solveLL'.
              LLExact' H6.
+         +++ apply AppPLUSWITHRight in H8.
+             CleanContext.
+             inversion H7...
+             apply H in H6...
+             apply H in H8...
+             decide3' (makeRuleBin C Right F0 G)...
+             tensor'  [u| t_bin C F0 G |] (@nil oo)...
+             rewrite <- Heqr...
+             solveLL'.
       ++ apply FocusingLeftRule in H6...
          CleanContext.
          remember (rulesBin C).
@@ -1894,6 +2087,26 @@ Ltac CutTacPOS :=
              rewrite <- Heqr...
              tensor' (@nil oo) [u|R|].
              LLExact' H9.
+         +++ apply AppPLUSWITHLeft in H8.
+             CleanContext.
+             inversion H7...
+             destruct H8.
+             {
+               apply H in H5...
+               decide3' (makeRuleBin C Left F0 G)...
+               tensor' (@nil oo) [u|R|].
+               rewrite <- Heqr...
+               oplus1'.
+               LLExact' H5.
+             }
+             {
+               apply H in H5...
+               decide3' (makeRuleBin C Left F0 G)...
+               tensor' (@nil oo) [u|R|].
+               rewrite <- Heqr...
+               oplus2'.
+               LLExact' H5.
+             }
       ++ apply FocusingRightQ in H6...
          CleanContext.
          remember (rulesQ C).

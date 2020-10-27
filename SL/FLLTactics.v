@@ -321,9 +321,9 @@ Ltac dec1 n :=
   end.
 
 (** Notation for forward reasoning on FLL sequents *)
-Tactic Notation "decide1"  constr(R) := eapply @tri_dec1 with (F:= R);solveF.
-Tactic Notation "decide2"  constr(R) := eapply @tri_dec2 with (F:= R);solveF.
-Tactic Notation "decide3"  constr(R) := eapply @tri_dec3 with (F:= R);solveF.
+Tactic Notation "decide1"  constr(R) := eapply @tri_dec1 with (F:= R);solveF;solveLL.
+Tactic Notation "decide2"  constr(R) := eapply @tri_dec2 with (F:= R);solveF;solveLL.
+Tactic Notation "decide3"  constr(R) := eapply @tri_dec3 with (F:= R);solveF;solveLL.
 Tactic Notation "tensor"  constr(Ctx1) constr(Ctx2) := eapply @tri_tensor with (M:=Ctx1) (N:=Ctx2);solveF;solveLL.
 Tactic Notation "tensor"   := eapply @tri_tensor ;solveF;solveLL.
 Tactic Notation "oplus1" := apply tri_plus1;solveLL.
@@ -331,9 +331,9 @@ Tactic Notation "oplus2" := apply tri_plus2;solveLL.
 Tactic Notation "oplus1'" := apply tri_plus1';solveLL'.
 Tactic Notation "oplus2'" := apply tri_plus2';solveLL'.
 Tactic Notation "existential" constr(tt) := eapply @tri_ex with (t:=tt);try solveUniform; auto;solveLL.
-Tactic Notation "decide1'"  constr(R) := eapply @tri_dec1' with (F:= R);solveF.
-Tactic Notation "decide2'"  constr(R) := eapply @tri_dec2' with (F:= R);solveF.
-Tactic Notation "decide3'"  constr(R) := eapply @tri_dec3' with (F:= R);solveF.
+Tactic Notation "decide1'"  constr(R) := eapply @tri_dec1' with (F:= R);solveF;solveLL'.
+Tactic Notation "decide2'"  constr(R) := eapply @tri_dec2' with (F:= R);solveF;solveLL'.
+Tactic Notation "decide3'"  constr(R) := eapply @tri_dec3' with (F:= R);solveF;solveLL'.
 Tactic Notation "tensor'"  constr(Ctx1) constr(Ctx2) := eapply @tri_tensor' with (M:=Ctx1) (N:=Ctx2);solveF;solveLL'.
 Tactic Notation "tensor'"  := eapply @tri_tensor' ;solveF;solveLL'.
 Tactic Notation "existential'" constr(tt) := eapply @tri_ex' with (t:=tt);try solveUniform ; auto;solveLL'.

@@ -80,7 +80,7 @@ Definition IMP_LEFT F G := ( (perp (down (t_bin IMPL F G))) ** ( ! (atom (up F))
 Definition CONJ_RIGHT F G := (perp (up (t_bin CONJ F G)))  ** ( (atom (up F)) & (atom (up G)) ).
 Definition CONJ_LEFT F G := (perp (down (t_bin CONJ F G))) **  ( ?(atom (down F)) op ?(atom (down G)) ).
 Definition ALL_RIGHT FX := (perp (up (t_quant ALL FX))) ** F{ fun t => atom (up (FX t))}.
-Definition ALL_LEFT FX := (perp (down (t_quant ALL FX))) ** E{ fun t => atom (down (FX t))}.
+Definition ALL_LEFT FX := (perp (down (t_quant ALL FX))) ** E{ fun t => ? atom (down (FX t))}.
 
 Inductive SEQ : oo -> Prop :=
 | IMP_R : forall F G, isOLFormula F -> isOLFormula G ->
@@ -323,19 +323,21 @@ Theorem AllLeftElimination1 : forall FX, uniform FX ->  (forall x, proper x -> i
                                          (seq StrRulesPos [] [] (> [ (ALL_LEFT FX) ^ ; (ALL_ELIMINATION FX)])).
 Proof with SolveIsFormulas'.
   intros FX  isFX isFXt; autounfold;simpl;solveLL'.
-  decide3'( RCUT ( t_quant ALL FX)).
-  tensor' [d| t_quant ALL FX |] [ d^| FX x |; E{ fun t  => u^| FX t | ** (! u| t_quant ALL FX |)}].
-  decide3' (RINIT (t_quant ALL FX)).
-  tensor'  [ u| t_quant ALL FX |] [d| t_quant ALL FX | ].
+  decide3' (POS ( t_quant ALL FX)).
+  tensor' [d| t_quant ALL FX |][ ! d^| FX x |; E{ fun t  => u^| FX t | ** (! u| t_quant ALL FX |)}]...
   decide3' (RCUT (FX x)).
-  tensor' [ E{ fun t  => u^| FX t | ** (! u| t_quant ALL FX |)}; d| t_quant ALL FX |] [d^| FX x |].
-  decide3' (POS (t_quant ALL FX)).
-  tensor' [d| t_quant ALL FX |] [E{ fun t  => u^| FX t | ** (! u| t_quant ALL FX |)}; u| FX x |]...
+  tensor' [ E{ fun t  => u^| FX t | ** (! u| t_quant ALL FX |)}] [! d^| FX x |]...
   decide1' (E{ fun t => u^| FX t | ** (! u| t_quant ALL FX |)}).
   existential' x...
   tensor'  [u| FX x |] (@nil oo).
   decide3' (RINIT (t_quant ALL FX)).
   tensor'  [u| t_quant ALL FX |] (@nil oo)...
+  decide3' (POS (FX x)).
+  tensor' [ d| FX x |] [! d^| FX x |]...
+  decide1' (! d^| FX x |)...
+  solveLL'.
+  decide1' (d^| FX x |)...
+  solveLL'...
 Qed. 
   
 
@@ -347,12 +349,12 @@ Proof with SolveIsFormulas'.
   intros.
   solveLL'.
   decide3'( RCUTPOS ( t_quant ALL FX)).
-  tensor' [u| FX x |; d^| t_quant ALL FX | ** E{ fun t => d| FX t |}] (@nil oo) ...
-  decide1' (d^| t_quant ALL FX | ** E{ fun t => d| FX t |}).
+  tensor' [u| FX x |; d^| t_quant ALL FX | ** E{ fun t => ? d| FX t |}] (@nil oo) ...
+  decide1' (d^| t_quant ALL FX | ** E{ fun t => ? d| FX t |}).
   tensor' (@nil oo)  [u| FX x |]...
-  existential' x.
-  decide3' (RINIT (FX x)).
-  tensor'  [u| FX x |][ d| FX x |].
+  existential' x...
+  decide3' (RINIT (FX x))...
+  tensor'  [u| FX x |] (@nil oo)...
   decide2' (u^| t_quant ALL FX |).
 Qed.
 
