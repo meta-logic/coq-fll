@@ -239,6 +239,8 @@ Section CutCoherence.
       decide2'(u^| A | op u^| B |).
   Qed.
 
+  Axiom OLSize: forall FX t t' n, uniform FX -> proper t -> proper t' -> lengthUexp (FX t) n -> lengthUexp (FX t') n .
+
   Theorem CutCoherenceQ (R: QEnc) (FX FX' : uexp -> uexp) (n : nat) :
     uniform FX ->
     uniform FX' ->
@@ -252,7 +254,7 @@ Section CutCoherence.
     ++ solveLL'.
        decide3' (RCUTPOS (FX x)).
        apply @ctn with (m:=n)...
-       admit. (* This needs an axiom *)
+       apply OLSize with (t:= (Var 0));eauto using proper_VAR.
        tensor'  [!d^| FX x |] (@nil oo).
        simpl.
        decide1' (! d^| FX x |).
@@ -267,12 +269,12 @@ Section CutCoherence.
        existential' x.
        decide3' (RCUTPOS (FX x)).
        apply @ctn with (m:=n)...
-       admit. (* This needs an axiom *)
+       apply OLSize with (t:= (Var 0));eauto using proper_VAR.
        tensor'  [d^| FX x |] (@nil oo)...
        decide1' (d^| FX x |)...
        rewrite H1...
        decide2' ( u^| FX' x |).
-  Admitted.
+  Qed.
 End CutCoherence.
 
 (** Building the inference rules (bipoles) *)

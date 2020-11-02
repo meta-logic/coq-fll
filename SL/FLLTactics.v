@@ -24,6 +24,17 @@ Existing Instance Equivalence.pointwise_equivalence | 11.
 
 Hint Constructors isFormula Remove seqN IsPositiveAtom : core .
 
+Ltac solveUniform :=
+  auto;
+  repeat 
+    match goal with
+    | [|- uniform_oo _] =>  constructor 
+    | [|- uniform _ ] => eauto 10  using uniform_id, uniform_con, uniform_app, proper_uniform
+    | [|- uniform_atm _ ] => constructor
+    | [|- proper _ ] => constructor
+    | [|- level _ _ ] => constructor
+    end.
+
 (** This tactic solves most of the irrelevant goals in a focused
   proof (e.g., proving whether a formula is positive or not) *)
 Ltac solveF :=
@@ -31,6 +42,7 @@ Ltac solveF :=
   let H := fresh "H" in
   repeat
     match goal with
+    | [ |- uniform _ ] => solve [solveUniform]
     | [ |- _ <= _ ] => lia
     | [ |- _ >= _ ] => lia
     | [ |- _ < _ ] => lia
@@ -201,16 +213,6 @@ Ltac SplitContext' n :=
             (assert(H : Permutation L L3) by auto using Permutation_midle, Permutation_midle_app);rewrite H;clear H 
   end.
 
-Ltac solveUniform :=
-  auto;
-  repeat 
-    match goal with
-    | [|- uniform_oo _] =>  constructor 
-    | [|- uniform _ ] => eauto using uniform_id, uniform_con, uniform_app
-    | [|- uniform_atm _ ] => constructor
-    | [|- proper _ ] => constructor
-    | [|- level _ _ ] => constructor
-    end.
 
 
 Tactic Notation "store" := apply tri_store ;solveF.
