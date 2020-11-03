@@ -233,7 +233,7 @@ Section Syntax.
   
   Definition RINIT (F:uexp) (w:uexp) : oo := u^|F @ w|  ** ( d^|F @ w| ) .
   Definition RTENSORL (F G w :uexp) :oo := d^| (F *** G) @ w| ** (d|F @ w| $ d|G @ w|).
-  Definition RTENSORR (F G w :uexp) :oo := u^| (F *** G) @ w| ** (u|F @ w| ** d|G @ w|).
+  Definition RTENSORR (F G w :uexp) :oo := u^| (F *** G) @ w| ** (u|F @ w| ** u|G @ w|).
   Definition RIMPLL (F G w : uexp) : oo := d^| (F --o G) @ w | ** ( u|F @ w| ** d|G @ w|).
   Definition RIMPLR (F G w : uexp) : oo := u^| (F --o G) @ w | ** ( d|F @ w| $ u|G @ w|) .
   Definition RATL (F v w : uexp) := d^|(F AT v) @ w| ** d| F @ v| .
@@ -280,7 +280,543 @@ Section Syntax.
       isOLFormulaL Gamma -> 
       isOLFormulaL L ->  
       ~ seqN OLTheory n (LEncode Gamma)  (LEncode L) ( > [] ) .
-  Admitted.
+ Proof with solveF.
+    induction n using strongind;intros...
+    * intro. inversion H1...
+    * intro.
+      inversion H2...
+      + (* from Linear *)
+        apply Remove_In in H5.
+        apply in_map_iff in H5.
+        destruct H5.
+        destruct H3...
+      + (* from Classical *)
+        apply in_map_iff in H5.
+        destruct H5.
+        destruct H3...
+      + (* from Theory *)
+        inversion H4...
+        -
+        inversion H6...
+        2:{ inversion H8. }
+        
+        symmetry in H9.
+        apply Permutation_map_inv in H9.
+        destruct H9.
+        destruct H7...
+        fold (LEncode x) in H7.
+        symmetry in H7.
+        apply map_eq_app in H7.
+        destruct H7.
+        destruct H7...
+        fold (LEncode x0) in H13.
+        fold (LEncode x1) in H14.
+        
+        inversion H13...
+        symmetry in H11.
+        apply map_eq_cons in H11.
+        destruct H11.
+        destruct H7...
+        apply in_map_iff  in H12.
+        destruct H12...
+        - 
+        inversion H6...
+        2:{ inversion H8. }
+        
+        symmetry in H9.
+        apply Permutation_map_inv in H9.
+        destruct H9.
+        destruct H7...
+        fold (LEncode x) in H7.
+        symmetry in H7.
+        apply map_eq_app in H7.
+        destruct H7.
+        destruct H7...
+        fold (LEncode x0) in H13.
+        fold (LEncode x1) in H14.
+        
+        inversion H14...
+        inversion H15... 
+        inversion H16...
+        inversion H19...
+        
+        clear H9.
+        clear H14. 
+        clear H15. 
+        clear H16. 
+        clear H18.
+        clear H19.  
+        clear H20.
+        
+        assert(Hc: ~ seqN OLTheory n0 (LEncode Gamma)
+                  (LEncode (x1 ++ [F0 @ w] ++ [G @ w])) 
+                   (> [])).
+        apply H...          
+        assert(isOLFormulaL (x0 ++ x1)).
+        apply (Forall_Permute H1 H8).
+        apply ForallApp...
+        apply (ForallAppInv2 H7).
+        inversion H3...
+        inversion H11...
+        
+        apply Hc.
+
+        assert(Hw:
+        (LEncode (x1 ++ [F0 @ w; G @ w])) = 
+        (LEncode x1 ++ LEncode [F0 @ w] ++ LEncode [G @ w])).
+        
+        apply map_app.
+        simpl.
+        rewrite Hw.
+        rewrite app_assoc...
+        -
+        inversion H6...
+        2:{ inversion H8. }
+        
+        symmetry in H9.
+        apply Permutation_map_inv in H9.
+        destruct H9.
+        destruct H7...
+        fold (LEncode x) in H7.
+        symmetry in H7.
+        apply map_eq_app in H7.
+        destruct H7.
+        destruct H7...
+        fold (LEncode x0) in H13.
+        fold (LEncode x1) in H14.
+        
+        inversion H13...
+        symmetry in H11.
+        apply map_eq_cons in H11.
+        destruct H11.
+        destruct H7...
+        apply in_map_iff  in H12.
+        destruct H12...
+        -
+        inversion H6...
+        2:{ inversion H8. }
+        
+        symmetry in H9.
+        apply Permutation_map_inv in H9.
+        destruct H9.
+        destruct H7...
+        fold (LEncode x) in H7.
+        symmetry in H7.
+        apply map_eq_app in H7.
+        destruct H7.
+        destruct H7...
+        fold (LEncode x0) in H13.
+        fold (LEncode x1) in H14.
+        
+        inversion H14...
+        inversion H17... 
+        inversion H18...
+        
+        
+        clear H9. 
+        clear H14. 
+        clear H17. 
+        clear H18. 
+        clear H20.
+        
+        symmetry in H10.
+        apply Permutation_map_inv in H10.
+        destruct H10.
+        destruct H7...
+        fold (LEncode x) in H7.
+        symmetry in H7.
+        apply map_eq_app in H7.
+        destruct H7.
+        destruct H7...
+        fold (LEncode x2) in H16.
+        fold (LEncode x3) in H21.
+        
+         
+        assert(Hc: ~ seqN OLTheory n (LEncode Gamma)
+                  (LEncode (x3 ++ [G @ w])) 
+                   (> [])).
+        apply H...          
+        assert(isOLFormulaL (x0 ++ x1)).
+        apply (Forall_Permute H1 H8).
+        assert(isOLFormulaL x1).
+        apply (ForallAppInv2 H7).
+        
+        assert(isOLFormulaL (x2 ++ x3)).
+        
+        apply (Forall_Permute H10 H9).
+        
+        apply ForallApp...
+        apply (ForallAppInv2 H11).
+        inversion H3...
+        inversion H15...
+        
+        apply Hc.
+
+        assert(Hw:
+        (LEncode (x3 ++ [G @ w])) = 
+        (LEncode x3 ++ LEncode [G @ w])).
+        
+        apply map_app.
+        simpl.
+        rewrite Hw...
+        -
+        inversion H6...
+        2:{ inversion H8. }
+        
+        symmetry in H9.
+        apply Permutation_map_inv in H9.
+        destruct H9.
+        destruct H7...
+        fold (LEncode x) in H7.
+        symmetry in H7.
+        apply map_eq_app in H7.
+        destruct H7.
+        destruct H7...
+        fold (LEncode x0) in H13.
+        fold (LEncode x1) in H14.
+        
+        inversion H13...
+        symmetry in H11.
+        apply map_eq_cons in H11.
+        destruct H11.
+        destruct H7...
+        apply in_map_iff  in H12.
+        destruct H12...
+        -
+        inversion H6...
+        2:{ inversion H8. }
+        
+        symmetry in H9.
+        apply Permutation_map_inv in H9.
+        destruct H9.
+        destruct H7...
+        fold (LEncode x) in H7.
+        symmetry in H7.
+        apply map_eq_app in H7.
+        destruct H7.
+        destruct H7...
+        fold (LEncode x0) in H13.
+        fold (LEncode x1) in H14.
+        
+        inversion H14...
+        inversion H15...
+        
+        clear H9. 
+        clear H14. 
+        clear H15. 
+        clear H17. 
+             
+        assert(Hc: ~ seqN OLTheory n0 (LEncode Gamma)
+                  (LEncode (x1 ++ [F0 @ v])) 
+                   (> [])).
+        apply H...          
+        assert(isOLFormulaL (x0 ++ x1)).
+        apply (Forall_Permute H1 H8).
+        assert(isOLFormulaL x1).
+        apply (ForallAppInv2 H7).
+        
+        apply ForallApp...
+        inversion H3...
+        inversion H12...
+        
+        apply Hc.
+
+        assert(Hw:
+        (LEncode (x1 ++ [F0 @ v])) = 
+        (LEncode x1 ++ LEncode [F0 @ v])).
+        
+        apply map_app.
+        simpl.
+        rewrite Hw...
+        -
+        inversion H6...
+        2:{ inversion H8. }
+        
+        symmetry in H9.
+        apply Permutation_map_inv in H9.
+        destruct H9.
+        destruct H7...
+        fold (LEncode x) in H7.
+        symmetry in H7.
+        apply map_eq_app in H7.
+        destruct H7.
+        destruct H7...
+        fold (LEncode x0) in H13.
+        fold (LEncode x1) in H14.
+        
+        inversion H13...
+        symmetry in H11.
+        apply map_eq_cons in H11.
+        destruct H11.
+        destruct H7...
+        apply in_map_iff  in H12.
+        destruct H12...
+        -
+        inversion H6...
+        2:{ inversion H9. }
+        
+        symmetry in H10.
+        apply Permutation_map_inv in H10.
+        destruct H10.
+        destruct H8...
+        fold (LEncode x) in H8.
+        symmetry in H8.
+        apply map_eq_app in H8.
+        destruct H8.
+        destruct H8...
+        fold (LEncode x0) in H14.
+        fold (LEncode x1) in H15.
+        
+        inversion H15...
+        inversion H16...
+        
+        clear H10. 
+        clear H15. 
+        clear H16. 
+        clear H18.
+        
+             
+        assert(Hc: ~ seqN OLTheory n0 (LEncode Gamma)
+                  (LEncode (x1 ++ [(FW w) @ w])) 
+                   (> [])).
+        apply H...          
+        assert(isOLFormulaL (x0 ++ x1)).
+        apply (Forall_Permute H1 H9).
+        assert(isOLFormulaL x1).
+        apply (ForallAppInv2 H8).
+        
+        apply ForallApp...
+        
+        inversion H7...
+        inversion H13...
+        
+        assert(proper w) by auto.
+        specialize(H16 w H17) as Hf.
+        
+        apply lbindEq in H11...
+        rewrite  H11 in Hf... 
+        
+        apply Hc.
+
+        assert(Hw:
+        (LEncode (x1 ++ [(FW w) @ w])) = 
+        (LEncode x1 ++ LEncode [(FW w) @ w])).
+        
+        apply map_app.
+        simpl.
+        rewrite Hw...
+        -
+        inversion H6...
+        2:{ inversion H9. }
+        
+        symmetry in H10.
+        apply Permutation_map_inv in H10.
+        destruct H10.
+        destruct H8...
+        fold (LEncode x) in H8.
+        symmetry in H8.
+        apply map_eq_app in H8.
+        destruct H8.
+        destruct H8...
+        fold (LEncode x0) in H14.
+        fold (LEncode x1) in H15.
+        
+        inversion H14...
+        symmetry in H12.
+        apply map_eq_cons in H12.
+        destruct H12.
+        destruct H8...
+        apply in_map_iff in H13.
+        destruct H13...        
+        -
+        inversion H6...
+        2:{ inversion H8. }
+        
+        symmetry in H9.
+        apply Permutation_map_inv in H9.
+        destruct H9.
+        destruct H7...
+        fold (LEncode x) in H7.
+        symmetry in H7.
+        apply map_eq_app in H7.
+        destruct H7.
+        destruct H7...
+        fold (LEncode x0) in H13.
+        fold (LEncode x1) in H14.
+        
+        inversion H14...
+        inversion H15...
+        
+        clear H9. 
+        clear H14. 
+        clear H15. 
+             
+        assert(Hc: ~ seqN OLTheory n0 (LEncode (Gamma  ++ [F0 @ w]))
+                  (LEncode x1) 
+                   (> [])).
+        apply H...
+        apply ForallApp...
+       
+        inversion H3...
+        inversion H10...
+                  
+        assert(isOLFormulaL (x0 ++ x1)).
+        apply (Forall_Permute H1 H8).
+        apply (ForallAppInv2 H7).
+        
+        apply Hc.
+
+        assert(Hw:
+        (LEncode (Gamma ++ [F0 @ w])) = 
+        (LEncode Gamma ++ LEncode [F0 @ w])).
+        
+        apply map_app.
+        simpl.
+        rewrite Hw...
+        -
+        inversion H6...
+        2:{ inversion H8. }
+        
+        symmetry in H9.
+        apply Permutation_map_inv in H9.
+        destruct H9.
+        destruct H7...
+        fold (LEncode x) in H7.
+        symmetry in H7.
+        apply map_eq_app in H7.
+        destruct H7.
+        destruct H7...
+        fold (LEncode x0) in H13.
+        fold (LEncode x1) in H14.
+        
+        inversion H13...
+        symmetry in H11.
+        apply map_eq_cons in H11.
+        destruct H11.
+        destruct H7...
+        apply in_map_iff  in H12.
+        destruct H12...
+        -
+        inversion H6...
+        2:{ inversion H8. }
+        
+        symmetry in H9.
+        apply Permutation_map_inv in H9.
+        destruct H9.
+        destruct H7...
+        fold (LEncode x) in H7.
+        symmetry in H7.
+        apply map_eq_app in H7.
+        destruct H7.
+        destruct H7...
+        fold (LEncode x0) in H13.
+        fold (LEncode x1) in H14.
+        
+        inversion H14...
+        inversion H15...
+        
+        clear H9. 
+        clear H14. 
+        clear H15.
+        clear H17. 
+             
+        assert(Hc: ~ seqN OLTheory n0 (LEncode Gamma)
+                  (LEncode (x1++ [F0 @ w])) 
+                   (> [])).
+        apply H...
+        apply ForallApp...
+                  
+        assert(isOLFormulaL (x0 ++ x1)).
+        apply (Forall_Permute H1 H8).
+        apply (ForallAppInv2 H7).
+        
+        apply Hc.
+
+        assert(Hw:
+        (LEncode (x1 ++ [F0 @ w])) = 
+        (LEncode x1 ++ LEncode [F0 @ w])).
+        
+        apply map_app.
+        simpl.
+        rewrite Hw...
+        - 
+        inversion H6...
+        2:{ inversion H9. }
+        
+        symmetry in H10.
+        apply Permutation_map_inv in H10.
+        destruct H10.
+        destruct H8...
+        fold (LEncode x) in H8.
+        symmetry in H8.
+        apply map_eq_app in H8.
+        destruct H8.
+        destruct H8...
+        fold (LEncode x0) in H14.
+        fold (LEncode x1) in H15.
+        
+        inversion H15...
+        inversion H17...
+        inversion H19...
+        
+        clear H12. 
+        clear H15. 
+        clear H17. 
+        clear H21.
+        
+             
+        assert(Hc: ~ seqN OLTheory n (LEncode Gamma)
+                  (LEncode (x1 ++ [(FX t) @ w])) 
+                   (> [])).
+        apply H...          
+        assert(isOLFormulaL (x0 ++ x1)).
+        apply (Forall_Permute H1 H9).
+        assert(isOLFormulaL x1).
+        apply (ForallAppInv2 H8).
+        
+        apply ForallApp...
+        
+        inversion H7...
+        inversion H16...
+        
+        specialize(H18 t H11) as Hf.
+        
+        apply lbindEq in H13...
+        rewrite  H13 in Hf... 
+        
+        apply Hc.
+
+        assert(Hw:
+        (LEncode (x1 ++ [(FX t) @ w])) = 
+        (LEncode x1 ++ LEncode [(FX t) @ w])).
+        
+        apply map_app.
+        simpl.
+        rewrite Hw...
+        -
+        inversion H6...
+        2:{ inversion H9. }
+        
+        symmetry in H10.
+        apply Permutation_map_inv in H10.
+        destruct H10.
+        destruct H8...
+        fold (LEncode x) in H8.
+        symmetry in H8.
+        apply map_eq_app in H8.
+        destruct H8.
+        destruct H8...
+        fold (LEncode x0) in H14.
+        fold (LEncode x1) in H15.
+        
+        inversion H14...
+        symmetry in H12.
+        apply map_eq_cons in H12.
+        destruct H12.
+        destruct H8...
+        apply in_map_iff in H13.
+        destruct H13...
+        Qed.
     
 
   Ltac IS :=
