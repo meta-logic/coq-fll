@@ -276,12 +276,10 @@ Section Syntax.
 
   (** None legal applications of rules are OK *)
 
-  Theorem NORightisOK : forall n Gamma Gamma' L L' F w,
-      isOLFormulaL Gamma -> isOLFormulaL Gamma' ->
-      isOLFormulaL L ->  isOLFormulaL L' ->
-      isOLFormula (F @ w) ->
-      seqN OLTheory n (LEncode Gamma)  (LEncode L) ( > [] ) ->
-      seqN OLTheory n (LEncode (Gamma ++ Gamma'))  (REncode (F @ w)  :: LEncode (L ++ L')) ( > [] ) .
+  Theorem NORightNotProvable : forall n Gamma  L ,
+      isOLFormulaL Gamma -> 
+      isOLFormulaL L ->  
+      ~ seqN OLTheory n (LEncode Gamma)  (LEncode L) ( > [] ) .
   Admitted.
     
 
