@@ -1,6 +1,5 @@
 (* An alternative encoding of HyLL. Here we do not have adequacy at the level of derivations but we can prove a meta-theorem showing that non-legal application are "useless" *)
-
-
+ 
 Require Export FLL.Misc.Hybrid.
 Require Import Coq.Init.Nat.
 Require Import FLL.SL.CutElimination.
@@ -23,6 +22,7 @@ Hint Constructors isFormula : core.
 
 Section Syntax.
   Variable W : Set. (* Set of Worlds *)
+  Variable ID : W.
   Variable T : Set. (* Terms of the object logic *)
 
   Inductive Econ: Set :=
@@ -273,6 +273,198 @@ Section Syntax.
   Hint Constructors OLTheory: core.
   Hint Constructors isOLFormula : core.
   Hint Unfold LEncode REncode .
+
+
+  (*********************************)
+  (* CUT ELIMINATIOn *)
+  (*********************************)
+  Definition RCUT (F:uexp) (w:uexp) : oo := d|F @ w|  ** ( u|F @ w| ) .
+  Hint Unfold RCUT .
+
+  (* Worlds does not count in the complexity *)
+  Inductive lengthUexp : uexp -> nat -> Prop :=
+  | l_Var : forall (v:var), lengthUexp (Var v) 0
+  | l_t_term : forall t, lengthUexp (t_term t) 0
+  | l_t_world : forall w, lengthUexp (t_world w) 0
+  | l_t_atomU : forall (id:nat) (A:uexp), lengthUexp (t_atom id A) 1
+  | l_t_tensor: forall A B n1 n2, lengthUexp A n1 -> lengthUexp B n2 -> lengthUexp (A *** B) (S (n1 + n2))
+  | l_t_impl: forall A B n1 n2, lengthUexp A n1 -> lengthUexp B n2 -> lengthUexp (A --o B) (S (n1 + n2))
+  | l_t_bang: forall A  n1 , lengthUexp A n1  -> lengthUexp (!! A) (S n1)
+  | l_t_at: forall A w n1, lengthUexp A n1 ->  lengthUexp (A AT w) (S n1)
+  | l_t_arrow: forall FX n1, uniform FX -> lengthUexp(FX (t_world ID)) n1 -> lengthUexp (ARROW FX) (S n1)
+  | l_t_all: forall FX n1, uniform FX -> lengthUexp(FX (Var 0)) n1 -> lengthUexp (ALL FX) (S n1)
+  | l_t_atW : forall A w n1, lengthUexp A n1 -> lengthUexp (A @ w) n1 
+  .
+  
+  
+  (** Some results regarding the length of formulas *)
+
+  Lemma LengthTerm : forall F, isOLTerm F -> lengthUexp F 0.
+    intros.
+    inversion H;subst;clear H;constructor.
+  Qed.
+  
+  Lemma LengthFormula' : forall F n, isOLFormula' F -> lengthUexp F n -> n > 0.
+    intros.
+    induction H;simpl; try solve[inversion H0;lia].
+  Qed.
+
+  Lemma LengthFormula : forall F n, isOLFormula F -> lengthUexp F n -> n > 0.
+    intros.
+    inversion H;subst.
+    inversion H0;subst.
+    eapply LengthFormula' in H1;eauto.
+  Qed.
+  
+  Lemma lengthAtom : forall id t, isOLFormula (t_atom id t)  -> lengthUexp (t_atom id t) 1.
+    intros;inversion H;subst;simpl.
+  Qed.
+
+  (** [lengthUexp] is indeed a function *)
+  Lemma lengthFunction' : forall n F ,  lengthUexp F n -> isOLFormula' F -> forall n', lengthUexp F n' -> n = n'.
+  Proof with auto;subst;try lia.
+    induction 1;intros;try solve[inversion H0;subst;try lia].
+    + inversion H1...
+      inversion H2...
+    + inversion H1...
+      inversion H2...
+    + inversion H1...
+      inversion H0...
+    + inversion H1...
+      inversion H0...
+    + inversion H1...
+      inversion H2...
+      apply lbindEq in H3...
+      apply lbindEq in H6...
+      apply eq_S.
+      apply IHlengthUexp...
+      rewrite <- H3...
+      rewrite <- H6...
+    + inversion H1...
+      inversion H2...
+      apply lbindEq in H3...
+      apply lbindEq in H6...
+      apply eq_S.
+      apply IHlengthUexp...
+      rewrite <- H3;eauto using proper_VAR.
+      rewrite <- H6;eauto using proper_VAR.
+  Qed.
+      
+  Inductive OLTheoryCut (n:nat) : oo -> Prop :=
+  | oo_theory : forall OO, OLTheory OO ->  OLTheoryCut n OO
+  | oothc_cutn : forall F w m, isOLFormula (F @ w) -> lengthUexp F m -> m <= n ->  OLTheoryCut n (RCUT F w)
+  .
+
+  (** atoms of the form [down A] *)
+  Inductive IsPositiveLAtomFormula : oo -> Prop :=
+  | IsFPAL_dw : forall A w , isOLFormula (A @ w) -> IsPositiveLAtomFormula (d| A @ w|)
+  .
+  Hint Constructors IsPositiveLAtomFormula : core .
+
+  
+  Definition IsPositiveLAtomFormulaL L : Prop := Forall IsPositiveLAtomFormula L.
+  Hint Unfold IsPositiveLAtomFormulaL : core. 
+
+  
+  
+  (* For each rule, BUT copy, prove the self duality of the bodies of the rules *)
+
+  Theorem CutCoherenceTensor F G w n m:
+    lengthUexp F n ->
+    lengthUexp G m ->
+    isOLFormula' F ->
+    isOLFormula' G ->
+    isWorldExp w ->
+    seq (OLTheoryCut (max n m)) [] [] (> [dual (d|F @ w| $ d|G @ w|); dual (u|F @ w| ** u|G @ w|)]).
+  Proof with solveF.
+    intros;simpl.
+    solveLL'.
+    (* With cut we can change up^ to down *)
+    decide3' (RCUT F w)...
+    apply oothc_cutn with (m:=n)...
+    tensor' [d^| F @ w | ** d^| G @ w |; u^| G @ w |] [u^| F @ w |].
+
+    decide3' (RCUT G w)...
+    apply oothc_cutn with (m:=m)...
+    tensor' [d^| F @ w | ** d^| G @ w |; d| F @ w |] [u^| G @ w |].
+
+    decide1' (d^| F @ w | ** d^| G @ w |).
+    tensor' [d| F @ w | ][ d| G @ w |].
+  Qed.
+
+
+  Definition CutDefinition n' h :=
+    forall m : nat,
+      m <= h ->
+      forall h2 h1 : nat,
+      m = h1 + h2 ->
+      forall n : nat,
+      n' <= n ->
+      forall FCut : uexp,
+      lengthUexp FCut n' ->
+      forall G w : uexp,
+      isOLFormula (FCut @ w) ->
+      forall v : uexp,
+      isOLFormula (G @ v) ->
+      forall Delta2 : list oo,
+      IsPositiveLAtomFormulaL Delta2 ->
+      forall Delta1 : list oo,
+      IsPositiveLAtomFormulaL Delta1 ->
+      forall Gamma : multiset oo,
+      seqN OLTheory h1 Gamma (u| G @ v | :: d| FCut @ w | :: Delta1) (> []) ->
+      seqN OLTheory h2 Gamma (u| FCut @ w | :: Delta2) (> []) ->
+      IsPositiveLAtomFormulaL Gamma -> seq (OLTheoryCut (pred n)) Gamma (u| G @ v | :: Delta1 ++ Delta2) (> []).
+
+  
+  Theorem CutElimStep:
+    forall h1 h2 n n' Gamma Delta1 Delta2 G v w  Fcut,
+      (seqN OLTheory h1 Gamma (u| G @ v| :: d| Fcut @ w | :: Delta1) (> [])) ->
+      (seqN OLTheory h2 Gamma (u|Fcut @ w| :: Delta2)  (> [])) ->
+      isOLFormula (Fcut @ w) ->
+      isOLFormula (G @ v) ->
+      IsPositiveLAtomFormulaL Gamma ->
+      IsPositiveLAtomFormulaL Delta1 ->
+      IsPositiveLAtomFormulaL Delta2 ->
+      lengthUexp Fcut n' ->
+      n' <= n ->
+      (seq (OLTheoryCut (pred n)) Gamma (u|G @ v|:: Delta1 ++ Delta2)  (> [])).
+  Proof with solveF. (* This was proved with CutTacPOS... see OLCutPos. *)
+    intros h1 h2 n n' Gamma Delta1 Delta2 G v w FCut Hseq1 Hseq2 HIsFcut HIsG HIsGamma HIsDelta1 HIsDelta2 HLeng Hnn'.
+    remember (plus h1 h2) as h.
+    generalize dependent Gamma.
+    generalize dependent Delta1.
+    generalize dependent Delta2.
+    generalize dependent v.
+    generalize dependent w.
+    generalize dependent G.
+    generalize dependent FCut.
+    generalize dependent n.
+    generalize dependent h1.
+    generalize dependent h2.
+    
+    induction h using strongind;intros.
+
+    assert (h1 = 0) by lia...
+    inversion Hseq1.
+    assert(IH : CutDefinition n' h) by auto. clear H.
+    
+
+    (* Let's analyze Hseq2 -- the right premise in the cut rule *)
+    inversion Hseq2...
+    admit. (* cannot be from the linear context *)
+    admit. (* cannot be from the classical context *)
+    (* by case analyses on the rule from the theory *)
+    inversion H...
+    { (* case init *)
+      (* apply the inversion lemma *)
+      admit.
+    }
+  Admitted.
+    
+
+        
+
+  
 
   (** None legal applications of rules are OK *)
 
