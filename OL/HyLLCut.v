@@ -415,6 +415,83 @@ Section Syntax.
       seqN OLTheory h2 Gamma (u| FCut @ w | :: Delta2) (> []) ->
       IsPositiveLAtomFormulaL Gamma -> seq (OLTheoryCut (pred n)) Gamma (u| G @ v | :: Delta1 ++ Delta2) (> []).
 
+   Theorem NoUPinDOwn: forall F w L F1 w1 N,
+ IsPositiveLAtomFormulaL L ->
+      Permutation (u| F @ w | :: L) ([u| F1 @ w1 |] ++ N) ->
+      F = F1 /\ w = w1 /\ Permutation L N.
+  Proof.
+    intros.
+    symmetry in H0.
+    apply PermutationInCons in H0 as H'.
+    inversion H'.
+    {
+    inversion H1;subst;split;auto.
+    symmetry in H0.
+    apply Permutation_cons_inv in H0; auto.
+    }
+    
+    apply in_split in H1.
+    do 2 destruct H1.
+    rewrite H1 in H.
+    apply ForallAppInv2 in H.
+    
+    inversion H;subst;auto.
+    inversion H4.
+   
+  Qed.
+    
+  Theorem NoUPInPositiveLAtom: forall F w L,
+  IsPositiveLAtomFormulaL L ->
+      ~ In (u| F @ w |) L.
+  Proof with solveF.    
+    intros.
+    intro HNeg.
+    induction L;simpl in*;auto.
+    destruct HNeg...
+    
+    inversion H...
+    inversion H2.
+    
+    apply IHL;auto.
+    inversion H... 
+  Qed.
+
+  Theorem FocusinRightAtom: forall n Gamma F w L F1 w0 G,
+      IsPositiveLAtomFormulaL Gamma ->
+      IsPositiveLAtomFormulaL L ->
+      seqN OLTheory n Gamma (REncode (F @ w) :: L) (>> u^| F1 @ w0 | ** G) ->
+      exists n', n = (S n') /\
+                 seqN OLTheory n' Gamma L (>> G) /\
+                 F = F1 /\ w = w0.
+  Proof.               
+    intros.
+    
+    InvTriAll.
+    *
+    apply NoUPinDOwn in H4;auto.
+    CleanContext.
+    eexists;split;eauto.
+    split;eauto.
+    rewrite H4;auto.
+    *
+    clear H1.
+
+    (* Cannot be taken from Gamma *)
+    apply (NoUPInPositiveLAtom F1 w0) in H. contradiction.
+  Qed.
+
+
+     Theorem RINITInv:  forall n Gamma F w L F1 w0, 
+     IsPositiveLAtomFormulaL Gamma ->
+     IsPositiveLAtomFormulaL L ->
+      seqN OLTheory n (Gamma) (REncode (F @ w) :: L) (>> RINIT F1 w0) ->
+      (F = F1 /\ w = w0 /\ L = [d| F1 @ w0 |]) \/ (F = F1 /\ w = w0 /\ In (d| F1 @ w0 |) Gamma).
+  Proof with solveF.
+    intros.
+    eapply FocusinRightAtom in H1...
+    CleanContext.
+    InvTriAll.
+  Qed.
   
   Theorem CutElimStep:
     forall h1 h2 n n' Gamma Delta1 Delta2 G v w  Fcut,
@@ -457,6 +534,15 @@ Section Syntax.
     inversion H...
     { (* case init *)
       (* apply the inversion lemma *)
+      eapply FocusinRightAtom in H1 as H1'...
+      destruct H1';
+      CleanContext.
+      
+      eapply IH with (w:=w0) (h1:=h1) (h2:=S x) (FCut:=F0)...
+      lia.
+
+      
+      admit.
       admit.
     }
   Admitted.
