@@ -1,5 +1,5 @@
 (* An alternative encoding of HyLL. Here we do not have adequacy at the level of derivations but we can prove a meta-theorem showing that non-legal application are "useless" *)
- 
+
 Require Export FLL.Misc.Hybrid.
 Require Import Coq.Init.Nat.
 Require Import FLL.SL.CutElimination.
@@ -39,7 +39,7 @@ Section Syntax.
   | oo_wop (* monoidal operator on worlds: w wop w' *)
   .
 
-    (** Notation for Syntax *)
+  (** Notation for Syntax *)
   Definition uexp : Set := expr Econ.
   Definition Var : var -> uexp := (VAR Econ).
   Definition Bnd : bnd -> uexp := (BND Econ).
@@ -112,7 +112,7 @@ Section Syntax.
       isOLFormula' (ALL FX)
   .
 
-   
+  
 
   Inductive isOLFormula : uexp -> Prop :=
   | isOL : forall F wexp , isOLFormula' F -> isWorldExp wexp -> isOLFormula (F @ wexp)
@@ -174,10 +174,10 @@ Section Syntax.
   Hint Constructors HyLL : core .
 
   Lemma isWorldProper: forall w, isWorldExp w -> proper w.
-    Proof with repeat constructor;auto.
+  Proof with repeat constructor;auto.
     intros.
     induction H...
-    Qed.
+  Qed.
 
   Lemma isOLFormulaProper' : forall F, isOLFormula' F -> proper F.
   Proof with repeat constructor;auto.
@@ -204,9 +204,9 @@ Section Syntax.
       isWorldExp w ->
       HyLL [] [(ALL (fun x => t_atom id x)) @ w] ( (t_atom id (t_term t)) @ w).
   Proof with solveF.
-  intros.
-  apply hy_allL with (t:= t_term t)...
-  constructor.
+    intros.
+    apply hy_allL with (t:= t_term t)...
+    constructor.
   Qed.
 
   Example HyLL2: forall (a:T) (w:uexp)  id , isWorldExp w -> HyLL [] [(ALL (fun x => t_atom id x)) @ w] ((ALL (fun x => t_atom id x)) @ w).
@@ -349,11 +349,13 @@ Section Syntax.
       rewrite <- H3;eauto using proper_VAR.
       rewrite <- H6;eauto using proper_VAR.
   Qed.
-      
+  
   Inductive OLTheoryCut (n:nat) : oo -> Prop :=
   | oo_theory : forall OO, OLTheory OO ->  OLTheoryCut n OO
   | oothc_cutn : forall F w m, isOLFormula (F @ w) -> lengthUexp F m -> m <= n ->  OLTheoryCut n (RCUT F w)
   .
+
+  Hint Constructors OLTheoryCut : core.
 
   (** atoms of the form [down A] *)
   Inductive IsPositiveLAtomFormula : oo -> Prop :=
@@ -397,26 +399,27 @@ Section Syntax.
     forall m : nat,
       m <= h ->
       forall h2 h1 : nat,
-      m = h1 + h2 ->
-      forall n : nat,
-      n' <= n ->
-      forall FCut : uexp,
-      lengthUexp FCut n' ->
-      forall G w : uexp,
-      isOLFormula (FCut @ w) ->
-      forall v : uexp,
-      isOLFormula (G @ v) ->
-      forall Delta2 : list oo,
-      IsPositiveLAtomFormulaL Delta2 ->
-      forall Delta1 : list oo,
-      IsPositiveLAtomFormulaL Delta1 ->
-      forall Gamma : multiset oo,
-      seqN OLTheory h1 Gamma (u| G @ v | :: d| FCut @ w | :: Delta1) (> []) ->
-      seqN OLTheory h2 Gamma (u| FCut @ w | :: Delta2) (> []) ->
-      IsPositiveLAtomFormulaL Gamma -> seq (OLTheoryCut (pred n)) Gamma (u| G @ v | :: Delta1 ++ Delta2) (> []).
+        m = h1 + h2 ->
+        forall n : nat,
+          n' <= n ->
+          forall FCut : uexp,
+            lengthUexp FCut n' ->
+            forall G w : uexp,
+              isOLFormula (FCut @ w) ->
+              forall v : uexp,
+                isOLFormula (G @ v) ->
+                forall Delta2 : list uexp,
+                  isOLFormulaL Delta2 ->
+                  forall Delta1 : list uexp,
+                    isOLFormulaL Delta1 ->
+                    forall Gamma : list uexp,
+                      seqN OLTheory h1 (LEncode Gamma) (REncode (G @ v) :: LEncode (FCut @ w :: Delta1)) (> []) ->
+                      seqN OLTheory h2 (LEncode Gamma) (REncode (FCut @ w) :: LEncode Delta2) (> []) ->
+                      isOLFormulaL Gamma ->
+                      seq (OLTheoryCut (pred n)) (LEncode Gamma) (REncode (G @ v) :: LEncode (Delta1 ++ Delta2)) (> []).
 
-   Theorem NoUPinDOwn: forall F w L F1 w1 N,
- IsPositiveLAtomFormulaL L ->
+  Theorem NoUPinDOwn: forall F w L F1 w1 N,
+      IsPositiveLAtomFormulaL L ->
       Permutation (u| F @ w | :: L) ([u| F1 @ w1 |] ++ N) ->
       F = F1 /\ w = w1 /\ Permutation L N.
   Proof.
@@ -425,9 +428,9 @@ Section Syntax.
     apply PermutationInCons in H0 as H'.
     inversion H'.
     {
-    inversion H1;subst;split;auto.
-    symmetry in H0.
-    apply Permutation_cons_inv in H0; auto.
+      inversion H1;subst;split;auto.
+      symmetry in H0.
+      apply Permutation_cons_inv in H0; auto.
     }
     
     apply in_split in H1.
@@ -437,11 +440,33 @@ Section Syntax.
     
     inversion H;subst;auto.
     inversion H4.
-   
-  Qed.
     
+  Qed.
+  Hint Unfold IsPositiveLAtomFormulaL : core.
+  Hint Constructors IsPositiveLAtomFormula : core.
+  Theorem LEncodePositiveAtom: forall L, 
+      isOLFormulaL L ->  IsPositiveLAtomFormulaL (LEncode L).
+  Proof with solveF.
+    intros.
+    induction L...
+    inversion H...
+    inversion H2...
+    constructor;auto.
+    apply IHL in H3...
+  Qed.
+
+  Theorem NoUPinDOwn': forall F w L F1 w1 N,
+      isOLFormulaL L ->
+      Permutation (u| F @ w | :: LEncode L) ([u| F1 @ w1 |] ++ N) ->
+      F = F1 /\ w = w1 /\ Permutation (LEncode L) N.
+  Proof.
+    intros.
+    apply NoUPinDOwn in H0;auto.
+    apply LEncodePositiveAtom;auto.
+  Qed.
+  
   Theorem NoUPInPositiveLAtom: forall F w L,
-  IsPositiveLAtomFormulaL L ->
+      IsPositiveLAtomFormulaL L ->
       ~ In (u| F @ w |) L.
   Proof with solveF.    
     intros.
@@ -456,57 +481,146 @@ Section Syntax.
     inversion H... 
   Qed.
 
+  Theorem NoUPInPositiveLAtom': forall F w L,
+      ~ In (u| F @ w |) (LEncode L).
+  Proof with solveF.    
+    intros.
+    intro HNeg.
+    induction L;simpl in*;auto.
+    destruct HNeg...
+  Qed.
+
   Theorem FocusinRightAtom: forall n Gamma F w L F1 w0 G,
-      IsPositiveLAtomFormulaL Gamma ->
-      IsPositiveLAtomFormulaL L ->
-      seqN OLTheory n Gamma (REncode (F @ w) :: L) (>> u^| F1 @ w0 | ** G) ->
+      isOLFormulaL Gamma ->
+      isOLFormulaL L ->
+      seqN OLTheory n (LEncode Gamma) (REncode (F @ w) :: LEncode L) (>> u^| F1 @ w0 | ** G) ->
       exists n', n = (S n') /\
-                 seqN OLTheory n' Gamma L (>> G) /\
+                 seqN OLTheory n' (LEncode Gamma) (LEncode L) (>> G) /\
                  F = F1 /\ w = w0.
   Proof.               
     intros.
-    
     InvTriAll.
-    *
-    apply NoUPinDOwn in H4;auto.
-    CleanContext.
-    eexists;split;eauto.
-    split;eauto.
-    rewrite H4;auto.
-    *
-    clear H1.
+    * apply NoUPinDOwn' in H4;auto.
+      CleanContext.
+      eexists;split;eauto.
+      split;eauto.
+      rewrite H4;auto.
+    * (* Cannot be taken from Gamma *)
+      apply NoUPInPositiveLAtom in H3. contradiction.
+      apply LEncodePositiveAtom;auto.
+  Qed.
 
-    (* Cannot be taken from Gamma *)
-    apply (NoUPInPositiveLAtom F1 w0) in H. contradiction.
+  Theorem FocusinLeftAtom: forall n Gamma F w L F1 w0 G,
+      seqN OLTheory n (LEncode Gamma) (REncode (F @ w) :: LEncode L) (>> d^| F1 @ w0 | ** G) ->
+      exists n', n = (S n') /\
+                 ( (exists L',
+                       Permutation L  (F1 @ w0 :: L') /\
+                       seqN OLTheory n' (LEncode Gamma) (REncode (F @ w) :: LEncode L') (>> G)
+                   ) \/
+                   ( In (F1 @ w0) Gamma /\
+                     seqN OLTheory n' (LEncode Gamma) (REncode (F @ w) :: LEncode L) (>> G)))
+  .
+    
+
+    intros.
+    InvTriAll.
+    { (* from the linear context *)
+      simpl in H2.
+      apply PermutationNeqIn in H2 as H2';[| intro HNeg;inversion HNeg].
+      CleanContext.
+      rewrite H0 in H2.
+      rewrite perm_swap in H2.
+      apply Permutation_cons_inv in H2.
+      exists n0.
+      split;auto.
+      left.
+      apply Permutation_sym in H2.
+      apply Permutation_map_inv in H2.
+      CleanContext.
+      destruct x0. inversion H1.
+      inversion H1;subst;auto.
+      eexists.
+      split;eauto.
+      rewrite H0 in H7;auto.
+    }
+    { (* from the classical context *)
+      eexists;split;eauto.
+      right.
+      split...
+      apply in_map_iff in H1.
+      CleanContext.
+      inversion H0;subst;auto.
+      rewrite <- H2 in H7.
+      LLExact H7.
+    }
+  Qed.
+  
+  Theorem TheoryInclusion: forall F n , OLTheory F -> OLTheoryCut n F.
+    intros.
+    inversion H;subst;auto.
   Qed.
 
 
-     Theorem RINITInv:  forall n Gamma F w L F1 w0, 
-     IsPositiveLAtomFormulaL Gamma ->
-     IsPositiveLAtomFormulaL L ->
-      seqN OLTheory n (Gamma) (REncode (F @ w) :: L) (>> RINIT F1 w0) ->
-      (F = F1 /\ w = w0 /\ L = [d| F1 @ w0 |]) \/ (F = F1 /\ w = w0 /\ In (d| F1 @ w0 |) Gamma).
+  (*********************)
+  (* INVERSION LEMMA *)
+  (*******************)
+
+  Theorem RINITInv:  forall n Gamma F w L F1 w0,
+      isOLFormulaL  Gamma ->
+      isOLFormulaL  L ->
+      seqN OLTheory n (LEncode Gamma) (REncode (F @ w) :: LEncode L) (>> RINIT F1 w0) ->
+      (F = F1 /\ w = w0 /\ ( L = [ F1 @ w0]  \/ ( L = [] /\ In (F1 @ w ) Gamma))).
   Proof with solveF.
     intros.
     eapply FocusinRightAtom in H1...
     CleanContext.
-    InvTriAll.
+    do 2 split;auto.
+    inversion H2...
+    + destruct L;simpl in H5;
+        inversion H5.
+      rewrite <- H4 in H5.
+      inversion H5...
+      assert (L=[]).
+      eapply map_eq_nil. symmetry in H4;eauto.
+      subst.
+      left...
+    + assert (L=[]).
+      eapply map_eq_nil. symmetry in H1;eauto.
+      subst;right.
+      split...
+      apply in_map_iff in H6.
+      CleanContext.
+      inversion H3...
   Qed.
+
+  (* Inversion of the body of Tensor *)
+  Theorem RInvPar: forall Th Gamma  Delta F G n,
+      seqN Th n Gamma Delta (>> (atom F) $ (atom G)) ->
+      exists n', n = S ( S ( S (S n'))) /\
+                 seqN Th n' Gamma (Delta ++ [atom F ; atom G]) (> []).
+    intros.
+    InvTriAll.
+    eexists;split;eauto.
+    LLExact H8.
+  Qed.
+  
+
   
   Theorem CutElimStep:
     forall h1 h2 n n' Gamma Delta1 Delta2 G v w  Fcut,
-      (seqN OLTheory h1 Gamma (u| G @ v| :: d| Fcut @ w | :: Delta1) (> [])) ->
-      (seqN OLTheory h2 Gamma (u|Fcut @ w| :: Delta2)  (> [])) ->
-      isOLFormula (Fcut @ w) ->
-      isOLFormula (G @ v) ->
-      IsPositiveLAtomFormulaL Gamma ->
-      IsPositiveLAtomFormulaL Delta1 ->
-      IsPositiveLAtomFormulaL Delta2 ->
-      lengthUexp Fcut n' ->
-      n' <= n ->
-      (seq (OLTheoryCut (pred n)) Gamma (u|G @ v|:: Delta1 ++ Delta2)  (> [])).
+      (seqN OLTheory h1 (LEncode Gamma) ( (REncode   (G @ v)) ::  LEncode( (Fcut @ w) :: Delta1)) (> []) ->
+       (seqN OLTheory h2 (LEncode Gamma) ( (REncode (Fcut @ w)) :: LEncode Delta2)  (> [])) ->
+       isOLFormulaL Gamma ->
+       isOLFormulaL Delta1 ->
+       isOLFormulaL Delta2->
+       isOLFormula (Fcut @ w) ->
+       isOLFormula (G @ v) ->
+       lengthUexp Fcut n' ->
+       n' <= n ->
+       (seq (OLTheoryCut (pred n)) (LEncode Gamma) ( (REncode  (G @ v)) :: LEncode (Delta1 ++ Delta2))  (> []))).
   Proof with solveF. (* This was proved with CutTacPOS... see OLCutPos. *)
-    intros h1 h2 n n' Gamma Delta1 Delta2 G v w FCut Hseq1 Hseq2 HIsFcut HIsG HIsGamma HIsDelta1 HIsDelta2 HLeng Hnn'.
+    intros h1 h2 n n' Gamma Delta1 Delta2 G v w FCut Hseq1 Hseq2.
+    intros HIsGamma HIsDelta1 HIsDelta2 HIsFcut HIsG HLeng Hnn'.
     remember (plus h1 h2) as h.
     generalize dependent Gamma.
     generalize dependent Delta1.
@@ -526,29 +640,123 @@ Section Syntax.
     assert(IH : CutDefinition n' h) by auto. clear H.
     
 
-    (* Let's analyze Hseq2 -- the right premise in the cut rule *)
-    inversion Hseq2...
+    (* Let's analyze Hseq1 -- the left premise in the cut rule *)
+    inversion Hseq1...
+
     admit. (* cannot be from the linear context *)
     admit. (* cannot be from the classical context *)
-    (* by case analyses on the rule from the theory *)
-    inversion H...
-    { (* case init *)
-      (* apply the inversion lemma *)
-      eapply FocusinRightAtom in H1 as H1'...
-      destruct H1';
+
+    (* Now HSeq2 -- the right premise *)
+    inversion Hseq2 ...
+    admit. (* cannot be from the linear context *)
+    admit. (* cannot be from the classical context *)
+
+    (* By case analysis on the rules applied in each case *)
+    inversion H;solveF;inversion H2;solveF.
+    { (* case INIT INIT *)
+
+      (* Using the invertibility lemmas to deduce the consequences of applying the rule *)
+      apply RINITInv in H1...
+      apply RINITInv in H4...
+      CleanContext.
+      (* By cases on where the formula was taken *)
+      destruct H4;destruct H7;simpl...
+      + (* linear context *)
+        inversion H1...
+        decide3' (RINIT F1 w0)...
+        tensor' [REncode (F1 @ w0)][ d| F1 @ w0 |].
+      + (* classical context *)
+        inversion H1...
+        decide3' (RINIT F1 w0)...
+        tensor' [REncode (F1 @ w0)] (@nil oo).
+        apply in_map_iff.
+        eexists;eauto.
+    } 
+    { (* INIT TensorLeft *)
+      (* Tensor Left cannot be principal *)
+      eapply FocusinLeftAtom in H4 as H4'...
+      CleanContext.
+      destruct H3;CleanContext...
+      + (* from the linear context *)
+        
+        apply RInvPar in H3. (* inversion on the fact that the (body) of the tensor rule was used *)
+        CleanContext.
+        simpl in H7.
+        
+        (* The inductive hypothesis can be used on H7 _ Hseq1 *)
+        
+        assert (HCut:seq (OLTheoryCut (pred n)) (LEncode Gamma) (REncode (G @ v) :: LEncode (Delta1 ++ x0 ++ [F @ w1 ; G0 @ w1])) (> [])).
+        apply IH with (h1:= S n0) (h2:= x1) (m:= S n0 + x1) (FCut:= FCut) (w:=w)...
+        admit.
+        unfold LEncode.
+        rewrite map_app...
+        clear H7.
+
+        eapply Permutation_map in H0.
+        unfold LEncode.
+        rewrite map_app...
+        rewrite H0.
+        simpl.
+        (* apply the rule *)
+        decide3' ( RTENSORL F G0 w1).
+        tensor'  [d| (F *** G0) @ w1 |] (REncode (G @ v) :: map (fun x : uexp => d| x |) Delta1 ++  map (fun x : uexp => d| x |) x0).
+        assert(Heq:  (((map (fun x : uexp => d| x |) Delta1 ++ map (fun x : uexp => d| x |) x0) ++ [d| F @ w1 |]) ++ [d| G0 @ w1 |]) = LEncode ( (Delta1 ++ x0 ++ [F @ w1; G0 @ w1]))).
+        unfold LEncode...
+        repeat rewrite map_app.
+        simpl.
+        repeat rewrite app_assoc_reverse.
+        reflexivity.
+        rewrite Heq.
+        LLExact' HCut.
+      + (* from the classical context *)
+        
+        apply RInvPar in H3.
+        CleanContext.
+        simpl in H7.
+
+        assert (HCut:seq (OLTheoryCut (pred n)) (LEncode Gamma) (REncode (G @ v) :: LEncode (Delta1  ++ (Delta2 ++ [F @ w1 ; G0 @ w1]))) (> [])).
+        apply IH with (h1:= S n0) (h2:= x0) (m:= S n0 + x0) (FCut:= FCut) (w:=w)...
+        admit.
+        unfold LEncode.
+        rewrite map_app...
+        clear H7.
+
+        decide3' ( RTENSORL F G0 w1).
+        tensor' (@nil oo)  (REncode (G @ v) :: LEncode (Delta1 ++ Delta2)).
+
+        eapply in_map in H0; exact H0.
+        unfold LEncode.
+        repeat rewrite map_app...
+        unfold LEncode in HCut.
+        repeat rewrite map_app in HCut.
+        simpl in *.
+        LLExact' HCut.
+    }
+    { (* INIT and tensor right *)
+      (* RTENSORR is necessarily principal on the right *)
+      apply FocusinRightAtom in H4 as H4'...
       CleanContext.
       
-      eapply IH with (w:=w0) (h1:=h1) (h2:=S x) (FCut:=F0)...
-      lia.
 
-      
-      admit.
-      admit.
+      (* Let's see what happen with RINIT on the left: it must necessarily be principal too *)
+      apply RINITInv in H1...
+      destruct H1...
+      inversion H0...
+
+      (* H3 is enough here (without induction) *)
+      apply seqNtoSeq in H3.
+      apply WeakTheory with (theory:= OLTheory).
+      auto using TheoryInclusion.
+      decide3' (RTENSORR F G0 w0).
+      tensor' [REncode ((F *** G0) @ w0 )]  (LEncode Delta2).
+
     }
+    
+    
   Admitted.
     
 
-        
+  (********************* STOP ******************************)
 
   
 
@@ -1275,60 +1483,10 @@ Section Syntax.
     apply NoUPInCLEncode in H1;contradiction.
   Qed.
 
-   Theorem FocusinLeftAtom: forall n Gamma F w L F1 w0 G,
-      seqN OLTheory n (CLEncode Gamma) (REncode (F @ w) :: LEncode L) (>> d^| F1 @ w0 | ** G) ->
-      exists n', n = (S n') /\
-                 exists L',
-                   Permutation L  (F1 @ w0 :: L') /\
-                   seqN OLTheory n' (CLEncode Gamma) (REncode (F @ w) :: LEncode L') (>> G).
-
-    intros.
-    InvTriAll.
-
-    { simpl in H2.
-      apply PermutationNeqIn in H2 as H2'.
-      CleanContext.
-      rewrite H0 in H2.
-      rewrite perm_swap in H2.
-      apply Permutation_cons_inv in H2.
-      eexists;auto.
-      split;eauto.
-      apply Permutation_sym in H2.
-      apply Permutation_map_inv in H2.
-      CleanContext.
-      destruct x0. inversion H1.
-      inversion H1;subst;auto.
-      exists x0.
-      split;auto.
-      rewrite H0 in H7;auto.
-      intro HNeg;inversion HNeg.
-    }
-    (* Cannot be taken from Gamma *)
-    apply NoDOWNInCLEncode in H1;contradiction.
-   Qed.
     
     
 
-  Theorem RINITInv:  forall n Gamma F w L F1 w0, 
-      seqN OLTheory n (CLEncode Gamma) (REncode (F @ w) :: LEncode L) (>> RINIT F1 w0) ->
-      F = F1 /\ w = w0 /\ L = [ F1 @ w0 ].
-  Proof with solveF.
-    intros.
-    unfold RINIT in H.
-    apply FocusinRightAtom in H .
-    CleanContext.
-    InvTriAll.
-    {
-      apply map_eq_cons in H1.
-      CleanContext.
-      inversion H1;subst.
-      apply map_eq_nil in H2;subst.
-      firstorder.
-    }
-    
-    (* Cannot be from the classical context *)
-    apply NoDOWNInCLEncode in H2;contradiction.
-  Qed.
+   
 
     
 
