@@ -860,7 +860,7 @@ Section Bipoles.
         (seq th [] [] (> [ perp (up F) ; perp (down F) ])).
     Proof with solveF.
       intros th F isF HInit HCut.
-      solveLL'.
+      solveLL.
       bipole' (RCUT F).
     Qed.
 
@@ -873,14 +873,14 @@ Section Bipoles.
       change G with ([] ++ G).
       rewrite Permutation_app_comm.
       eapply weakeningGen;auto.
-      InvTriAll';auto.
+      FLLInversionAll;auto.
     Qed.
 
     Theorem UpDownDuality2 : forall (th : oo -> Prop)  F, isOLFormula F -> (th (RINIT F)) -> (th (RCUT F)) ->
                                                           (seq th [] [] (> [ atom (up F) ; atom (down F) ])).
     Proof with solveF.
       intros th F isF HInit HCut.
-      solveLL'.
+      solveLL.
       bipole' (RINIT F).
     Qed.
 
@@ -888,7 +888,7 @@ Section Bipoles.
                                                            (seq th [] [ atom (up F) ; atom (down F) ] (> [])).
     Proof with solveF.
       intros th F isF HInit HCut.
-      solveLL'.
+      solveLL.
       bipole' (RINIT F).
     Qed.
 
@@ -904,10 +904,10 @@ Section Bipoles.
       change (perp (down' F) :: D) with ( [ perp (down' F)] ++  D).
       eapply GeneralCut' with (dualC:= atom (up' F) ) (C:=  perp (up' F)) ; SolveIsFormulas.
       eauto using StrRulesPosFormulas, IsPositiveAtomNotAsync, IsPositiveIsFormula.
-      solveLL'.
+      solveLL.
       rewrite perm_swap.
       apply UpDownDuality1';auto.
-      solveLL'.
+      solveLL.
       rewrite <- Permutation_cons_append;auto.
     Qed.
 
@@ -922,9 +922,9 @@ Section Bipoles.
       rewrite <- Permutation_app_comm;auto.
       eapply GeneralCut' with (dualC:= atom (down' F) ) (C:=  perp (down' F)) ; SolveIsFormulas.
       eauto using StrRulesPosFormulas, IsPositiveAtomNotAsync, IsPositiveIsFormula.
-      solveLL'.
+      solveLL.
       rewrite <- Permutation_cons_append;auto.
-      solveLL'.
+      solveLL.
       change G with ([] ++ G).
       rewrite Permutation_app_comm.
       eapply weakeningGen;auto.
@@ -942,9 +942,9 @@ Section Bipoles.
       rewrite Permutation_app_comm.
       eapply GeneralCut' with (dualC:= atom (up' F) ) (C:=  perp (up' F)) ; SolveIsFormulas.
       eauto using StrRulesPosFormulas, IsPositiveAtomNotAsync, IsPositiveIsFormula.
-      solveLL'.
+      solveLL.
       rewrite Permutation_app_comm...
-      solveLL'.
+      solveLL.
       ExchangeFront' 2.
       change G with ([] ++ G).
       rewrite Permutation_app_comm.
@@ -962,9 +962,9 @@ Section Bipoles.
       change (perp(up' F) :: D) with ( [perp (up' F)] ++  D).
       eapply GeneralCut' with (dualC:= atom (down' F) ) (C:=  perp (down' F)) ; SolveIsFormulas.
       eauto using StrRulesPosFormulas, IsPositiveAtomNotAsync, IsPositiveIsFormula.
-      solveLL'.
+      solveLL.
       apply UpDownDuality1'...
-      solveLL'.
+      solveLL.
       rewrite Permutation_app_comm...
     Qed.
 
@@ -979,13 +979,13 @@ Section Bipoles.
       rewrite Permutation_app_comm.
       eapply GeneralCut' with (C:= ? (atom (down' F)) ) (dualC:=  ! (perp (down' F))) ; SolveIsFormulas.
       eauto using StrRulesPosFormulas, IsPositiveAtomNotAsync, IsPositiveIsFormula.
-      solveLL'.
+      solveLL.
       simpl.
       apply weakening.
       rewrite Permutation_app_comm...
-      solveLL'.
+      solveLL.
       apply DualityCut1;SolveIsFormulas.
-      decide2' (perp (up F)) .
+      decide2 (perp (up F)) .
     Qed.
 
   End Dualities. 
@@ -1012,15 +1012,15 @@ Section Bipoles.
                    (
                      eapply H  with (m:= h) (n:= n)  (m0:=m) (B:= B1);solveF 
                    );clear Hs
-             end;solveLL';auto.
+             end;solveLL;auto.
 
-    rewrite H3. tensor' M N...
-    decide1' F;eauto ...
-    decide2' F;eauto ...
-    decide3' F;eauto ...
+    rewrite H3. tensor M N...
+    decide1 F;eauto ...
+    decide2 F;eauto ...
+    decide3 F;eauto ...
     inversion H3...
     apply ctn with (m:= m0)...
-    existential' t.
+    existential t.
     apply H4 in properX.
     eapply H with (m0:=m) in properX... 
   Qed.
@@ -1129,7 +1129,7 @@ Section Bipoles.
       F1 = F2 /\ (N = [ atom (down F1) ] \/ (N = [] /\ In (atom (down F1) ) Gamma)).
   Proof with subst;solveF.
     intros.
-    InvTriAll;CleanContext.
+    FLLInversionAll;CleanContext.
     clear H2 H3.
     {
       (*apply SplitAppPermute in H6.
@@ -1170,7 +1170,7 @@ Section Bipoles.
       F1 = F2 /\ (N = [ atom (up F1) ] \/ (N = [] /\ In (atom (up F1) ) Gamma)).
   Proof with subst;solveF.
     intros.
-    InvTriAll;CleanContext.
+    FLLInversionAll;CleanContext.
     clear H2 H3.
     { 
       (*apply SplitAppPermute in H6.
@@ -1231,7 +1231,7 @@ Ltac WFFailSolver :=
     let HSeq := fresh "Hseq" in
     intros n HSeq;
     autounfold in HSeq;
-    InvTriAll
+    FLLInversionAll
   end.
 
 (** This tactic is useful when performing proofs of cut-coherence and
@@ -1246,7 +1246,7 @@ Ltac WFSolver :=
   solveF;
   try intros;
   try lia;
-  solveLL';
+  solveLL;
   solveLL;
   repeat(
       match goal with
@@ -1334,7 +1334,7 @@ Section BipoleInstance.
                                          (ANDR_TENSOR_HEAD **  ANDR_TENSOR_RULE) ANDR_TENSOR_RULE up.
   Proof with WFSolver.
     intros n HSeq HIs...
-    InvTriAll...
+    FLLInversionAll...
     ++ exists M0.  exists N0.
        exists [atom (up' Fo)].
        exists [atom (up' Go)].
@@ -1342,10 +1342,10 @@ Section BipoleInstance.
        eexists. exists 4...
        rewrite H1.
        left...
-       tensor'...
-       decide3' (perp (up (t_bin BC Fo Go)) ** (atom (up Fo) ** atom (up Go))) ...
-       tensor' [(atom (up (t_bin BC Fo Go)))] (Delta1 ++ Delta2)...
-       tensor'. 
+       tensor...
+       decide3 (perp (up (t_bin BC Fo Go)) ** (atom (up Fo) ** atom (up Go))) ...
+       tensor [(atom (up (t_bin BC Fo Go)))] (Delta1 ++ Delta2)...
+       tensor. 
        
     ++ exists M0.  exists N0.
        exists [atom (up' Fo)].
@@ -1354,10 +1354,10 @@ Section BipoleInstance.
        eexists. exists 4...
        rewrite H1.
        right...
-       tensor'...
-       decide3' (perp (up (t_bin BC Fo Go)) ** (atom (up Fo) ** atom (up Go))) ...
-       tensor' (@nil oo) (Delta1 ++ Delta2)...
-       tensor'...
+       tensor...
+       decide3 (perp (up (t_bin BC Fo Go)) ** (atom (up Fo) ** atom (up Go))) ...
+       tensor (@nil oo) (Delta1 ++ Delta2)...
+       tensor...
   Qed.
 
   (** Conjunction left as par *)
@@ -1370,21 +1370,21 @@ Section BipoleInstance.
                                       (ANDL_PAR_HEAD **  ANDL_PAR_RULE) ANDL_PAR_RULE down.
   Proof with WFSolver.
     intros n HSeq HIs...
-    InvTriAll.
+    FLLInversionAll.
     
     ++ exists ([atom (down' Fo)] ++ [atom (down' Go)]).
        exists (@nil oo).
        eexists. exists 5...
        left.  exists N...
-       decide3'  (perp (down (t_bin BC Fo Go)) ** (atom (down Fo) $ atom (down Go))). 
-       tensor' [(atom (down (t_bin BC Fo Go)))] Delta1... 
+       decide3  (perp (down (t_bin BC Fo Go)) ** (atom (down Fo) $ atom (down Go))). 
+       tensor [(atom (down (t_bin BC Fo Go)))] Delta1... 
     ++  exists ([atom (down' Fo)] ++ [atom (down' Go)]).
         exists (@nil oo).
         eexists. exists 5...
         rewrite H1.
         right...
-        decide3'  (perp (down (t_bin BC Fo Go)) ** (atom (down Fo) $ atom (down Go))).
-        tensor' (@nil oo) Delta1...
+        decide3  (perp (down (t_bin BC Fo Go)) ** (atom (down Fo) $ atom (down Go))).
+        tensor (@nil oo) Delta1...
   Qed.
 
 
@@ -1398,23 +1398,23 @@ Section BipoleInstance.
                                       (ORL_WITH_HEAD **  ORL_WITH_RULE) ORL_WITH_RULE down.
   Proof with WFSolver.
     intros n HSeq HIs...
-    InvTriAll...
+    FLLInversionAll...
     ++ exists N. 
        exists [atom (down' Fo)].
        exists [atom (down' Go)].
        exists (@nil oo). exists (@nil oo).
        eexists. exists 4...
        left...
-       decide3'  (perp (down (t_bin BC Fo Go)) ** (atom (down Fo) & atom (down Go))) ...
-       tensor' [ (atom (down (t_bin BC Fo Go)))] Delta12.
+       decide3  (perp (down (t_bin BC Fo Go)) ** (atom (down Fo) & atom (down Go))) ...
+       tensor [ (atom (down (t_bin BC Fo Go)))] Delta12.
     ++ exists N. 
        exists [atom (down' Fo)].
        exists [atom (down' Go)].
        exists (@nil oo). exists (@nil oo).
        eexists. exists 4...
        right...
-       decide3'  (perp (down (t_bin BC Fo Go)) ** (atom (down Fo) & atom (down Go))) ...
-       tensor' (@nil oo) Delta12.
+       decide3  (perp (down (t_bin BC Fo Go)) ** (atom (down Fo) & atom (down Go))) ...
+       tensor (@nil oo) Delta12.
   Qed.
 
   (** Disjunction right as oplus *)
@@ -1426,7 +1426,7 @@ Section BipoleInstance.
                                      (ORR_PLUS_HEAD **  ORR_PLUS_RULE) ORR_PLUS_RULE up.
   Proof with WFSolver.
     intros n HSeq HIs...
-    InvTriAll.
+    FLLInversionAll.
 
     exists  [atom (up' Fo)]. exists (@nil oo).
     eexists. exists 4...
@@ -1434,16 +1434,16 @@ Section BipoleInstance.
     left.
     exists N...
     apply tri_plus1'...
-    decide3'  (perp (up (t_bin BC Fo Go)) ** (atom (up Fo) op atom (up Go))) ...
-    tensor' [ (atom (up (t_bin BC Fo Go)))] Delta1.
+    decide3  (perp (up (t_bin BC Fo Go)) ** (atom (up Fo) op atom (up Go))) ...
+    tensor [ (atom (up (t_bin BC Fo Go)))] Delta1.
 
     exists  [atom (up' Fo)]. exists (@nil oo).
     eexists. exists 4...
     rewrite H1.
     right...
     apply tri_plus1'...
-    decide3'  (perp (up (t_bin BC Fo Go)) ** (atom (up Fo) op atom (up Go)))...
-    tensor' (@nil oo) Delta1.
+    decide3  (perp (up (t_bin BC Fo Go)) ** (atom (up Fo) op atom (up Go)))...
+    tensor (@nil oo) Delta1.
 
     exists  [atom (up' Go)]. exists (@nil oo).
     eexists. exists 4...
@@ -1451,16 +1451,16 @@ Section BipoleInstance.
     left.
     exists N...
     apply tri_plus2'...
-    decide3'  (perp (up (t_bin BC Fo Go)) ** (atom (up Fo) op atom (up Go)))...
-    tensor' [ (atom (up (t_bin BC Fo Go)))] Delta1.
+    decide3  (perp (up (t_bin BC Fo Go)) ** (atom (up Fo) op atom (up Go)))...
+    tensor [ (atom (up (t_bin BC Fo Go)))] Delta1.
 
     exists  [atom (up' Go)]. exists (@nil oo).
     eexists. exists 4...
     rewrite H1.
     right...
     apply tri_plus2'...
-    decide3'  (perp (up (t_bin BC Fo Go)) ** (atom (up Fo) op atom (up Go)))...
-    tensor' (@nil oo) Delta1.
+    decide3  (perp (up (t_bin BC Fo Go)) ** (atom (up Fo) op atom (up Go)))...
+    tensor (@nil oo) Delta1.
   Qed.
   
 
@@ -1473,21 +1473,21 @@ Section BipoleInstance.
                                       (IMPR_PAR_HEAD **  IMPR_PAR_RULE) IMPR_PAR_RULE up.
   Proof with WFSolver.
     intros n HSeq HIs...
-    InvTriAll.
+    FLLInversionAll.
     
     ++ exists ([atom (down' Fo)] ++ [atom (up' Go)]).
        exists (@nil oo).
        eexists. exists 5...
        left.  exists N...
-       decide3'  (perp (up (t_bin BC Fo Go)) ** (atom (down Fo) $ atom (up Go))).
-       tensor' [(atom (up (t_bin BC Fo Go)))] Delta1... 
+       decide3  (perp (up (t_bin BC Fo Go)) ** (atom (down Fo) $ atom (up Go))).
+       tensor [(atom (up (t_bin BC Fo Go)))] Delta1... 
     ++  exists ([atom (down' Fo)] ++ [atom (up' Go)]).
         exists (@nil oo).
         eexists. exists 5...
         rewrite H1.
         right...
-        decide3'  (perp (up (t_bin BC Fo Go)) ** (atom (down Fo) $ atom (up Go))).
-        tensor' (@nil oo) Delta1...
+        decide3  (perp (up (t_bin BC Fo Go)) ** (atom (down Fo) $ atom (up Go))).
+        tensor (@nil oo) Delta1...
   Qed.
 
   (** Implication left as tensor *)
@@ -1500,7 +1500,7 @@ Section BipoleInstance.
                                          (IMPL_TENSOR_HEAD **  IMPL_TENSOR_RULE) IMPL_TENSOR_RULE down.
   Proof with WFSolver.
     intros n HSeq HIs...
-    InvTriAll...
+    FLLInversionAll...
     ++ exists M0.  exists N0.
        exists [atom (up' Fo)].
        exists [atom (down' Go)].
@@ -1508,10 +1508,10 @@ Section BipoleInstance.
        eexists. exists 4...
        rewrite H1.
        left...
-       tensor'...
-       decide3' (perp (down (t_bin BC Fo Go)) ** (atom (up Fo) ** atom (down Go))).
-       tensor' [(atom (down (t_bin BC Fo Go)))] (Delta1 ++ Delta2)...
-       tensor'. 
+       tensor...
+       decide3 (perp (down (t_bin BC Fo Go)) ** (atom (up Fo) ** atom (down Go))).
+       tensor [(atom (down (t_bin BC Fo Go)))] (Delta1 ++ Delta2)...
+       tensor. 
        
     ++ exists M0.  exists N0.
        exists [atom (up' Fo)].
@@ -1520,10 +1520,10 @@ Section BipoleInstance.
        eexists. exists 4...
        rewrite H1.
        right...
-       tensor'...
-       decide3' (perp (down (t_bin BC Fo Go)) ** (atom (up Fo) ** atom (down Go))).
-       tensor' (@nil oo) (Delta1 ++ Delta2)...
-       tensor'...
+       tensor...
+       decide3 (perp (down (t_bin BC Fo Go)) ** (atom (up Fo) ** atom (down Go))).
+       tensor (@nil oo) (Delta1 ++ Delta2)...
+       tensor...
   Qed.
 
   (** Right constant  as top *)
@@ -1538,15 +1538,15 @@ Section BipoleInstance.
                                       (TRUER_TOP_HEAD **  TRUER_TOP_RULE) TRUER_TOP_RULE up.
   Proof with WFSolver.
     intros n HSeq HIs...
-    InvTriAll.
+    FLLInversionAll.
     ++ (* linear case *)
       left; exists N...
-      decide3'  (perp (up (t_cons C)) ** top).
-      tensor'  [(atom (up (t_cons C)))] Delta1...
+      decide3  (perp (up (t_cons C)) ** top).
+      tensor  [(atom (up (t_cons C)))] Delta1...
     ++ (* classical case *)
       right... 
-      decide3'  (perp (up (t_cons C)) ** top).
-      tensor'  (@nil oo) Delta1...
+      decide3  (perp (up (t_cons C)) ** top).
+      tensor  (@nil oo) Delta1...
   Qed.
 
   (** Left constant as top *)
@@ -1559,15 +1559,15 @@ Section BipoleInstance.
                                       (FALSEL_TOP_HEAD **  FALSEL_TOP_RULE) FALSEL_TOP_RULE down.
   Proof with WFSolver.
     intros n HSeq HIs...
-    InvTriAll.
+    FLLInversionAll.
     ++ (* linear case *)
       left; exists N...
-      decide3'  (perp (down (t_cons C)) ** top).
-      tensor'  [(atom (down (t_cons C)))] Delta1...
+      decide3  (perp (down (t_cons C)) ** top).
+      tensor  [(atom (down (t_cons C)))] Delta1...
     ++ (* classical case *)
       right... 
-      decide3'  (perp (down (t_cons C)) ** top).
-      tensor'  (@nil oo) Delta1...
+      decide3  (perp (down (t_cons C)) ** top).
+      tensor  (@nil oo) Delta1...
   Qed.
 End BipoleInstance.
 

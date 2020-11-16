@@ -45,11 +45,11 @@ Section InvNPhase .
     induction SizeM using strongind;intros ...
     
     symmetry in HeqSizeM; apply ComplexityL0 in HeqSizeM ...
-    solveLL' ...
+    solveLL ...
     
     destruct M as [ | a]; simpl in HeqSizeM.
     inversion HeqSizeM.
-    destruct a; simpl in *; invTri' H0;solveLL';
+    destruct a; simpl in *; invTri' H0;solveLL;
       repeat rewrite app_comm_cons;
       try match goal with
           |  [ |- seq _ _ _ (> ?M ++ bot :: _) ] =>
@@ -74,21 +74,19 @@ Section InvNPhase .
     induction SizeM using strongind;intros ...
     
     symmetry in HeqSizeM; apply ComplexityL0 in HeqSizeM ...
-    solveLL' ...
+    solveLL ...
     
     destruct M as [ | a]; simpl in HeqSizeM.
     inversion HeqSizeM.
     
-    destruct a; simpl in *; invTri' H0;solveLL';
+    destruct a; simpl in *; invTri' H0;solveLL;
       repeat rewrite app_comm_cons;
       try solve [
             match goal with
             |  [ |- seq _ _ _ (> ?M ++ (AAnd _ _) :: _) ] =>
-               eapply H with (m:= complexityL M);simpl in *; inversion HeqSizeM;solveF;InvTriAll';auto
+               eapply H with (m:= complexityL M);simpl in *; inversion HeqSizeM;solveF;FLLInversionAll;auto
             end] .
-    
-    
-    eapply H with (M:= o x:: M) (m:= complexityL (o x:: M));simpl in *; inversion HeqSizeM;solveF;InvTriAll';auto.
+    eapply H with (M:= o x:: M) (m:= complexityL (o x:: M));simpl in *; inversion HeqSizeM;solveF;FLLInversionAll;auto.
     generalize (ComplexityUniformEq H6 properX (proper_VAR con 0));intro...
   Qed.
   
@@ -107,12 +105,12 @@ Section InvNPhase .
     induction SizeM using strongind;intros ...
     
     symmetry in HeqSizeM; apply ComplexityL0 in HeqSizeM ...
-    solveLL' ...
+    solveLL ...
     
     destruct M as [ | a]; simpl in HeqSizeM.
     inversion HeqSizeM.
     
-    destruct a; simpl in *; invTri' H0;solveLL';
+    destruct a; simpl in *; invTri' H0;solveLL;
       repeat rewrite app_comm_cons;
       match goal with
       |  [ |- seq _ _ _ (> ?M ++ (MOr F G) :: _) ] =>
@@ -142,7 +140,7 @@ Section InvNPhase .
     destruct M as [ | a]; simpl in HeqSizeM.
     inversion HeqSizeM.
     
-    destruct a; simpl in *; invTri' H1 ;solveLL';
+    destruct a; simpl in *; invTri' H1 ;solveLL;
       repeat rewrite app_comm_cons;
       try solve [eapply H0 with (m:= complexityL M);simpl in *; inversion HeqSizeM; solveF;
                  try (rewrite <- Per_app_assoc_comm; rewrite app_assoc_reverse in H7;auto)].
@@ -170,23 +168,23 @@ Section InvNPhase .
     induction SizeM using strongind;intros ...
     
     symmetry in HeqSizeM; apply ComplexityL0 in HeqSizeM ...
-    solveLL' ...
+    solveLL ...
     
     destruct M as [ | a]; simpl in HeqSizeM.
     inversion HeqSizeM.
     
-    destruct a; simpl in *; invTri' H0;solveLL';
+    destruct a; simpl in *; invTri' H0;solveLL;
       repeat rewrite app_comm_cons;
       try solve [
             match goal with
             |  [ |- seq _ _ _ (> ?M ++ (? _) :: _) ] =>
-               eapply H with (m:= complexityL M);simpl in *; inversion HeqSizeM;solveF;InvTriAll';auto
+               eapply H with (m:= complexityL M);simpl in *; inversion HeqSizeM;solveF;FLLInversionAll;auto
             end] .
     
-    eapply H with (m:= complexityL M);simpl in *; inversion HeqSizeM;solveF;InvTriAll';auto.
+    eapply H with (m:= complexityL M);simpl in *; inversion HeqSizeM;solveF;FLLInversionAll;auto.
     try (rewrite <- Per_app_assoc_comm; rewrite app_assoc_reverse in H4;auto).
 
-    eapply H with (m:= complexityL (o x :: M));simpl in *; inversion HeqSizeM;solveF;InvTriAll';auto.
+    eapply H with (m:= complexityL (o x :: M));simpl in *; inversion HeqSizeM;solveF;FLLInversionAll;auto.
     generalize (ComplexityUniformEq H5 properX (proper_VAR con 0));intro...
   Qed.
   
@@ -203,12 +201,12 @@ Section InvNPhase .
     induction SizeM using strongind;intros ...
     
     symmetry in HeqSizeM; apply ComplexityL0 in HeqSizeM ...
-    solveLL' ...
+    solveLL ...
     
     destruct M as [ | a]; simpl in HeqSizeM.
     inversion HeqSizeM.
     
-    destruct a; simpl in *;solveLL';
+    destruct a; simpl in *;solveLL;
       repeat rewrite app_comm_cons;
       try solve [
             match goal with
@@ -224,7 +222,7 @@ Section InvNPhase .
     inversion H3;subst...
 
     inversion H0... inversion H3...
-    solveLL'.
+    solveLL.
     eapply H with (M:= o x :: M) (m:= complexityL (o x ::M));simpl in * ; inversion HeqSizeM; solveF; inversion H0;subst;auto.
 
     
@@ -245,31 +243,31 @@ Section InvNPhase .
     induction SizeM using strongind;intros ...
     
     symmetry in HeqSizeM; apply ComplexityL0 in HeqSizeM ...
-    solveLL'.
+    solveLL.
     
     destruct M as [ | a]; simpl in HeqSizeM.
     inversion HeqSizeM.
+    inversion H1...
     
-    destruct a; simpl in *;solveLL';
-      try solve [eapply H with (m:= complexityL M);inversion HeqSizeM;subst;solveF;intros;solveLL'; inversion H1;subst;auto;
+    destruct a; simpl in *;solveLL;
+      try solve [eapply H with (m:= complexityL M);inversion HeqSizeM;subst;solveF;intros;solveLL; inversion H1;subst;auto;
                  generalize (H2 _ H3);intros Hs;invTri' Hs ;solveF].
 
     
-    
-    eapply H with (M:= a1 :: M)(m:= complexityL (a1 :: M));inversion HeqSizeM;subst;solveF;intros;solveLL'.
-    inversion H1;subst;auto.  inversion H5;auto. generalize (H2 _ H3);intros Hs;invTri' Hs ;solveF.
+    eapply H with (M:= a1 :: M)(m:= complexityL (a1 :: M));inversion HeqSizeM;subst...
+    inversion H5... intros. generalize (H2 _ H3);intros Hs;invTri' Hs ;solveF.
 
-    eapply H with (M:= a2 :: M)(m:= complexityL (a2 :: M));inversion HeqSizeM;subst;solveF;intros;solveLL'.
-    inversion H1;subst;auto.  inversion H5;auto. generalize (H2 _ H3);intros Hs;invTri' Hs ;solveF.
+    eapply H with (M:= a2 :: M)(m:= complexityL (a2 :: M));inversion HeqSizeM;subst;solveF.
+    inversion H5... intros. generalize (H2 _ H3);intros Hs;invTri' Hs ;solveF.
 
-    eapply H with (M:= a1 :: a2 :: M)(m:= complexityL (a1 :: a2 :: M));inversion HeqSizeM;subst;solveF;intros;solveLL'.
-    inversion H1;subst;auto.  inversion H5;auto. generalize (H2 _ H3);intros Hs;invTri' Hs ;solveF.
+    eapply H with (M:= a1 :: a2 :: M)(m:= complexityL (a1 :: a2 :: M));inversion HeqSizeM;subst;solveF.
+    inversion H5... intros. generalize (H2 _ H3);intros Hs;invTri' Hs ;solveF.
 
     inversion H1... inversion H5...
-    solveLL'.
-    eapply H with (M:=  o x :: M)(m:= complexityL (o x :: M));inversion HeqSizeM;subst;solveF;intros;solveLL'.
-    inversion H1;subst;auto.  inversion H5;auto.
-    generalize (ComplexityUniformEq H4 properX (proper_VAR con 0));intro...
+    solveLL.
+    eapply H with (M:=  o x :: M)(m:= complexityL (o x :: M));inversion HeqSizeM;subst;solveF.
+    generalize (ComplexityUniformEq H4 properX (proper_VAR con 0));intros...
+    intros...
     generalize (H2 _ H3);intros Hs;invTri' Hs ;solveF.
   Qed.
   

@@ -172,7 +172,7 @@ Section CutElimination .
                          seqN P m G ((atom A ) :: N) (> []) /\
                          h = S (S m) .
     intros.
-    InvTriAll.
+    FLLInversionAll.
     rewrite Permutation_app_comm in H7;simpl in H7.
     eauto.
   Qed.
@@ -1214,7 +1214,7 @@ decomposition (telling how to rebuild the proof from the presmies. *)
   Theorem PosAtomFocus' : forall  Gamma Th N X, (seq Th Gamma N (>> atom X)) ->
                                              (seq Th Gamma (atom X :: N) (> [])) .
     intros.
-    InvTriAll'.
+    FLLInversionAll.
     rewrite Permutation_app_comm in H6;auto.
   Qed.
 
@@ -1270,7 +1270,7 @@ decomposition (telling how to rebuild the proof from the presmies. *)
     rewrite Permutation_app_comm...
     
     assert (seq OLTheory Gamma M (> [atom (down FInit)]))...
-    solveLL'.
+    solveLL.
     apply seqNtoSeq in H5.
     rewrite Permutation_app_comm...
     apply AbsorptionClassic in H6...
@@ -2189,17 +2189,17 @@ decomposition (telling how to rebuild the proof from the presmies. *)
       clear H.
       destruct H7;destruct H8...
 
-      decide3' (RINIT OO0)...
-      tensor' [atom (up OO0) ][ atom (down OO0)].
+      decide3 (RINIT OO0)...
+      tensor [atom (up OO0) ][ atom (down OO0)].
 
-      decide3' (RINIT OO0)...
-      tensor' (@nil oo) [ atom (down OO0)].
+      decide3 (RINIT OO0)...
+      tensor (@nil oo) [ atom (down OO0)].
 
-      decide3' (RINIT OO0)...
-      tensor' [atom (up OO0) ] (@nil oo).
+      decide3 (RINIT OO0)...
+      tensor [atom (up OO0) ] (@nil oo).
 
-      decide3' (RINIT OO0)...
-      tensor' (@nil oo) (@nil oo).
+      decide3 (RINIT OO0)...
+      tensor (@nil oo) (@nil oo).
     }
   Qed. 
 
@@ -2351,24 +2351,24 @@ decomposition (telling how to rebuild the proof from the presmies. *)
       clear H IHn H2.
       apply seqNtoSeq in H6.
       unfold RINIT in H6.
-      InvTriAll'.
+      FLLInversionAll.
 
-      rewrite H7. decide3' (RINIT OO). tensor'  [atom (up OO) ] [atom (down OO)].
-      rewrite H7. decide3' (RINIT OO). tensor'  (@nil oo) [atom (down OO)].
-      rewrite H7. decide3' (RINIT OO). tensor'  [atom (up OO) ] (@nil oo).
-      rewrite H7. decide3' (RINIT OO). tensor'  (@nil oo) (@nil oo) .
+      rewrite H7. decide3 (RINIT OO). tensor  [atom (up OO) ] [atom (down OO)].
+      rewrite H7. decide3 (RINIT OO). tensor  (@nil oo) [atom (down OO)].
+      rewrite H7. decide3 (RINIT OO). tensor  [atom (up OO) ] (@nil oo).
+      rewrite H7. decide3 (RINIT OO). tensor  (@nil oo) (@nil oo) .
       
     +  (* The principal case *)
       inversion H3...
       CleanContext.
       
-      InvTriAll;CleanContext.
+      FLLInversionAll;CleanContext.
       apply H in H19...
       apply H in H20...
       apply WeakTheory with (theory' := OLTheory) in H19;auto;try apply  OOTheryCut0.
       apply WeakTheory with (theory' := OLTheory) in H20;auto;try apply  OOTheryCut0.
-      assert (seq OLTheory B N0 (>> (atom (down F0) ))) by solveLL'.
-      assert (seq OLTheory B M (>> (atom (up F0) ))) by solveLL'.
+      assert (seq OLTheory B N0 (>> (atom (down F0) ))) by solveLL.
+      assert (seq OLTheory B M (>> (atom (up F0) ))) by solveLL.
       apply seqtoSeqN  in H5.
       apply seqtoSeqN  in H6.
       CleanContext.

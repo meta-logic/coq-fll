@@ -111,7 +111,7 @@ Proof with WFSolver.
   + (* Disjunction left *)
     exists BTwoPM...
     intros n HSeq HIs...
-    InvTriAll...
+    FLLInversionAll...
     ++ (* linear case *)
     exists M0.
        exists N0.
@@ -121,10 +121,10 @@ Proof with WFSolver.
        eexists. exists 4...
        left...
        rewrite H1...
-       tensor' M0 N0...
-       decide3' (makeLRuleBin PAR Fo1 Go1)...
-       tensor' [ (atom (down (t_bin PAR Fo1 Go1)))] (Delta1 ++ Delta2).
-       tensor' .
+       tensor M0 N0...
+       decide3 (makeLRuleBin PAR Fo1 Go1)...
+       tensor [ (atom (down (t_bin PAR Fo1 Go1)))] (Delta1 ++ Delta2).
+       tensor .
     ++ (* classical case *)
       exists M0.
        exists N0.
@@ -134,37 +134,37 @@ Proof with WFSolver.
        eexists. exists 4...
        right...
        rewrite H1...
-       tensor' M0 N0...
-       decide3' (makeLRuleBin PAR Fo1 Go1)...
-       tensor' (@nil oo) (Delta1 ++ Delta2)...
-       tensor' Delta1 Delta2.
+       tensor M0 N0...
+       decide3 (makeLRuleBin PAR Fo1 Go1)...
+       tensor (@nil oo) (Delta1 ++ Delta2)...
+       tensor Delta1 Delta2.
        
   + (* Disjunction right *)
     exists BOneP...
     intros n HSeq HIs...
-    InvTriAll.
+    FLLInversionAll.
 
     exists   ([atom (up' Fo1)] ++ [atom (up' Go1)]). exists (@nil oo).
     eexists. exists 5...
     rewrite H1.
     left.
     exists N...
-    decide3'  (perp (up (t_bin PAR Fo1 Go1)) ** (atom (up Fo1) $ atom (up Go1))).
-    tensor' [ (atom (up (t_bin PAR Fo1 Go1)))] Delta1.
-    solveLL'...
+    decide3  (perp (up (t_bin PAR Fo1 Go1)) ** (atom (up Fo1) $ atom (up Go1))).
+    tensor [ (atom (up (t_bin PAR Fo1 Go1)))] Delta1.
+    solveLL...
 
     exists   ([atom (up' Fo1)] ++ [atom (up' Go1)]). exists (@nil oo).
     eexists. exists 5...
     rewrite H1.
     right...
-    decide3'  (perp (up (t_bin PAR Fo1 Go1)) ** (atom (up Fo1) $ atom (up Go1))).
-    tensor' (@nil oo) Delta1.
-    solveLL'...
+    decide3  (perp (up (t_bin PAR Fo1 Go1)) ** (atom (up Fo1) $ atom (up Go1))).
+    tensor (@nil oo) Delta1.
+    solveLL...
 
   + (* With Left *)
     exists BOneP...
     intros n HSeq HIs...
-    InvTriAll.
+    FLLInversionAll.
 
     exists  [atom (down' Fo1)]. exists (@nil oo).
     eexists. exists 4...
@@ -172,16 +172,16 @@ Proof with WFSolver.
     left.
     exists N...
     apply tri_plus1'...
-    decide3'  (perp (down (t_bin WITH Fo1 Go1)) ** (atom (down Fo1) op atom (down Go1))).
-    tensor' [ (atom (down (t_bin WITH Fo1 Go1)))] Delta1.
+    decide3  (perp (down (t_bin WITH Fo1 Go1)) ** (atom (down Fo1) op atom (down Go1))).
+    tensor [ (atom (down (t_bin WITH Fo1 Go1)))] Delta1.
 
     exists  [atom (down' Fo1)]. exists (@nil oo).
     eexists. exists 4...
     rewrite H1.
     right...
     apply tri_plus1'...
-    decide3'  (perp (down (t_bin WITH Fo1 Go1)) ** (atom (down Fo1) op atom (down Go1))).
-    tensor' (@nil oo) Delta1.
+    decide3  (perp (down (t_bin WITH Fo1 Go1)) ** (atom (down Fo1) op atom (down Go1))).
+    tensor (@nil oo) Delta1.
 
     exists  [atom (down' Go1)]. exists (@nil oo).
     eexists. exists 4...
@@ -189,20 +189,20 @@ Proof with WFSolver.
     left.
     exists N...
     apply tri_plus2'...
-    decide3'  (perp (down (t_bin WITH Fo1 Go1)) ** (atom (down Fo1) op atom (down Go1))).
-    tensor' [ (atom (down (t_bin WITH Fo1 Go1)))] Delta1.
+    decide3  (perp (down (t_bin WITH Fo1 Go1)) ** (atom (down Fo1) op atom (down Go1))).
+    tensor [ (atom (down (t_bin WITH Fo1 Go1)))] Delta1.
 
     exists  [atom (down' Go1)]. exists (@nil oo).
     eexists. exists 4...
     rewrite H1.
     right...
     apply tri_plus2'...
-    decide3'  (perp (down (t_bin WITH Fo1 Go1)) ** (atom (down Fo1) op atom (down Go1))).
-    tensor' (@nil oo) Delta1.
+    decide3  (perp (down (t_bin WITH Fo1 Go1)) ** (atom (down Fo1) op atom (down Go1))).
+    tensor (@nil oo) Delta1.
   + (* with right *)
     exists BTwoPA...
     intros n HSeq HIs...
-    InvTriAll...
+    FLLInversionAll...
     ++ exists N.
        exists [atom (up' Fo1)]. 
        exists [atom (up' Go1)].
@@ -210,8 +210,8 @@ Proof with WFSolver.
        eexists. exists 4...
        rewrite H1.
        left...
-       decide3' (makeRRuleBin WITH Fo1 Go1)...
-       tensor' [(atom (up (t_bin WITH Fo1 Go1)))] Delta12.
+       decide3 (makeRRuleBin WITH Fo1 Go1)...
+       tensor [(atom (up (t_bin WITH Fo1 Go1)))] Delta12.
 
     ++ exists N.
        exists [atom (up' Fo1)].
@@ -220,8 +220,8 @@ Proof with WFSolver.
        eexists. exists 4...
        rewrite H1.
        right...
-       decide3' (makeRRuleBin WITH Fo1 Go1)...
-       tensor' (@nil oo) Delta12...
+       decide3 (makeRRuleBin WITH Fo1 Go1)...
+       tensor (@nil oo) Delta12...
   + (* Oplus Left *)
     exists BTwoPA...
     apply ORL_With.
@@ -255,42 +255,42 @@ Lemma CutCoherenceTENSOR: CutCoherenceBin (rulesBC TENSOR).
 Proof with solveF.
   unfold CutCoherenceBin;intros.
   simpl.
-  solveLL'.
-  decide3' ((atom (up F) ) ** (atom (down F) )). econstructor;eauto using le_max_l.
-  tensor' [perp (up F) ] [perp (up G); perp (down F) ** perp (down G)];solveLL'.
-  decide3' ((atom (up G) ) ** (atom (down G) )). econstructor;eauto using le_max_r.
-  tensor' [perp (up G) ] [ perp (down F) ** perp (down G); atom (down F)];solveLL'.
+  solveLL.
+  decide3 ((atom (up F) ) ** (atom (down F) )). econstructor;eauto using le_max_l.
+  tensor [perp (up F) ] [perp (up G); perp (down F) ** perp (down G)];solveLL.
+  decide3 ((atom (up G) ) ** (atom (down G) )). econstructor;eauto using le_max_r.
+  tensor [perp (up G) ] [ perp (down F) ** perp (down G); atom (down F)];solveLL.
   
-  decide1' ((perp (down F) ) ** perp (down G) ).
-  tensor' [atom (down F) ] [atom (down G) ].
+  decide1 ((perp (down F) ) ** perp (down G) ).
+  tensor [atom (down F) ] [atom (down G) ].
 Qed.
 
 Lemma CutCoherencePAR: CutCoherenceBin (rulesBC PAR).
 Proof with solveF.
   unfold CutCoherenceBin;intros.
   simpl.
-  solveLL'.
-  decide3' ((atom (up F) ) ** (atom (down F) )). econstructor;eauto using le_max_l.
-  tensor'  [perp (up F) ** perp (up G); perp (down G)] [perp (down F) ]  ;solveLL'.
-  decide3' ((atom (up G) ) ** (atom (down G) )). econstructor;eauto using le_max_r.
-  tensor'  [perp (up F) ** perp (up G); atom (up F)][perp (down G)]   ;solveLL'.
-  decide1' (perp (up F) ** perp (up G)) .
-  tensor' [atom (up F) ][ atom (up G)].
+  solveLL.
+  decide3 ((atom (up F) ) ** (atom (down F) )). econstructor;eauto using le_max_l.
+  tensor  [perp (up F) ** perp (up G); perp (down G)] [perp (down F) ]  ;solveLL.
+  decide3 ((atom (up G) ) ** (atom (down G) )). econstructor;eauto using le_max_r.
+  tensor  [perp (up F) ** perp (up G); atom (up F)][perp (down G)]   ;solveLL.
+  decide1 (perp (up F) ** perp (up G)) .
+  tensor [atom (up F) ][ atom (up G)].
 Qed.
 
 Lemma CutCoherenceWITH: CutCoherenceBin (rulesBC WITH).
 Proof with solveF.
   unfold CutCoherenceBin;intros.
   simpl.
-  solveLL'.
+  solveLL.
   
-  decide3' ((atom (up F) ) ** (atom (down F) )). econstructor;eauto using le_max_l.
-  tensor'[perp (up F) op perp (up G)] [perp (down F)]  ;solveLL'.
-  decide1' (perp (up F) op perp (up G)).
+  decide3 ((atom (up F) ) ** (atom (down F) )). econstructor;eauto using le_max_l.
+  tensor[perp (up F) op perp (up G)] [perp (down F)]  ;solveLL.
+  decide1 (perp (up F) op perp (up G)).
 
-  decide3' ((atom (up G) ) ** (atom (down G) )). econstructor;eauto using le_max_r.
-  tensor'[perp (up F) op perp (up G)] [perp (down G)]  ;solveLL'.
-  decide1' (perp (up F) op perp (up G)).
+  decide3 ((atom (up G) ) ** (atom (down G) )). econstructor;eauto using le_max_r.
+  tensor[perp (up F) op perp (up G)] [perp (down G)]  ;solveLL.
+  decide1 (perp (up F) op perp (up G)).
 Qed.
 
 
@@ -298,15 +298,15 @@ Lemma CutCoherenceOPLUS: CutCoherenceBin (rulesBC OPLUS).
 Proof with solveF.
   unfold CutCoherenceBin;intros.
   simpl.
-  solveLL'.
+  solveLL.
   
-  decide3' ((atom (up F) ) ** (atom (down F) )). econstructor;eauto using le_max_l.
-  tensor' [perp (up F)]  [perp (down F) op perp (down G)]  ;solveLL'.
-  decide1' (perp (down F) op perp (down G)).
+  decide3 ((atom (up F) ) ** (atom (down F) )). econstructor;eauto using le_max_l.
+  tensor [perp (up F)]  [perp (down F) op perp (down G)]  ;solveLL.
+  decide1 (perp (down F) op perp (down G)).
 
-  decide3' ((atom (up G) ) ** (atom (down G) )). econstructor;eauto using le_max_r.
-  tensor' [perp (up G)]  [perp (down F) op perp (down G)]  ;solveLL'.
-  decide1' (perp (down F) op perp (down G)).
+  decide3 ((atom (up G) ) ** (atom (down G) )). econstructor;eauto using le_max_r.
+  tensor [perp (up G)]  [perp (down F) op perp (down G)]  ;solveLL.
+  decide1 (perp (down F) op perp (down G)).
 Qed.
 
 

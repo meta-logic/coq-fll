@@ -135,7 +135,7 @@ Ltac ExchangeFront' n :=
   end.
 
 (** Moving the last element of the context to the first position *)
-Ltac ExchangeLast :=
+(* Ltac ExchangeLast :=
   match goal with
     [|- seqN _ _ _ ?L _ ] =>
     let l := constr:(length L) in
@@ -162,10 +162,11 @@ Ltac ExchangeApp' :=
     [|- seq _ _ (?A ++ ?B) _ ] =>
     apply exchangeLC with (LC := B ++ A); [apply Permutation_app_comm |idtac]
   end.
+*)
 
 (** Finishes the proof if H is a sequent that only needs some exchanges to be
 equal to the goal *) 
-Ltac LLExact H :=
+Ltac llExact H :=
   let G:= type of H in
   match G with
   | (seqN ?T _ ?Gamma ?Delta ?X) =>
@@ -177,7 +178,7 @@ Ltac LLExact H :=
   end;auto.
 
 
-Ltac LLExact' H :=
+Ltac llExact' H :=
   let G:= type of H in
   match G with
   | (seq ?T ?Gamma ?Delta ?X) =>
@@ -187,6 +188,13 @@ Ltac LLExact' H :=
       apply exchangeLC with (LC:= Delta);auto;try perm
     end
   end;auto.
+
+Ltac LLExact H :=
+  match (type of H) with
+  | seq _ _ _ _  =>  llExact' H
+  | seqN _ _ _ _ _ => llExact H
+  end.
+  
 
 (** Splits the linear context L into L1 ++ L2 where L1 contains the first n elements of L *)
 Ltac SplitContext n :=
@@ -215,19 +223,32 @@ Ltac SplitContext' n :=
 
 
 
-Tactic Notation "store" := apply tri_store ;solveF.
-Tactic Notation "store'" := apply tri_store' ;solveF.
-Tactic Notation "par" := apply tri_par.
-Tactic Notation "par'" := apply tri_par'.
-Tactic Notation "release'" := apply tri_rel' ; solveF.
-Tactic Notation "release" := apply tri_rel ; solveF.
-Tactic Notation "init" := first [apply tri_init1;auto | apply tri_init2;auto].
-Tactic Notation "init'" := first [apply tri_init1' | apply tri_init2'].
+Tactic Notation "store" := match goal with
+                           | [ |- seq _ _ _ _ ] =>  apply tri_store' ;solveF
+                           | [|- seqN _ _ _ _ _] => apply tri_store ;solveF
+                           end.
+
+Tactic Notation "par" := match goal with
+                         | [ |- seq _ _ _ _ ] =>  apply tri_par' ;solveF
+                         | [|- seqN _ _ _ _ _] => apply tri_par ;solveF
+                         end.
+
+Tactic Notation "release" := match goal with
+                         | [ |- seq _ _ _ _ ] =>  apply tri_rel' ;solveF
+                         | [|- seqN _ _ _ _ _] => apply tri_rel ;solveF
+                         end.
+
+  
+Tactic Notation "init" := match goal with
+                          | [ |- seq _ _ _ _ ] =>  first [apply tri_init1' | apply tri_init2']
+                          | [|- seqN _ _ _ _ _] => first [apply tri_init1;auto | apply tri_init2;auto]
+                          end.
+
 
 (** This tactic applies as many positive/negative rules as
   possible. Connectives as exists and tensor are not automatically
   introduced (due to the decision on the contexts/terms ) *)
-Ltac solveLL :=
+Ltac solvell :=
   try
     match goal with
     (* initial Rules *)
@@ -239,39 +260,39 @@ Ltac solveLL :=
     (* Change of polarity *)
     | [|- seqN _ _ _ _ (>>  ?F)] =>
       match F with
-      | MOr _ _ => release;solveLL
-      | All _ =>release;solveLL
-      | Bot  => release;solveLL
-      | (atom _)  => release;solveLL
-      | Top  => release;solveLL
-      | AAnd _ _  => release;solveLL
-      | Quest _  => release;solveLL
-      | Bang _  => apply tri_bang;solveLL
+      | MOr _ _ => release;solvell
+      | All _ =>release;solvell
+      | Bot  => release;solvell
+      | (atom _)  => release;solvell
+      | Top  => release;solvell
+      | AAnd _ _  => release;solvell
+      | Quest _  => release;solvell
+      | Bang _  => apply tri_bang;solvell
       end
     (* Negative Phase *)
-    | [ |- seqN _ _ _ _ (> ((One ) :: _ ))] => store ;solveLL
-    | [ |- seqN _ _ _ _ (> ((Zero ) :: _ ))] => store ;solveLL
-    | [ |- seqN _ _ _ _ (> ((atom _ ) :: _ ))] => store ;solveLL
-    | [ |- seqN _ _ _ _ (> ((perp _ ) :: _ ))] => store ;solveLL
-    | [ |- seqN _ _ _ _ (> ( (Bang _) :: _)) ] => store ;solveLL
-    | [ |- seqN _ _ _ _ (> ( (Quest _) :: _)) ] => apply tri_quest ;solveLL
+    | [ |- seqN _ _ _ _ (> ((One ) :: _ ))] => store ;solvell
+    | [ |- seqN _ _ _ _ (> ((Zero ) :: _ ))] => store ;solvell
+    | [ |- seqN _ _ _ _ (> ((atom _ ) :: _ ))] => store ;solvell
+    | [ |- seqN _ _ _ _ (> ((perp _ ) :: _ ))] => store ;solvell
+    | [ |- seqN _ _ _ _ (> ( (Bang _) :: _)) ] => store ;solvell
+    | [ |- seqN _ _ _ _ (> ( (Quest _) :: _)) ] => apply tri_quest ;solvell
     | [ |- seqN _ _ _ _ (> ( (Top) :: _))  ] => apply tri_top
-    | [ |- seqN _ _ _ _ (> ( (MOr _ _) :: _)) ] => par ;solveLL
-    | [ |- seqN _ _ _ _ (> ( (AOr _ _) :: _)) ] => store ;solveLL
-    | [ |- seqN _ _ _ _ (> ( (AAnd _ _) :: _)) ] => apply tri_with ;solveLL
-    | [ |- seqN _ _ _ _ (> ( (Bot) :: _)) ] => apply tri_bot ;solveLL
-    | [ |- seqN _ _ _ _ (> ( (MAnd _ _) :: _)) ] => store ;solveLL
+    | [ |- seqN _ _ _ _ (> ( (MOr _ _) :: _)) ] => par ;solvell
+    | [ |- seqN _ _ _ _ (> ( (AOr _ _) :: _)) ] => store ;solvell
+    | [ |- seqN _ _ _ _ (> ( (AAnd _ _) :: _)) ] => apply tri_with ;solvell
+    | [ |- seqN _ _ _ _ (> ( (Bot) :: _)) ] => apply tri_bot ;solvell
+    | [ |- seqN _ _ _ _ (> ( (MAnd _ _) :: _)) ] => store ;solvell
     | [ |- seqN _ _ _ _ (> ( (All _) :: _)) ] => let x:= fresh "x" in
                                                  let xp := fresh "properX" in
-                                                 apply tri_fx ;try solveUniform; intros x xp ; solveLL
-    | [ |- seqN _ _ _ _ (> ((Some _ ) :: _ ))] => store ;solveLL
+                                                 apply tri_fx ;try solveUniform; intros x xp ; solvell
+    | [ |- seqN _ _ _ _ (> ((Some _ ) :: _ ))] => store ;solvell
     end.
 
-Ltac solveLL' :=
+Ltac solvell' :=
   try
     match goal with
     (* initial Rules *)
-    | [|- seq _ _ _ (>> (perp _))] => init'
+    | [|- seq _ _ _ (>> (perp _))] => init
     | [|- seq _ _ [] (>>  One)] => apply tri_one'
     | [|- seq _ _ [perp ?A] (>> (atom ?A))] => apply InitPosNegDw
     | [|- seq _ _ [atom ?A ; perp ?A] (> [])] => apply InitPosNeg
@@ -279,34 +300,42 @@ Ltac solveLL' :=
     (* Change of polarity *)
     | [|- seq _ _ _ (>>  ?F)] =>
       match F with
-      | MOr _ _ => release';solveLL'
-      | All _ =>release';solveLL'
-      | Bot  => release';solveLL'
-      | (atom _)  => release';solveLL'
-      | Top  => release';solveLL'
-      | AAnd _ _  => release';solveLL'
-      | Quest _  => release';solveLL'
-      | Bang _  => apply tri_bang';solveLL'
+      | MOr _ _ => release;solvell'
+      | All _ =>release;solvell'
+      | Bot  => release;solvell'
+      | (atom _)  => release;solvell'
+      | Top  => release;solvell'
+      | AAnd _ _  => release;solvell'
+      | Quest _  => release;solvell'
+      | Bang _  => apply tri_bang';solvell'
       end
     (* Negative Phase *)
-    | [ |- seq _ _ _ (> ((One) :: _ ))] => store' ;solveLL'
-    | [ |- seq _ _ _ (> ((Zero) :: _ ))] => store' ;solveLL'
-    | [ |- seq _ _ _ (> ((atom _ ) :: _ ))] => store' ;solveLL'
-    | [ |- seq _ _ _ (> ((perp _ ) :: _ ))] => store' ;solveLL'
-    | [ |- seq _ _ _ (> ((Bang _ ) :: _ ))] => store' ;solveLL'
-    | [ |- seq _ _ _ (> ( (Quest _) :: _)) ] => apply tri_quest' ;solveLL'
+    | [ |- seq _ _ _ (> ((One) :: _ ))] => store ;solvell'
+    | [ |- seq _ _ _ (> ((Zero) :: _ ))] => store ;solvell'
+    | [ |- seq _ _ _ (> ((atom _ ) :: _ ))] => store ;solvell'
+    | [ |- seq _ _ _ (> ((perp _ ) :: _ ))] => store ;solvell'
+    | [ |- seq _ _ _ (> ((Bang _ ) :: _ ))] => store ;solvell'
+    | [ |- seq _ _ _ (> ( (Quest _) :: _)) ] => apply tri_quest' ;solvell'
     | [ |- seq _ _ _ (> ( (Top) :: _))  ] => apply tri_top'
-    | [ |- seq _ _ _ (> ( (MOr _ _) :: _)) ] => par' ;solveLL'
-    | [ |- seq _ _ _ (> ( (AOr _ _) :: _)) ] => store' ;solveLL'
-    | [ |- seq _ _ _ (> ( (AAnd _ _) :: _)) ] => apply tri_with' ;solveLL'
-    | [ |- seq _ _ _ (> ( (Bot) :: _)) ] => apply tri_bot' ;solveLL'
-    | [ |- seq _ _ _ (> ( (MAnd _ _) :: _)) ] => store' ;solveLL'
+    | [ |- seq _ _ _ (> ( (MOr _ _) :: _)) ] => par ;solvell'
+    | [ |- seq _ _ _ (> ( (AOr _ _) :: _)) ] => store ;solvell'
+    | [ |- seq _ _ _ (> ( (AAnd _ _) :: _)) ] => apply tri_with' ;solvell'
+    | [ |- seq _ _ _ (> ( (Bot) :: _)) ] => apply tri_bot' ;solvell'
+    | [ |- seq _ _ _ (> ( (MAnd _ _) :: _)) ] => store ;solvell'
     | [ |- seq _ _ _ (> ( (All _) :: _)) ] => let x:= fresh "x" in
                                               let xp := fresh "properX" in
-                                              apply tri_fx' ; try solveUniform ; intros x xp  ;solveLL'
-    | [ |- seq _ _ _ (> ((Some _ ) :: _ ))] => store' ;solveLL'
+                                              apply tri_fx' ; try solveUniform ; intros x xp  ;solvell'
+    | [ |- seq _ _ _ (> ((Some _ ) :: _ ))] => store ;solvell'
     end.
 
+Ltac solveLL :=
+   match goal with
+   | [ |- seq _ _ _ _ ] =>  solvell'
+   | [|- seqN _ _ _ _ _] => solvell
+   | _ => solveF
+   end.
+  
+(*
 (** Decision rule on the linear context based on the position of the formula *) 
 Ltac dec1' n :=
   ExchangeFront' n;
@@ -321,65 +350,58 @@ Ltac dec1 n :=
     [|- seqN _ _ _ (?G :: _) (> []) ] =>
     eapply tri_dec1 with (F:= G);solveF
   end.
+*)
+
+
+
 
 (** Notation for forward reasoning on FLL sequents *)
-Tactic Notation "decide1"  constr(R) := eapply @tri_dec1 with (F:= R);solveF;solveLL.
-Tactic Notation "decide2"  constr(R) := eapply @tri_dec2 with (F:= R);solveF;solveLL.
-Tactic Notation "decide3"  constr(R) := eapply @tri_dec3 with (F:= R);solveF;solveLL.
-Tactic Notation "tensor"  constr(Ctx1) constr(Ctx2) := eapply @tri_tensor with (M:=Ctx1) (N:=Ctx2);solveF;solveLL.
-Tactic Notation "tensor"   := eapply @tri_tensor ;solveF;solveLL.
-Tactic Notation "oplus1" := apply tri_plus1;solveLL.
-Tactic Notation "oplus2" := apply tri_plus2;solveLL.
-Tactic Notation "oplus1'" := apply tri_plus1';solveLL'.
-Tactic Notation "oplus2'" := apply tri_plus2';solveLL'.
-Tactic Notation "existential" constr(tt) := eapply @tri_ex with (t:=tt);try solveUniform; auto;solveLL.
-Tactic Notation "decide1'"  constr(R) := eapply @tri_dec1' with (F:= R);solveF;solveLL'.
-Tactic Notation "decide2'"  constr(R) := eapply @tri_dec2' with (F:= R);solveF;solveLL'.
-Tactic Notation "decide3'"  constr(R) := eapply @tri_dec3' with (F:= R);solveF;solveLL'.
-Tactic Notation "tensor'"  constr(Ctx1) constr(Ctx2) := eapply @tri_tensor' with (M:=Ctx1) (N:=Ctx2);solveF;solveLL'.
-Tactic Notation "tensor'"  := eapply @tri_tensor' ;solveF;solveLL'.
-Tactic Notation "existential'" constr(tt) := eapply @tri_ex' with (t:=tt);try solveUniform ; auto;solveLL'.
+Tactic Notation "decide1"  constr(R) := match goal with
+                                        | [ |- seq _ _ _ _ ] =>  eapply @tri_dec1' with (F:= R);solveF;solveLL
+                                        | [|- seqN _ _ _ _ _] => eapply @tri_dec1 with (F:= R);solveF;solveLL 
+                                        end;solveF.
 
 
-(** First splits the context L into L1 ++ L2 (where L1 contains
-      the first n elements of L1) and then, it applied tensor where L2
-      goes to the first branch and L1 goes to the second branch *)
-Ltac tensorSplitI' n :=
-  SplitContext' n;
-  rewrite Permutation_app_comm;
-  match goal with
-  | [ |- seq _ _ (?L1 ++ ?L2) _ ] =>
-    tensor' L1 L2;solveLL'
-  end.
+Tactic Notation "decide2"  constr(R) := match goal with
+                                        | [ |- seq _ _ _ _ ] =>  eapply @tri_dec2' with (F:= R);solveF;solveLL
+                                        | [|- seqN _ _ _ _ _] => eapply @tri_dec2 with (F:= R);solveF;solveLL
+                                        end;solveF.
+                                          
 
-(** First splits the context L into L1 ++ L2 (where L1 contains
-      the first n elements of L1) and then, it applied tensor where L2
-      goes to the first branch and L1 goes to the second branch *)
-Ltac tensorSplitI n :=
-  SplitContext n;
-  rewrite Permutation_app_comm;
-  match goal with
-  | [ |- seqN _ _ _ (?L1 ++ ?L2) _ ] =>
-    tensor L1 L2;solveLL
-  end.
+Tactic Notation "decide3"  constr(R) := match goal with
+                                        | [ |- seq _ _ _ _ ] =>  eapply @tri_dec3' with (F:= R);solveF;solveLL
+                                        | [|- seqN _ _ _ _ _] => eapply @tri_dec3 with (F:= R);solveF;solveLL
+                                        end;solveF.
 
-(** Applying tensor and splitting the context automatically *)
-Ltac tensorSplit' n :=
-  SplitContext' n;
-  match goal with
-  | [ |- seq _ _ (?L1 ++ ?L2) _ ] =>
-    tensor' L1 L2;solveLL'
-  end.
+Tactic Notation "tensor"  constr(Ctx1) constr(Ctx2) := match goal with
+                                                       | [ |- seq _ _ _ _ ] =>  eapply @tri_tensor' with (M:=Ctx1) (N:=Ctx2);solveF;solveLL
+                                                       | [|- seqN _ _ _ _ _] => eapply @tri_tensor with (M:=Ctx1) (N:=Ctx2);solveF;solveLL
+                                                       end.
+
+Tactic Notation "tensor"   := match goal with
+                              | [ |- seq _ _ _ _ ] =>  eapply @tri_tensor' ;solveF;solveLL
+                              | [|- seqN _ _ _ _ _] => eapply @tri_tensor ;solveF;solveLL
+                              end.
 
 
-Ltac tensorSplit n :=
-  SplitContext n;
-  match goal with
-  | [ |- seqN _ _ _ (?L1 ++ ?L2) _ ] =>
-    tensor L1 L2;solveLL
-  end.
+
+Tactic Notation "oplus1" := match goal with
+                           | [ |- seq _ _ _ _ ] =>   apply tri_plus1';solveLL
+                           | [|- seqN _ _ _ _ _] =>  apply tri_plus1;solveLL
+                            end.
+
+Tactic Notation "oplus2" := match goal with
+                           | [ |- seq _ _ _ _ ] =>   apply tri_plus2';solveLL
+                           | [|- seqN _ _ _ _ _] =>  apply tri_plus2;solveLL
+                            end.
 
 
+
+Tactic Notation "existential" constr(tt) := match goal with
+                                            | [ |- seq _ _ _ _ ] => eapply @tri_ex' with (t:=tt);try solveUniform ; auto;solveLL 
+                                            | [|- seqN _ _ _ _ _] => eapply @tri_ex with (t:=tt);try solveUniform; auto;solveLL
+                                            end.
+                                              
 
 (** Given a rule R (belonging to the theory), this rule introduces R
   (using [tri_dec3]) and then tries to decompose such formula using
@@ -393,8 +415,8 @@ Ltac bipole Rule :=
 Ltac bipole' Rule :=
   match goal with
   | [|- seq _ _ (?A :: ?L) (> [] ) ] =>
-    decide3' Rule;
-    tensor' [A] L; solveLL'
+    decide3 Rule;
+    tensor [A] L; solveLL
   end.
 
 (** This tactic must be used to reason by inversion on hypotheses
@@ -477,38 +499,50 @@ Ltac invTri' H :=
   end;
   clear H.
 
+Ltac FLLInversion H :=
+  match (type of H) with
+  | seq _ _ _ _  =>  invTri' ; clear H
+  | seqN _ _ _ _ _ => invTriStep H ; clear H
+end.
+
+    
+
 (* Applies, possibly several times, inversion (invTri) on the 
     hypothesis containing focused sequents. It stops when the negative 
     phase ends ([Gamma ; Delta ; > []])
  *)
-Ltac InvTriAll :=
+
+Ltac FLLInversionAll :=
   repeat
     match goal with
     | [H : seqN _ _ _ _ (>> _) |- _ ] => invTri H
     | [H : seqN _ _ _ _ (> (?C :: _)) |- _ ] => invTri H
-    end.
-
-Ltac InvTriAll' :=
-  repeat
-    match goal with
     | [H : seq _ _ _ (>> _) |- _ ] => invTri' H
     | [H : seq _ _ _ (> (?C :: _)) |- _ ] => invTri' H
     end.
+  
 
 
 (* Hypothesis with a higher proof than the one needed *)
-Ltac HProof :=
+Ltac hProof :=
   match goal with
   | [ H : seqN _ ?n ?G ?M ?X |- seqN _ ?m ?G ?M ?X ] =>
     eapply HeightGeq;[eauto | lia]
   end.
-Ltac HProof' :=
+Ltac hProof' :=
   match goal with
   | [ H : seqN _ ?n ?G ?M ?X |-  seq _ ?G ?M ?X ] =>
     eapply seqNtoSeq;eauto
   end.
 
-Ltac invseqN :=
+Ltac HProof H :=
+  match (type of H) with
+  | seq _ _ _ _  =>  hProof'
+  | seqN _ _ _ _ _ => hProof
+  end.
+
+
+(* Ltac invseqN :=
   repeat
     match goal with
     | [ H : seqN EmptyTheory _ _ _ (> (_ :: _)) |- _ ] => invTri H
@@ -518,6 +552,7 @@ Ltac invseq :=
     match goal with
     | [ H : seq EmptyTheory _ _ (> (_ :: _)) |- _ ] => invTri' H
     end.
+*)
 (** Erasing some of the (unimportant) hypotheses added by the [solveF] and [solveLL] procedures *)
 Ltac CleanContext :=
   repeat

@@ -128,7 +128,7 @@ Section InvPosPhase.
       destruct L.
       + inversion H3...
         eapply tri_dec3' with (F:= Top) ...
-        solveLL'.
+        solveLL.
       + inversion H3 ...
         eapply tri_top'.
     Qed.
@@ -147,21 +147,21 @@ Section InvPosPhase.
         inversion HD1... 
         ++
           eapply tri_dec3' with (F:=top)...
-          solveLL'.       
+          solveLL.       
         ++ 
           apply seqNtoSeq in H3;auto. 
         ++ 
           eapply tri_dec3' with (F:=F0 $ G) ...
-          eapply tri_rel' ...  solveLL'. 
+          eapply tri_rel' ...  solveLL. 
           apply seqNtoSeq in H3;auto. 
         ++ 
           eapply tri_dec3' with (F:=F0 & G) ...
-          eapply tri_rel' ...  solveLL'. 
+          eapply tri_rel' ...  solveLL. 
           apply seqNtoSeq in H4;auto.
           apply seqNtoSeq in H5;auto. 
         ++ 
           eapply tri_dec3' with (F:=? F0) ...
-          eapply tri_rel' ...  solveLL'.
+          eapply tri_rel' ...  solveLL.
           apply seqNtoSeq in H3;auto. 
         ++ 
           assert(RIndTheory n) by ( apply IH;auto).
@@ -207,18 +207,18 @@ Section InvPosPhase.
                                  assert(RIndTheory n) by ( apply IH;auto);
                                  destruct H as [HUp  HDown]; clear HDown) ...
         ++
-          solveLL'.
+          solveLL.
         ++
-          solveLL';
+          solveLL;
             eapply HUp with (F:=F);auto. 
         ++
-          solveLL';
+          solveLL;
             eapply HUp with (F:=F);auto. 
         ++
-          solveLL';
+          solveLL;
             eapply HUp with (F:=F);auto. 
         ++ 
-          solveLL';
+          solveLL;
             eapply HUp with (F:=F);auto.
         ++ 
           eapply tri_store';auto.
@@ -407,21 +407,21 @@ Section InvPosPhase.
         inversion HD1... 
         ++
           eapply tri_dec2' with (F:=top)...
-          solveLL'.       
+          solveLL.       
         ++ 
           apply seqNtoSeq in H3;auto. 
         ++
           eapply tri_dec2' with (F:=F0 $ G) ...
-          eapply tri_rel' ...  solveLL'. 
+          eapply tri_rel' ...  solveLL. 
           apply seqNtoSeq in H3;auto. 
         ++ 
           eapply tri_dec2' with (F:=F0 & G) ...
-          eapply tri_rel' ...  solveLL'. 
+          eapply tri_rel' ...  solveLL. 
           apply seqNtoSeq in H4;auto.
           apply seqNtoSeq in H5;auto. 
         ++ 
           eapply tri_dec2' with (F:=? F0) ...
-          eapply tri_rel' ...  solveLL'.
+          eapply tri_rel' ...  solveLL.
           apply seqNtoSeq in H3;auto. 
         ++ 
           assert(RInd n) by ( apply IH;auto).
@@ -467,18 +467,18 @@ Section InvPosPhase.
                                  assert(RInd n) by ( apply IH;auto);
                                  destruct H as [HUp  HDown]; clear HDown) ...
         ++
-          solveLL'.
+          solveLL.
         ++
-          solveLL';
+          solveLL;
             eapply HUp with (F:=F);auto. 
         ++
-          solveLL';
+          solveLL;
             eapply HUp with (F:=F);auto. 
         ++ 
-          solveLL';
+          solveLL;
             eapply HUp with (F:=F);auto. 
         ++ 
-          solveLL';
+          solveLL;
             eapply HUp with (F:=F);auto.
           intuition.   
         ++ 
@@ -668,10 +668,10 @@ proper t -> *)
           rewrite <- H7 in *.
           apply tri_rel' ...
 
-          solveLL'. }
+          solveLL. }
         apply Remove_app_in'.
       + inversion H2 ...
-        solveLL'.
+        solveLL.
     Qed.
 
     (* =============================================== *)
@@ -690,14 +690,14 @@ proper t -> *)
           eapply tri_ex'...  
           exact Hprop. 
           rewrite <- H3. 
-          solveLL'.
+          solveLL.
         ++ 
           eapply tri_dec1' with (F:=E{ FX}) (L':=M1)...
           apply Remove_app_in'.
           eapply tri_ex'...  
           exact Hprop. 
           rewrite <- H0. 
-          solveLL'.
+          solveLL.
           apply seqNtoSeq in H3;auto. 
         ++ 
           eapply tri_dec1' with (F0:=E{ FX}) (L':=M1)...
@@ -705,7 +705,7 @@ proper t -> *)
           eapply tri_ex'...  
           exact Hprop. 
           rewrite <- H0. 
-          solveLL'.
+          solveLL.
           apply seqNtoSeq in H3;auto. 
         ++ 
           eapply tri_dec1' with (F0:=E{ FX}) (L':=M1)...
@@ -713,7 +713,7 @@ proper t -> *)
           eapply tri_ex'...  
           exact Hprop. 
           rewrite <- H0. 
-          solveLL'.
+          solveLL.
           apply seqNtoSeq in H4;auto.
           apply seqNtoSeq in H5;auto. 
         ++ 
@@ -722,7 +722,7 @@ proper t -> *)
           eapply tri_ex'...  
           exact Hprop. 
           rewrite <- H0. 
-          solveLL'.
+          solveLL.
           apply seqNtoSeq in H3;auto.
         ++ 
           assert(RIndExists n) by ( apply IH;auto).
@@ -805,7 +805,7 @@ proper t -> *)
             eapply tri_ex' with (t0:=t) ...
             rewrite <- H0.
             eapply tri_rel' ...
-            solveLL'.
+            solveLL.
             generalize(H5 x properX);intro.
             apply seqNtoSeq in H;auto.
       +
@@ -814,18 +814,18 @@ proper t -> *)
                                  assert(RIndExists n) by ( apply IH;auto);
                                  destruct H as [HUp  HDown]; clear HDown) ...
         ++
-          solveLL'.
+          solveLL.
         ++
-          solveLL';
+          solveLL;
             eapply HUp;eauto. 
         ++
-          solveLL';
+          solveLL;
             eapply HUp;eauto. 
         ++ 
-          solveLL';
+          solveLL;
             eapply HUp;eauto. 
         ++ 
-          solveLL';
+          solveLL;
             eapply HUp;eauto.
         ++ 
           eapply tri_store';auto.
@@ -868,7 +868,7 @@ proper t -> *)
       +
         solveList. 
       +
-        solveLL'.
+        solveLL.
       +
         solveList.
       +
@@ -879,7 +879,7 @@ proper t -> *)
         assert(HRI: RIndExists m)  by (apply IH ;auto).
         destruct HRI as [HUp  HDown] ...
         apply HUp in H4' ...
-        solveLL'.
+        solveLL.
         apply PosConc... 
       + 
         apply UpExtension in H6 ...
@@ -887,7 +887,7 @@ proper t -> *)
         assert(HRI: RIndExists m)  by (apply IH ;auto).
         destruct HRI as [HUp  HDown] ...
         apply HUp in H6' ...
-        solveLL'.
+        solveLL.
         apply PosConc... 
       +
         apply PProp_perm_sel in H3. 
@@ -940,7 +940,7 @@ proper t -> *)
         destruct H6 as [m H6]. destruct H6 as [H6 H6'].
         assert(HRI: RIndExists m)  by (apply IH ;auto).
         destruct HRI as [HUp  HDown] ...
-        apply HUp in H6' ... solveLL'.
+        apply HUp in H6' ... solveLL.
         apply PosConc...
       +
         solveList.
@@ -950,7 +950,7 @@ proper t -> *)
         assert(HRI: RIndExists m)  by (apply IH ;auto).
         destruct HRI as [HUp  HDown] ...
         apply HUp in H5' ...
-        solveLL'.
+        solveLL.
         apply PosConc...
       + 
         apply UpExtension in H4 ...
@@ -958,7 +958,7 @@ proper t -> *)
         assert(HRI: RIndExists m)  by (apply IH ;auto).
         destruct HRI as [HUp  HDown] ...
         apply HUp in H4' ...
-        solveLL'.
+        solveLL.
         apply PosConc...
       +         
         assert(HRI: RIndExists (S n0)) by ( apply IH;auto).
@@ -1035,9 +1035,9 @@ proper t -> *)
         eapply tri_dec1' with (F:= top op G) (L':=M)...
         apply Remove_app_in'.
         apply tri_plus1'.
-        solveLL'.
+        solveLL.
       + inversion H0 ...
-        solveLL'.
+        solveLL.
     Qed.
 
     (* =============================================== *)
@@ -1055,31 +1055,31 @@ proper t -> *)
           eapply tri_dec1' with (F:= top op G) (L':=M1)...
           apply Remove_app_in'.
           eapply tri_plus1' ...
-          solveLL'.
+          solveLL.
         ++ 
           eapply tri_dec1' with (F:= bot op G) (L':=M1)...
           apply Remove_app_in'.
           eapply tri_plus1' ...
-          solveLL'.
+          solveLL.
           apply seqNtoSeq in H3;auto.
         ++
           eapply tri_dec1' with (F:= (F0 $ G0) op G) (L':=M1)...
           apply Remove_app_in'.
           eapply tri_plus1' ...
-          solveLL'.
+          solveLL.
           apply seqNtoSeq in H3;auto.
         ++ 
           eapply tri_dec1' with (F:= (F0 & G0) op G) (L':=M1)...
           apply Remove_app_in'.
           eapply tri_plus1' ...
-          solveLL'.
+          solveLL.
           apply seqNtoSeq in H4;auto.
           apply seqNtoSeq in H5;auto.
         ++ 
           eapply tri_dec1' with (F:= (? F0) op G) (L':=M1)...
           apply Remove_app_in'.
           eapply tri_plus1' ...
-          solveLL'.
+          solveLL.
           apply seqNtoSeq in H3;auto.
         ++ 
           assert(RIndPlus n) by ( apply IH;auto).
@@ -1162,44 +1162,34 @@ proper t -> *)
             apply Remove_app_in'.
             eapply tri_plus1'...
             eapply tri_rel' ...
-            solveLL'. 
+            solveLL. 
             generalize (H5 x properX);intro.
             apply seqNtoSeq in H;auto.
       + (* L is not empty *)
         inversion HD1;subst; try(
                                  assert(RIndPlus n) by ( apply IH;auto);
-                                 destruct H as [HUp  HDown]; clear HDown) ...
-        ++ 
-          solveLL'.
-        ++ 
-          solveLL'.
-          eapply HUp in H3... exact H3.
-        ++ 
-          solveLL'.
-          change (F0 :: G0 :: L1 ++ [F]) with ((F0 :: G0 :: L1) ++ [F]) in H3.
-          eapply HUp in H3... exact H3.
-        ++ 
-          solveLL'.
-          change (F0 :: L1 ++ [F]) with ((F0 :: L1) ++ [F]) in H4.
-          eapply HUp in H4... exact H4.
-          change (G0 :: L1 ++ [F]) with ((G0 :: L1) ++ [F]) in H5.
+                                 destruct H as [HUp  HDown]; clear HDown);solveF;solveLL.
+
+        eapply HUp in H3... exact H3.
+
+        change (F0 :: L1 ++ [F]) with ((F0 :: L1) ++ [F]) in H4.
+        eapply HUp in H4... exact H4.
+        change (G0 :: L1 ++ [F]) with ((G0 :: L1) ++ [F]) in H5.
           eapply HUp in H5... exact H5.
-        ++
-          solveLL'.
+
           change (?F0 :: L1 ++ [F]) with ((?F0 :: L1) ++ [F]) in H3.
           eapply HUp in H3... exact H3.
-        ++ 
+
           eapply HUp in H5... 
           eapply tri_store'...
           eapply exchangeLC with (LC:=(M1 ++ [o]) ++ [F op G]).
           perm. exact H5.
           apply LexpPosConc...
-        ++  
-          eapply tri_fx'... intros.
-          generalize (H5 x H);intro.
-          change (FX x :: L1 ++ [F]) with ((FX x :: L1) ++ [F]) in H0.
-          eapply HUp in H0 ...
-          exact H0.
+
+          generalize (H5 x properX);intro.
+          change (FX x :: L1 ++ [F]) with ((FX x :: L1) ++ [F]) in H.
+          eapply HUp in H ...
+          exact H.
     Qed.    
 
     (* =============================================== *)
@@ -1226,7 +1216,7 @@ proper t -> *)
         inversion H2...
         inversion HM1pos.
       + solveList.
-      + solveLL'.
+      + solveLL.
       + solveList.      
       + 
         apply UpExtension in H4 ...
@@ -1532,18 +1522,18 @@ proper t -> *)
         apply Remove_app_in'.
         eapply tri_tensor' with (N:=M) (M0:=M') ...
 
-        solveLL'.
-        solveLL'.
+        solveLL.
+        solveLL.
         refine(exchangeLC _ H);perm. 
       + 
         inversion H13;subst ... inversion H9;subst ...
-        solveLL'.
+        solveLL.
       + 
         inversion H13 ...
-        solveLL'.
+        solveLL.
       + 
         inversion H13 ...
-        solveLL'.
+        solveLL.
     Qed.
 
     (* =============================================== *)
@@ -1659,7 +1649,7 @@ proper t -> *)
 
       inversion HD2...
       +
-        solveLL'.
+        solveLL.
       +
         simpl. apply tri_bot'.
         apply EquivUpArrow2 with (L:= L1 ++ L2) (L' := L2 ++ L1);eauto ...

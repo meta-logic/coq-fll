@@ -19,6 +19,12 @@ Export ListNotations.
 Export LLNotations.
 Set Implicit Arguments.
 
+Tactic Notation "ddd"  constr(R) := match goal with
+                                        | [ |- seq _ _ _ _ ] =>  eapply @tri_dec1' with (F:= R);solveF;solveLL
+                                        | [|- seqN _ _ _ _ _] => eapply @tri_dec1 with (F:= R);solveF;solveLL 
+                                        end.
+
+
 
 Module Example1 .
 
@@ -46,51 +52,48 @@ Module Example1 .
       uniform_atm := uniform_atm'
     |}.
   
-
   Notation " '|--' B ';' L ';' X " := (seq EmptyTheory  B L X) (at level 80).
 
   Example Test1:  |-- [] ; [] ; >> one ** one .
-  Proof with solveLL';eauto.
-    eapply tri_tensor' with (M:=[]) (N:=[]) ...
+  Proof with solveLL;eauto.
+    tensor (@nil oo) (@nil oo).
   Qed.
   
 
   Example Test2: |-- [] ; [] ; > [  F{ fun t => perp (p t)} ; E{ fun t => atom (p t)}  ].
   Proof with solveF.
-    solveLL'.
-    decide1' (E{ fun t  => (atom (p t))}) ...
-    existential' x.
+    solveLL.
+    decide1 (E{ fun t  => (atom (p t))}).
+    existential x.
   Qed.
 
   Example Test2': |-- [] ; [] ; > [  perp (p (Var 0)) ; atom (p (Var 0))  ].
   Proof with solveF.
-    solveLL'.
+    solveLL.
   Qed.
 
   
   Example Test3: |-- [] ; [] ; > [  E{ fun t => perp (p t)} ; E{ fun t => atom (p t)}  ].
   Proof with solveF.
-    solveLL'.
-    decide1' (E{ fun t  => (atom (p t) )}) ...
-    existential' (VAR con 0) ...
-    solveLL'.
-    decide1' (E{ fun t  => (perp (p t) )}) ...
-    existential' (VAR con 0).
+    solveLL.
+    decide1 (E{ fun t  => (atom (p t) )}) ...
+    existential (VAR con 0) ...
+    solveLL.
+    decide1 (E{ fun t  => (perp (p t) )}) ...
+    existential (VAR con 0).
   Qed.
 
   Definition Nat (n:nat) := CON n .
-  
+
   Example Test4: forall n:nat,  |-- [atom (p (Nat n)) ] ; [] ; > [  perp (p (Nat n))  ].
-  Proof with solveLL'.
+  Proof with solveLL.
     intros...
-    decide1' (perp (p (Nat n)))...
-    solveF.
+    decide1 (perp (p (Nat n)))...
   Qed.
-  
   
 End Example1.
 
-Module Example2.
+Section Example2.
 
   (** Definition of the natural numbers *)
   Inductive Econ : Set :=
@@ -125,8 +128,8 @@ Module Example2.
   Notation " '|--' B ';' L ';' X " := (seq EmptyTheory  B L X) (at level 80).
 
   Example test1 : |-- [ atom (p Z) ]; [perp (p Z)]; > [].
-  Proof with solveLL';solveF.
-    decide1' (perp (p Z) ) ...
+  Proof with solveLL;solveF.
+    decide1 (perp (p Z) ) ...
   Qed.
 
   Definition step := fun t:uexp => perp (p t) ** atom (p (SUC t)).
@@ -134,49 +137,49 @@ Module Example2.
   Definition TWO := SUC (SUC  Z) .
 
   Example test2 : |-- []; []; > [? E{ step}; perp (p Z) -o perp (p (SUC (SUC Z))) ].
-  Proof with solveLL'.
+  Proof with solveLL.
     simpl...
-    decide2' (E{ step})...
-    existential' Z ... 
-    tensor' [atom (p Z)] [perp (p (SUC (SUC Z))) ] ...
-    decide2' (E{ step}) ...
-    existential' (SUC Z)...
-    tensor' [atom (p (SUC Z)) ] [perp (p (SUC (SUC Z))) ] ...
+    decide2 (E{ step})...
+    existential Z ... 
+    tensor [atom (p Z)] [perp (p (SUC (SUC Z))) ] ...
+    decide2 (E{ step}) ...
+    existential (SUC Z)...
+    tensor [atom (p (SUC Z)) ] [perp (p (SUC (SUC Z))) ] ...
   Qed.
 
   Definition stepPerp := fun t:uexp => atom (p t) ** perp (p (SUC t)).
   Example test2' : |-- []; []; > [? E{ stepPerp} ; atom (p Z) -o atom (p TWO) ].
-  Proof with solveLL'.
+  Proof with solveLL.
     simpl...
-    decide2' (E{ stepPerp})...
-    existential' ONE ... 
-    tensor' [perp (p Z)] [atom (p TWO) ] ...
-    decide2' (E{ stepPerp}) ... 
-    existential' (Z)...
-    tensor' [perp (p Z) ] [atom (p ONE) ]...
+    decide2 (E{ stepPerp})...
+    existential ONE ... 
+    tensor [perp (p Z)] [atom (p TWO) ] ...
+    decide2 (E{ stepPerp}) ... 
+    existential (Z)...
+    tensor [perp (p Z) ] [atom (p ONE) ]...
   Qed.
 
   (** This is NOT a theorem ... Note that we cannot do induction on uexp terms *)
   Example test3 : |-- [ atom (p Z) ; E{ step} ]; []; > [F{ fun t => perp ( p t) }].
-  Proof with solveLL';solveF.
-    solveLL'.
+  Proof with solveLL.
+    solveLL.
     induction x.
     (* this will never work *)
   Abort.
 
   Example test4 : |-- [ ]; []; > [F{ fun t => atom (p t)} ; E{ fun t => perp (p t)}].
   Proof.
-    solveLL'.
-    decide1' (E{ fun t => perp (p t)}).
-    existential' x.
+    solveLL.
+    decide1 (E{ fun t => perp (p t)}).
+    existential x.
   Qed.
 
   Example test4' : forall x, proper x -> |-- [ ]; []; > [atom (p x) ; E{ fun t => perp (p t)}].
   Proof.
     intros.
-    solveLL'.
-    decide1' (E{ fun t => perp (p t)}).
-    existential' x.
+    solveLL.
+    decide1 (E{ fun t => perp (p t)}).
+    existential x.
   Qed.
 End Example2.
 
