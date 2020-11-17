@@ -378,19 +378,19 @@ Proof with solveF;solveLL;simplOLFormulas.
       existential t...
     + (* contraction *)
       (* by contraction on LL*)
-      admit.
-      (*eapply contractionSet with (L0:=LEncode [F]);[firstorder|]...
+      
+      eapply contractionSet with (L0:=LEncode [F]);[firstorder|]...
       apply IHLJSeq...
-      inversion H0...*)
+      inversion H0...
     + (* exchange *)
       (* by exchange in LL *)
       simplOLFormulas.
       eapply (exchangeCC H4)...
-Admitted.
+Qed.
  
  
               
-  Theorem Completeness: forall n L F , 
+    Theorem Completeness: forall n L F , 
                                     isOLFormulaL L ->
                                     isOLFormula F ->
                                     seqN OLTheory n (LEncode L) [ REncode F] (> []) ->
@@ -465,7 +465,7 @@ Admitted.
             apply InPermutation in H6.
             destruct H6.
             assert(Hp : Permutation (LEncode L) (d| t_bin AND F1 G | :: LEncode x)).
-            Check Permutation_map.
+          
             eapply Permutation_map in H6.
             simpl in H6.
             exact H6.
@@ -485,11 +485,13 @@ Admitted.
             inversion HF.
             solveIsOLFormL.
 
-            rewrite  <- H6.
-            rewrite <- H8...
+            rewrite  <- Hp...
+           
             *
             InForall2.
-            assert(HF: isOLFormulaL (t_bin AND F1 G :: x1)) by solveIsOLFormL. 
+            assert(HF: isOLFormulaL (t_bin AND F1 G :: x1)). 
+            symmetry in H6.
+            rewrite H6 in H0;auto. 
             
             apply (LJEx H6).
             apply LJContr.
@@ -511,7 +513,10 @@ Admitted.
             
             InForall2.
             
-            assert(HF: isOLFormulaL (t_bin OR F1 G :: x1)) by solveIsOLFormL. 
+            assert(HF: isOLFormulaL (t_bin OR F1 G :: x1)).
+            symmetry in H6.
+            rewrite H6 in H0;auto.
+             
             inversion HF...
             
             apply (LJEx H6).
@@ -545,7 +550,9 @@ Admitted.
            
             InForall2.
             
-            assert(HF: isOLFormulaL (t_bin IMP F1 G :: x1)) by solveIsOLFormL. 
+            assert(HF: isOLFormulaL (t_bin IMP F1 G :: x1)).
+            symmetry in H6.
+            rewrite H6 in H0;auto. 
             inversion HF...
             
             
@@ -613,7 +620,9 @@ Admitted.
             
             InForall2.
             
-            assert(HF: isOLFormulaL (t_quant ALL FX :: x2)) by solveIsOLFormL. 
+            assert(HF: isOLFormulaL (t_quant ALL FX :: x2)).
+            symmetry in H6.
+            rewrite H6 in H0;auto. 
             inversion HF...
             
             
@@ -641,7 +650,9 @@ Admitted.
             inversion H5...
             InForall2.
             
-            assert(HF: isOLFormulaL (t_quant SOME FX :: x1)) by solveIsOLFormL. 
+            assert(HF: isOLFormulaL (t_quant SOME FX :: x1)).
+            symmetry in H6.
+            rewrite H6 in H0;auto. 
             inversion HF...
             
             
