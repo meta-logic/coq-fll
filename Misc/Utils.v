@@ -545,7 +545,37 @@ Section ForAllMap.
     inversion H...
     inversion H3...
   Qed.
+
+  Lemma Forall_Permute':
+    forall {A : Type} {M N O: list A} (f : A -> Prop),
+      Forall f M -> Permutation M N -> Permutation N O -> Forall f O.
+  Proof with subst;auto.
+    intros.
+    assert(Permutation M O). 
+    apply (Permutation_trans H0 H1).
+    apply (Forall_Permute H H2).
+  Qed.
   
+  Hint Extern 1 (Permutation ?S ?U) =>
+  match goal with
+  | H: Permutation S ?T |- _ => apply (Permutation_trans H)
+  | H: Permutation ?T S  |- _ => symmetry in H; apply (Permutation_trans H)  
+  end : core.
+  
+  Example transitivity_Permutation : forall {A : Type} (f : A -> Prop){T1 T2 T3 T4 T5: list A},
+  Forall f T1 ->
+  Permutation T1 T2 ->
+  Permutation T2 T3 ->
+  Permutation T4 T3 ->
+  Permutation T3 T5 ->
+  Permutation T5 T4 ->
+  Forall f T4.
+Proof.
+  intros.
+  eauto using Forall_Permute'.
+Qed.
+  
+   
   Generalizable All Variables.
   Global Instance Forall_morph : 
     Proper ((@Permutation A) ==> Basics.impl) (Forall f).
@@ -562,7 +592,50 @@ Section ForAllMap.
     apply ForallApp;auto.
   Qed.                
   
+  Lemma isFormulaIn :  forall {A : Type} {F : A} {L : list A} (f : A -> Prop), 
+      Forall f L -> In F L -> f F. 
+  Proof.
+    intros.
+    generalize (Forall_forall f L );intro.
+    destruct H1.
+    apply H1 with (x:= F) in H ;auto.
+  Qed.
+  
+  Hint Resolve ForallApp:isFormulaIn.
+  Hint Resolve ForallApp:core.
+  Hint Resolve ForallCons:core.
+  
 End ForAllMap .
+
+Ltac solveForall :=
+    match goal with
+    | [ H1: ?f ?F, H2: Forall ?f ?M  |- Forall ?f (?F :: ?M)] => apply ForallCons;auto
+    | [ H1: Forall ?f ?M, H2: Forall ?f ?N  |- Forall ?f (?M ++ ?N)] => apply ForallApp;auto
+    | [ H: Forall ?f (?M ++ ?N)  |- Forall ?f ?M] => apply (Forall_app _ M N);auto
+    | [ H: Forall ?f (?M ++ ?N)  |- Forall ?f ?N] => apply (Forall_app _ M N);auto
+    | [ H1: In ?F ?L, H2: Forall ?f ?L  |- ?f ?F] => apply (isFormulaIn H2 H1);auto
+    | [ H: Forall ?f (?M ++ ?N)  |- Forall ?f (?N ++ ?M)] => apply ForallAppComm;auto
+    | [ H1: Forall ?f ?T1, 
+        H2: Permutation ?T1 ?X,
+        H3: Permutation ?Y ?T2  |- Forall ?f ?T2] =>  eauto using Forall_Permute'
+        | [ H1: Forall ?f ?T1, 
+        H2: Permutation ?T1 ?T2  |- Forall ?f ?T2] =>  eauto using Forall_Permute'
+        
+    | [ H: Forall ?f (?M ++ ?F :: ?N)  |- ?f ?F] => apply (Forall_elt _ _ _ H);auto 
+    | [ H: Forall ?f (?F :: ?L)  |- ?f ?F] => apply (Forall_inv H);auto 
+    | [ H: Forall ?f (?F :: ?L)  |- Forall ?f ?L] => apply (Forall_inv_tail H);auto 
+    | [ H1: Forall ?f (?F :: ?M), H2: Forall ?f ?N  |- Forall ?f (?F :: ?N)] => inversion H;subst;auto 
+      
+    | [ H: Forall ?f (?F :: ?M) |- Forall ?f (?M ++ [?F]) ] => inversion H;subst;auto
+    | [ H1: Forall ?f (?F :: ?M), H2: Forall ?f ?N  |- Forall ?f (?N ++ [?F])] => inversion H;subst;auto
+    
+    | [ H: ?f (_ ?A) |- ?f ?A ] => inversion H;subst;auto
+    | [ H: ?f (_ ?A1 ?A2) |- ?f ?A1 ] => inversion H;subst;auto 
+    | [ H: ?f (_ ?A1 ?A2) |- ?f ?A2 ] => inversion H;subst;auto
+    
+    
+    end.
+   
 
 (** Solving some of the [Permutation] goals appearing in the proof *)
 Ltac SolvePermutation :=
