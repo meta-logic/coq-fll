@@ -2,11 +2,12 @@
 
 (** The rule for conjunction in this system is
 
-Gamma , Fi |-- G
+Gamma , F1, F2 |-- G
 ----------------------
 Gamma , F1/\ F2 |-- G
 
-and hence encoded with the formula PLUSWITH (that uses OPLUS to choose one of the formulas Fi *)
+and hence encoded with the formula PARTENSOR (that uses PAR to store
+the two atoms into the classical context *)
 
 Require Export FLL.OL.OLCuti.
 Require Import Coq.Init.Nat.
@@ -49,7 +50,7 @@ Definition rulesCTE (c:constants) :=
 (** *** Binary connectives *)
 Definition rulesBC (c :connectives) :=
   match c with
-  | AND => PLUSWITH
+  | AND => PARTENSOR
   | OR =>  WITHPLUS
   | IMP => TENSORPAR
   end.
@@ -76,8 +77,7 @@ Inductive LJSeq : list uexp -> uexp -> Prop :=
 | LJTRUE : forall L, LJSeq L (t_cons TT)
 | LJFALSE : forall L G, LJSeq (t_cons FF :: L) G
 | LJinit : forall L F,  LJSeq (F:: L) F
-| LJAndL1 : forall L F G R, LJSeq (F :: L) R -> LJSeq ( (t_bin AND F G) :: L) R
-| LJAndL2 : forall L F G R, LJSeq (G :: L) R -> LJSeq ( (t_bin AND F G) :: L) R
+| LJAndL : forall L F G R, LJSeq (F :: G :: L) R -> LJSeq ( (t_bin AND F G) :: L) R
 | LJAndR : forall L F G , LJSeq L F -> LJSeq L G -> LJSeq L (t_bin AND F G)
 | LJOrL : forall L F G R,  LJSeq (F :: L) R ->  LJSeq (G :: L) R -> LJSeq ( (t_bin OR F G) :: L) R
 | LJOrR1 : forall L F G , LJSeq L F -> LJSeq L (t_bin OR F G)
@@ -290,22 +290,13 @@ Proof with solveF;solveLL;simplOLFormulas.
   + (* ANDL1 *)
     decide3 (makeRuleBin AND Left F G)...      
     tensor (@nil oo) [REncode R]...
-    
-    oplus1.
-    LLPerm ( d| t_bin AND F G | :: d| F |  :: LEncode L).
-    apply weakening.
-    apply IHLJSeq... 
-  +  (* ANDL2 *)
-    decide3 (makeRuleBin AND Left F G)...
-    tensor (@nil oo) [REncode R]...
-    
-    oplus2.
-    LLPerm ( d| t_bin AND F G | :: d| G |  :: LEncode L).
+    LLPerm ( d| t_bin AND F G | :: d| F |  :: d| G| :: LEncode L).
     apply weakening.
     apply IHLJSeq... 
   + (* And R *)
     decide3 (makeRuleBin AND Right F G)...
-    tensor [REncode (t_bin AND F G)] (@nil oo). 
+    tensor [REncode (t_bin AND F G)] (@nil oo).
+    tensor (@nil oo) (@nil oo).
   + (* Or L *)
     decide3 (makeRuleBin OR Left F G)...
     tensor (@nil oo)  [REncode R]...
@@ -415,7 +406,7 @@ Proof with solveF;solveLL.
       (* by cases on C *)
       destruct C;simpl in H8...
       { (* case AND *)
-        apply AppPLUSWITHRight in H8.
+        apply AppPARTENSORRight in H8.
         CleanContext.
         apply LJAndR.
         apply (H x0);solveIsOLFormL.
@@ -442,49 +433,33 @@ Proof with solveF;solveLL.
       (* by cases on C *)
       destruct C;simpl in H8...
       { (* case AND *)
-        apply AppPLUSWITHLeft in H8.
+        apply AppPARTENSORLeft in H8.
         CleanContext.
-        destruct H8.
-        + apply InLEncode in H6.
-          apply InPermutation in H6.
-          destruct H6.
-          assert(Hp : Permutation (LEncode L) (d| t_bin AND F1 G | :: LEncode x)).
-          
-          eapply Permutation_map in H6.
-          simpl in H6. exact H6.
-          symmetry in H6.
-          
-          assert(HF: isOLFormulaL (t_bin AND F1 G :: x)). 
-          rewrite H6;auto.
-          
-          apply (LJEx H6).
-          apply LJContr. 
-          apply LJAndL1.
 
-          eapply (H x0)...
-          apply ForallCons...
-          inversion HF.
-          solveIsOLFormL.
+        apply InLEncode in H6.
+        apply InPermutation in H6.
+        destruct H6.
+        assert(Hp : Permutation (LEncode L) (d| t_bin AND F1 G | :: LEncode x)).
+          
+        eapply Permutation_map in H5.
+        simpl in H5. exact H5.
+        symmetry in H5.
+          
+        assert(HF: isOLFormulaL (t_bin AND F1 G :: x)). 
+        rewrite H5;auto.
+          
+        apply (LJEx H5).
+        apply LJContr. 
+        apply LJAndL.
 
-          rewrite  <- Hp...
-        + InForall2.
-          assert(HF: isOLFormulaL (t_bin AND F1 G :: x1)). 
-          symmetry in H6.
-          rewrite H6 in H0;auto. 
-          
-          apply (LJEx H6).
-          apply LJContr.
-          apply LJAndL2.
-          
-          eapply PermutationLEncode in H6;[|exact H8].
-          
-          eapply (H x0)...
-          
-          inversion HF...
-          solveIsOLFormL.
-
-          rewrite  <- H6.
-          rewrite <- H8...
+        eapply (H x0)...
+        apply ForallCons...
+        inversion HF.
+        solveIsOLFormL.
+        apply ForallCons...
+        inversion HF.
+        solveIsOLFormL.
+        rewrite  <- Hp...
       }
       { (*  OR *)
         apply AppWITHPLUSLeft in H8.
