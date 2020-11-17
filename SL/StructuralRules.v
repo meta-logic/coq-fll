@@ -444,6 +444,23 @@ Section FLLBasicTheory.
       apply contractionN in H;auto.
       eapply seqNtoSeq;eauto.
     Qed.
+    
+    Theorem contractionSet  : forall CC LC X L, (forall F, In F L -> In F CC) ->
+        ( seq theory (L ++ CC) LC X) -> (seq theory CC LC  X).
+      intros.
+      induction L.
+      simpl in H0;auto.
+      apply IHL;intros.
+      apply H. firstorder.
+      eapply exchangeCC with (CC':=a :: (L ++ CC)) in H0;[|auto].
+      apply seqtoSeqN in H0 .
+      destruct H0.
+      apply contractionN in H0;auto.
+      eapply seqNtoSeq;eauto.
+      apply in_or_app.
+      firstorder.
+    Qed.  
+    
   End Adequacy.
 
 
