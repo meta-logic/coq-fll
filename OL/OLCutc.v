@@ -5,13 +5,6 @@ object-logics (OL) where formulas on both the left and the right side
 of the sequent can be weakened and contacted. Then, we assume that all
 of them are stored into the classical context of LL.
 
-Unlike the file [OLCutelimination] here we do not consider the
-quantifiers at the object-level nor unary connectives.
-
-We shall call to this kind of logics POSNEG-logics due to the POS rule
-[left(F)^ * ?left(F)] that allows to store a left formula into the
-classical context and the NEG rule [right(F)^ * ?right(F)] that stores
-right formulas into the classical context.
 
  *)
 

@@ -6,7 +6,7 @@ proved and then, using [OLCutElimination] we prove the cut-elimination
 theorem for this system .
  *)
 
-Require Export FLL.OL.OLCutElimTheoremPOSNEG.
+Require Export FLL.OL.OLCutc.
 Require Import Coq.Init.Nat.
 Require Import FLL.Misc.Permutations.
 

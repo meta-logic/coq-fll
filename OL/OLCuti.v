@@ -1,17 +1,11 @@
-(** *  OL-Cut Elimination  *)
+(** *  OL-Cut Elimination (Intuitionistic systems) *)
 
 (** The procedure formalized here is tailored to the case of
 object-logics (OL) where only formulas on the left side of the sequent
 can be weakened and contacted. Then, we assume that all of them are
 stored into the classical context of LL and the only formula in the
-linear context is the formula on the right side of the (OL) sequent.
-
-Unlike the file [OLCutelimination] here we do not consider the
-quantifiers at the object-level nor unary connectives.
-
-We shall call to this kind of logics POS-logics due to the POS rule
-(left(F)^ * ?left(F)) that allows to store a left formula into the
-classical context of LL.
+linear context is the atom representing the OL formula on the right-side
+of the sequent. 
 
  *)
 
@@ -77,33 +71,15 @@ Section OLInferenceRules.
     | ZEROTOP, Right => top
     end.
 
-  (** In systems with POS, the kind of connectives used, in order to
-  be cut-coherent, is also more restricted. Here the options
-  available. 
-  
-   - [PARTENSOR]: On the left rule, it take the atom [A * B] and
-   produces one premise containing both [A] and [B] (stored in the
-   classical context). In the right rule, it generates two
-   premises. This is the typical encoding for conjuction-like
-   connectives.
+  (** In this kind of systems, the combination of LL connectives
+  leading to cut-coherent theories is limited.  Right atoms must be
+  marked with ! (to guarantee adequacy at the level of
+  derivations). Moreover, left atoms are stored into the classical
+  context (and thus marked with ?).  *)
 
-   - [WITHPLUS]: On the left rule, it generates two premises sharing
-     the right formula (the unique formula stored into the linear
-     context) and, on the right side, it generates only one premise
-     that chooses either [A] or [B] . This is the typical encoding for
-     disjunction-like connectives.
-
-   - [TENSORPAR]: On the left side, it splits the context forcing [up
-     A] to be in one premise and [? down B] in the other. Note the use
-     of [!] to neatly control this behavior.
-
-   *)
   Inductive RulesEnc := PARTENSOR | WITHPLUS | TENSORPAR | PLUSWITH .
   Inductive QEnc := ALLSOME | SOMEALL .
 
-  
-
-  (** In POS systems, we enforce a unique Right formula on the linear context by using ! *)
   Definition RulesDefs (t:RulesEnc) (s:Side) (A B : uexp):=
     match t,s with
     | PARTENSOR, Left => (? d|A|) $ (? d|B|)
@@ -116,6 +92,7 @@ Section OLInferenceRules.
     | PLUSWITH, Right => ( u|A|) & ( u|B|)
     end.
 
+  (** We assume the usual encoding for the quantifiers *)
   Definition QDefs (t:QEnc) (s:Side) (FX : uexp -> uexp):=
     match t,s with 
     | ALLSOME, Left =>  E{ fun x => ? d| (FX x)|} 
@@ -168,43 +145,39 @@ Section CutCoherence.
     seq (CutRulePOSN (max n m)) [] [] (> [ dual ( RulesDefs R Left A B );? dual ( RulesDefs R Right A B)]).
   Proof with solveF.
     intros.
-    destruct R; simpl.
-    + solveLL...
-      decide2((? u^| A |) $ (? u^| B |)).
+    destruct R; simpl;solveLL.
+    + decide2((? u^| A |) $ (? u^| B |)).
       decide1 ((! d^| A |) ** (! d^| B |)).
       tensor (@nil oo)(@nil oo).
       decide3 (RCUTPOS A)...
       apply @ctn with (m:=n)...
-      tensor    [( d^| A |)]  (@nil oo)...
-      decide1 (d^|A|)...
+      tensor [( d^| A |)]  (@nil oo).
+      decide1 (d^|A|).
       decide2 (u^|A|).
       
       decide3 (RCUTPOS B)...
       apply @ctn with (m:=m)... 
       tensor   [ d^| B |]  (@nil oo).
-      decide1 (d^|B|)...
+      decide1 (d^|B|).
       decide2 (u^|B|).
-    + solveLL.
-      decide2 ((? u^| A |) & (? u^| B |)). 
-
+    + decide2 ((? u^| A |) & (? u^| B |)). 
       decide1 ((! d^| A |) op (! d^| B |)).
       oplus1.
       decide3 (RCUTPOS A)...
       apply @ctn with (m:=n)...
-      tensor    [( d^| A |)]  (@nil oo)...
-      decide1 (d^|A|)...
+      tensor    [( d^| A |)]  (@nil oo). 
+      decide1 (d^|A|).
       decide2 (u^|A|).
 
       decide1 ((! d^| A |) op (! d^| B |)).
       oplus2.
-      decide3 (RCUTPOS B)...
+      decide3 (RCUTPOS B). 
       apply @ctn with (m:=m)...
-      tensor    [( d^| B |)]  (@nil oo)...
+      tensor    [( d^| B |)]  (@nil oo). 
       decide1 (d^|B|)...
       decide2 (u^|B|).
-    + solveLL.
+    + 
       decide1 (! d^| B |); solveLL.
-
       decide3 (RCUTPOS B)...
       apply @ctn with (m:=m)...
       tensor    [( d^| B |)]  (@nil oo)...
@@ -215,29 +188,28 @@ Section CutCoherence.
 
       decide3 (RCUTPOS A)...
       apply @ctn with (m:=n)...
-      tensor    [( d^| A |)]  (@nil oo)...
-      decide1 (d^|A|)...
+      tensor    [( d^| A |)]  (@nil oo). 
+      decide1 (d^|A|). 
       decide2 (u^|A|).
-    + solveLL...
-      decide1 (! d^| A |)...
-      solveLL.
-      decide3 (RCUTPOS A)...
-      apply @ctn with (m:=n)...
-      tensor [d^| A |] (@nil oo)...
-      decide1 (d^|A|)...
-      solveLL...
-      decide2(u^| A | op u^| B |).
-
-      decide1 (! d^| B |)...
-      solveLL.
-      decide3 (RCUTPOS B)...
+    +  decide1 (! d^| A |)...
+       solveLL.
+       decide3 (RCUTPOS A)...
+       apply @ctn with (m:=n)...
+       tensor [d^| A |] (@nil oo)...
+       decide1 (d^|A|).
+       decide2(u^| A | op u^| B |).
+    +  decide1 (! d^| B |). 
+       decide3 (RCUTPOS B)...
       apply @ctn with (m:=m)...
-      tensor [d^| B |] (@nil oo)...
-      decide1 (d^|B|)...
-      solveLL...
+      tensor [d^| B |] (@nil oo). 
+      decide1 (d^|B|).
       decide2(u^| A | op u^| B |).
   Qed.
 
+  (** We cannot prove that the size of (FX t) is independent of t
+  (assuming that FX is uniform and t is proper). This is indeed the
+  case since uniform functions cannot do patter matching to return
+  structurally different formulas *)
   Axiom OLSize: forall FX t t' n, uniform FX -> proper t -> proper t' -> lengthUexp (FX t) n -> lengthUexp (FX t') n .
 
   Theorem CutCoherenceQ (R: QEnc) (FX FX' : uexp -> uexp) (n : nat) :
@@ -367,7 +339,7 @@ Section Bipoles.
   
   
   (** This is the FLL logical theory including the right and left
-    rules for the connectives and constants *)
+    rules for the connectives of the OL *)
   Inductive buildTheory  : oo ->  Prop :=
   | bcteR : forall C, isOLFormula (t_cons C) -> buildTheory (makeRuleConstant C Right)
   | bcteL : forall C, isOLFormula (t_cons C) -> buildTheory (makeRuleConstant C Left)
@@ -1338,6 +1310,7 @@ Section OLCutElimination.
       end.
   
   Hint Constructors isFormula : core.
+  (** Using cut-coherence on the binary connectives of the OL *)
   Theorem CutObjectLL: forall T A B C Gamma R n n', 
       (seq (OLTheoryCut (pred n)) Gamma [u| R |] (>> RulesDefs T Left A B)) ->
       (seq (OLTheoryCut (pred n)) Gamma [] (>> ! RulesDefs T Right A B)) ->
@@ -2042,7 +2015,7 @@ Section OLCutElimination.
       
   Qed.
 
-
+  (** The main theorem showing that it is possible to reduce the rank of the cut formula *)
   Theorem CutElimStep:
     forall h1 h2 n n' Gamma R Fcut,
       (seqN OLTheory h1 (d|Fcut|:: Gamma) [u|R|] (> [])) ->
@@ -2241,6 +2214,8 @@ Section OLCutElimination.
       apply WeakTheory with (theory' := (OLTheoryCut (pred n)) ) in Hseq1 ;auto using TheoryEmb1;CutTac.
     }
   Qed.
+
+  (** Now we conclude that the theory with and without cuts prove the same OL sequents *)
 
   Theorem CutElimination:
     forall n h  Gamma R,
@@ -2452,6 +2427,10 @@ Section OLCutElimination.
       apply IHn in H10...
   Qed.
 
+  
+  (* We can define also a linear cut that it is not necessarily
+     adequate, i.e., the tensor rule can send 2 right atoms to the
+     same premise (and the other premise will have only left atoms *)
   Definition RLCUT  (F:uexp) : oo := (d|F|)  ** (u|F|).
 
   (** The linear-cut rule applied on object level terms of a given size  *)
@@ -2468,6 +2447,7 @@ Section OLCutElimination.
   | oothc_pos' : forall OO, isOLFormula OO -> OLTheoryLCut n (POS OO)                                             .
   Hint Constructors LCutRulePOSN  OLTheoryLCut : core.
 
+  (** The following theorem shows that the linear cut is more general than the (adequate) cut *)
   Theorem CutLCutAdq:
     forall n h  Gamma R,
       (seqN (OLTheoryCut n) h Gamma [u|R|]  (> [])) ->
@@ -2480,9 +2460,156 @@ Section OLCutElimination.
     inversion H0...
     inversion H4...
     + (* from the theory *)
-      admit.
+      inversion H3...
+      ++  (* constant right *)
+        remember (rulesCte C).
+        destruct c; apply FocusingRightCte in H6;CleanContext...
+        rewrite <- Heqc  in H8. simpl in H8. inversion H8...
+        decide3 (makeRuleConstant C Right).
+        tensor [u| t_cons C |] (@nil oo).
+        rewrite <- Heqc...
+        solveLL.
+      ++ (* constant left *)
+        remember (rulesCte C).
+        destruct c; apply FocusingLeftCte in H6;CleanContext...
+        decide3 (makeRuleConstant C Left).
+        tensor (@nil oo) [u| R |].
+        rewrite <- Heqc... solveLL.
+        rewrite <- Heqc  in H8. simpl in H8. inversion H8...
+      ++ (* Connective right *)
+        remember (rulesBin C). 
+        destruct r; apply FocusingRightRule in H6;CleanContext;try rewrite <- Heqr in H8...
+        { apply AppPARTENSORRight in H8;CleanContext.
+          decide3 (makeRuleBin C Right F0 G).
+          tensor [u| t_bin C F0 G |] (@nil oo).
+          rewrite <- Heqr...
+          tensor (@nil oo) (@nil oo).
+          apply H in H8... inversion H2...
+          apply H in H9... inversion H2...
+        }
+        {
+          apply AppWITHPLUSRight in H8;CleanContext.
+          decide3 (makeRuleBin C Right F0 G).
+          tensor [u| t_bin C F0 G |] (@nil oo).
+          rewrite <- Heqr...
+          inversion H2...
+          destruct H8 ;apply H in H5...
+          oplus1.
+          oplus2.
+        }
+        {
+          apply AppTENSORPARRight in H8;CleanContext.
+          decide3 (makeRuleBin C Right F0 G).
+          tensor [u| t_bin C F0 G |] (@nil oo).
+          rewrite <- Heqr...
+          solveLL.
+          inversion H2...
+          apply H in H6...
+          LLExact H6.
+        }
+        {
+          apply AppPLUSWITHRight in H8;CleanContext.
+          decide3 (makeRuleBin C Right F0 G).
+          tensor [u| t_bin C F0 G |] (@nil oo).
+          inversion H2...
+          rewrite <- Heqr...
+          solveLL.
+          apply H in H6...
+          apply H in H8...
+        }
+      ++ (* Connective left *)
+        remember (rulesBin C). 
+        destruct r; apply FocusingLeftRule in H6;CleanContext;try rewrite <- Heqr in H8...
+        { apply AppPARTENSORLeft in H8;CleanContext.
+          decide3 (makeRuleBin C Left F0 G).
+          tensor (@nil oo) [u| R |] .
+          rewrite <- Heqr...
+          solveLL.
+          inversion H7...
+          apply H in H8...
+          LLExact H8.
+        }
+        {
+          apply AppWITHPLUSLeft in H8;CleanContext.
+          decide3 (makeRuleBin C Left F0 G).
+          tensor (@nil oo) [u| R |] .
+          rewrite <- Heqr...
+          inversion H7...
+          solveLL.
+          apply H in H8... LLExact H8.
+          apply H in H9... LLExact H9.
+        }
+        {
+          apply AppTENSORPARLeft in H8;CleanContext.
+          decide3 (makeRuleBin C Left F0 G).
+          tensor (@nil oo) [u| R |] .
+          rewrite <- Heqr...
+          inversion H7...
+          tensor (@nil oo) [u| R|].
+          apply H in H8... 
+          apply H in H9... LLExact H9.
+        }
+        {
+          apply AppPLUSWITHLeft in H8;CleanContext.
+          decide3 (makeRuleBin C Left F0 G).
+          tensor (@nil oo) [u| R |] .
+          rewrite <- Heqr...
+          inversion H7...
+          destruct H8.
+          oplus1. apply H in H5...  LLExact H5.
+          oplus2. apply H in H5...  LLExact H5.
+        }
+      ++ (* quantifier right  *)
+        remember (rulesQ C).
+        destruct q; apply FocusingRightQ in H6; CleanContext;try rewrite <- Heqq in H9...
+        { apply AppALLSOMERight in H9;CleanContext.
+          decide3 (makeRuleQ C Right FX).
+          tensor  [u| t_quant C FX |] (@nil oo).
+          rewrite <- Heqq...
+          solveLL.
+          specialize (H6 x properX).
+          inversion H8...
+          apply H in H6...
+          apply lbindEq in H9... rewrite <- H9...
+        }
+        {
+          apply AppSOMEALLRight in H9;CleanContext.
+          decide3 (makeRuleQ C Right FX).
+          tensor  [u| t_quant C FX |] (@nil oo).
+          rewrite <- Heqq...
+          existential x1.
+          apply H in H9...
+          inversion H8...
+          apply lbindEq in H10... rewrite <- H10...
+        }
+      ++ (* Quantifier left *)
+        remember (rulesQ C).
+        destruct q; apply FocusingLeftQ in H6; CleanContext;try rewrite <- Heqq in H9...
+        { apply AppALLSOMELeft in H9;CleanContext.
+          decide3 (makeRuleQ C Left FX).
+          tensor  (@nil oo) [u| R |] .
+          rewrite <- Heqq...
+          existential x1.
+          apply H in H10...
+          LLExact H10.
+          inversion H8...
+          apply lbindEq in H11... rewrite <- H11...
+        }
+        {
+          apply AppSOMEALLLeft in H9;CleanContext.
+          decide3 (makeRuleQ C Left FX).
+          tensor  (@nil oo) [u| R |] .
+          rewrite <- Heqq...
+          solveLL.
+          specialize (H9 x properX).
+          inversion H8...
+          apply H in H9...
+          LLExact H9.
+          apply lbindEq in H10... rewrite <- H10...
+        }
+        
     + (* from init *)
-      apply Init_inversion1 in H6 as H6';auto.
+    apply Init_inversion1 in H6 as H6';auto.
       destruct H6'...
       decide3 (RINIT OO).
       tensor [u| OO |] (@nil oo) ...
@@ -2505,6 +2632,6 @@ Section OLCutElimination.
       apply H in H21...
       
       apply H in H19...
-  Admitted.
+  Qed.
 
 End OLCutElimination.
