@@ -254,6 +254,7 @@ Ltac solvell :=
     (* initial Rules *)
     | [|- seqN _ _ _ _ (>> (perp _))] => init
     | [|- seqN _ _ _ [] (>>  One)] => apply tri_one
+    | [|- seqN _ _ _ [] (>>  MAnd _ _)] => apply tri_tensor with (M:=[]) (N:=[]); [perm|solvell|solvell]  (* tensor with the empty context *)
     | [|- seqN _ _ _ [perp ?A] (>> (atom ?A))] => apply InitPosNegDwN
     | [|- seqN _ _ _ [atom ?A ; perp ?A] (> [])] => apply InitPosNegN
     | [|- seqN _ _ _ [perp ?A; atom ?A ] (> [])] => apply InitPosNegN'
@@ -294,6 +295,7 @@ Ltac solvell' :=
     (* initial Rules *)
     | [|- seq _ _ _ (>> (perp _))] => init
     | [|- seq _ _ [] (>>  One)] => apply tri_one'
+    | [|- seq _ _ [] (>>  MAnd _ _)] => apply tri_tensor' with (M:=[]) (N:=[]); [perm|solvell'|solvell'] (* tensor with the empty context *)
     | [|- seq _ _ [perp ?A] (>> (atom ?A))] => apply InitPosNegDw
     | [|- seq _ _ [atom ?A ; perp ?A] (> [])] => apply InitPosNeg
     | [|- seq _ _ [perp ?A; atom ?A ] (> [])] => apply InitPosNeg'

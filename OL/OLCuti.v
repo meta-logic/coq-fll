@@ -148,7 +148,6 @@ Section CutCoherence.
     destruct R; simpl;solveLL.
     + decide2((? u^| A |) $ (? u^| B |)).
       decide1 ((! d^| A |) ** (! d^| B |)).
-      tensor (@nil oo)(@nil oo).
       decide3 (RCUTPOS A)...
       apply @ctn with (m:=n)...
       tensor [( d^| A |)]  (@nil oo).
