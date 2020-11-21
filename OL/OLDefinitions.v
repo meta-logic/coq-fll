@@ -226,7 +226,16 @@ Section PositiveAtoms.
 
   
   Definition IsPositiveLAtomFormulaL L : Prop := Forall IsPositiveLAtomFormula L.
+  Hint Unfold IsPositiveLAtomFormulaL : core.
+
+  (** atoms of the form [up A] *)
+  Inductive IsPositiveRAtomFormula : oo -> Prop :=
+  | IsFPAR_up : forall A, isOLFormula A -> IsPositiveRAtomFormula (atom (up (A)))
+  .
+  Definition IsPositiveRAtomFormulaL L : Prop := Forall IsPositiveRAtomFormula L.
   Hint Unfold IsPositiveLAtomFormulaL : core. 
+  Hint Constructors IsPositiveRAtomFormula : core .
+
 
   (** Some auxiliar results that help automation *)
   Lemma IsPositiveLAtomFormulaLApp :
@@ -1570,4 +1579,216 @@ Section BipoleInstance.
       tensor  (@nil oo) Delta1...
   Qed.
 End BipoleInstance.
+
+
+Section OLEncodings.
+  Context `{OL: OLSyntax}.
+  Definition LEncode L := map (fun x => d| x|) L.
+  Definition REncode L := map (fun x => u| x|) L.
+  Hint Constructors OLTheory buildTheory : core.
+  Hint Constructors  isOLFormula : core.
+  Hint Unfold  IsPositiveAtomFormulaL : core .
+  Hint Constructors IsPositiveAtomFormula : core.
+  Hint Unfold IsPositiveLAtomFormulaL : core. 
+  Hint Constructors IsPositiveRAtomFormula : core .
+
+
+  Lemma isOLLencode : forall L, isOLFormulaL L -> IsPositiveLAtomFormulaL (LEncode L).
+  Proof with subst;auto.
+    intros.
+    induction L; simpl...
+    constructor.
+    inversion H...
+    constructor...
+    apply IHL...
+    inversion H...
+  Qed.
+
+  Lemma isOLLIsOLFormula : forall L, IsPositiveLAtomFormulaL (LEncode L) ->
+                                     IsPositiveAtomFormulaL (LEncode L).
+  Proof with subst;auto.
+    intros.
+    induction L. simpl...
+    simpl in *.
+    inversion H...
+    constructor...
+    inversion H2...
+    apply IHL...
+  Qed.
+
+  Lemma isOLRIsOLFormula : forall L, IsPositiveRAtomFormulaL (REncode L) ->
+                                     IsPositiveAtomFormulaL (REncode L).
+  Proof with subst;auto.
+    intros.
+    induction L. simpl...
+    simpl.
+    inversion H...
+    constructor...
+    inversion H2...
+    apply IHL...
+  Qed.
+
+  Lemma isOLRencode : forall L, isOLFormulaL L -> IsPositiveRAtomFormulaL (REncode L).
+  Proof with subst;auto.
+    intros.
+    induction L. simpl...
+    constructor.
+    inversion H...
+    simpl. constructor...
+    apply IHL...
+  Qed.
+
+  Lemma PermutationLEncode : forall L a x x1,
+      Permutation (LEncode L) (d| a | :: x) -> Permutation (a :: x1) L -> Permutation x (LEncode x1).
+  Proof with subst;auto.
+    intros.      
+    assert(Permutation (d| a | :: x) (LEncode ((a :: x1)))).
+    {  symmetry.
+       symmetry in H.
+       apply Permutation_map_inv in H.
+       do 2 destruct H.
+       rewrite H.
+       apply Permutation_map.
+       eapply (perm_trans H0 H1). }
+    simpl in H1.
+    eapply (Permutation_cons_inv H1).
+  Qed.
+
+  Lemma InLEncode : forall L a,
+      In (d| a |) (LEncode L) -> In a L.
+  Proof with subst;auto.
+    intros.      
+    apply in_map_iff in H.
+    do 2 destruct H.
+    inversion H...
+  Qed.
+
+  Lemma isOLFormulaIn : forall F L, 
+      isOLFormulaL L -> In F L -> isOLFormula F. 
+  Proof.
+    intros.
+    unfold isOLFormulaL in H.
+    generalize (Forall_forall isOLFormula L );intro.
+    destruct H1.
+    apply H1 with (x:= F) in H ;auto.
+  Qed.
+
+  Theorem NoDinR : forall F L, In (d| F|) (REncode L) -> False .
+    intros.
+    induction L;auto.
+    simpl in H.
+    destruct H;auto.
+    inversion H.
+  Qed.
+
+  Theorem NoUinL : forall F L, In (u| F|) (LEncode L) -> False .
+    intros.
+    induction L;auto.
+    simpl in H.
+    destruct H;auto.
+    inversion H.
+  Qed.
+
+  Theorem downLeft : forall L L' F,
+      In (d| F |) (LEncode L ++ REncode L') ->
+      In (d| F |) (LEncode L).
+    intros.
+    apply in_app_or in H.
+    destruct H;auto.
+    apply NoDinR in H.
+    contradiction.
+  Qed.
+
+  Theorem upRight : forall L L' F,
+    In (u| F |) (LEncode L ++ REncode L') ->
+    In (u| F |) (REncode L').
+    intros.
+    apply in_app_or in H.
+    destruct H;auto.
+    apply NoUinL in H.
+    contradiction.
+  Qed.
+
+  Theorem OLInPermutation: forall L F,
+      In (u| F |) (REncode L) ->
+      exists L', Permutation L (F:: L').
+    induction L;intros.
+    inversion H.
+    simpl in H.
+    inversion H.
+    inversion H0;subst.
+    eexists;eauto.
+    apply IHL in H0.
+    CleanContext.
+    exists (a:: x).
+    rewrite H0;perm.
+  Qed.
+
+  Theorem OLInPermutationL: forall L F,
+      In (d| F |) (LEncode L) ->
+      exists L', Permutation L (F:: L').
+    induction L;intros.
+    inversion H.
+    simpl in H.
+    inversion H.
+    inversion H0;subst.
+    eexists;eauto.
+    apply IHL in H0.
+    CleanContext.
+    exists (a:: x).
+    rewrite H0;perm.
+  Qed.
+
+  Lemma InIsPositive : forall F L L',   In F (LEncode L ++ REncode L') -> IsPositiveAtom F.
+  intros.
+  apply in_app_or in H;destruct H.
+  induction L;inversion H;subst;auto.
+  induction L';inversion H;subst;auto.
+  Qed.
+
+  Lemma IsOLPositiveLREnc : forall L L',
+      isOLFormulaL L -> isOLFormulaL L' -> 
+      IsPositiveAtomFormulaL (LEncode L ++ REncode L').
+    intros L L' HisL HisL'.
+    apply isOLLencode in HisL.
+    apply isOLRencode in HisL'.
+    apply ForallApp.
+    apply isOLLIsOLFormula;auto.
+    apply isOLRIsOLFormula;auto.
+  Qed.
+
+  Generalizable All Variables.
+  Global Instance isOLFormulaL_morph : 
+    Proper ((@Permutation uexp) ==> Basics.impl) (Forall isOLFormula).
+  Proof.
+    unfold Proper; unfold respectful; unfold Basics.impl.
+    intros.
+    eapply Forall_Permute;eauto.
+  Qed.
+
+End OLEncodings.
+
+Hint Constructors OLTheory buildTheory : core.
+Hint Constructors  isOLFormula : core.
+
+(** Tactics for dealing with encodings *)
+Ltac SolveIS :=
+  try
+    match goal with
+    | [H: isOLFormulaL (_ :: _)|- isOLFormulaL _ ]  => inversion H;subst; clear H;SolveIS
+    | [H : isOLConstant (t_bin _ _ _) |- _] => inversion H
+    | [H : isOLConstant (t_quant _ _) |- _] => inversion H
+    | [|- IsPositiveAtomFormulaL (LEncode _ ++ REncode _)] =>
+      solve [ eapply IsOLPositiveLREnc; eauto]
+    | [ H : isOLFormula (t_bin _ ?F ?G) |- isOLFormulaL (?F :: _)] =>
+      solve [ inversion H;subst;[SolveIS |]; constructor;auto]
+    | [ H : isOLFormula (t_bin _ ?F ?G) |- isOLFormulaL (?G :: _)] =>
+      solve [ inversion H;subst;[SolveIS |]; constructor;auto]
+    | [ H : isOLFormula (t_quant _ ?FX) |- isOLFormulaL (?FX _ :: _) ] =>
+      solve [ inversion H;subst;[SolveIS|];
+              match goal with
+                [ H': lbind 0 _ = lbind 0 FX |- _] =>
+                apply lbindEq in H';auto;rewrite <- H';auto;constructor;auto
+              end ]
+    end;auto.
 

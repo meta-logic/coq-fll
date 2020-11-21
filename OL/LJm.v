@@ -389,7 +389,6 @@ Proof with solveF;solveLL.
       CleanContext.
       (* by cases on C *)
       destruct C;simpl in H8...
-      inversion H8... (* there is no proof o zero *)
     ++  (* constant left *)
       apply FocusingLeftCte in H6;[|apply (isOLLencode H0)].
       CleanContext.

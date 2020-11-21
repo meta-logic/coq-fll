@@ -94,6 +94,8 @@ Ltac solveF :=
     | [H: context[nil ++ _] |- _] => rewrite app_nil_l in H
     | [|- context[sub _ 0]] => rewrite Nat.sub_0_r
     | [H: context[sub _ 0] |- _] => rewrite Nat.sub_0_r in H
+    | [H: seqN _ _ _ _  (>> zero) |- _ ] => inversion H
+    | [H: seq  _ _ _  (>> zero) |- _ ] => inversion H
     | [ |- _ >= _] => subst; lia
     | [ |- _ <= _] => subst; lia
     end;auto;
