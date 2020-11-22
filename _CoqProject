@@ -15,7 +15,7 @@ SL/InvPositivePhase.v
 SL/CutElimination.v
 SL/IdElimination.v
 SL/Examples.v
-#
+
 ## Object Logics and cut-elimination theorem for them
 OL/OLSyntax.v
 OL/OLDefinitions.v
@@ -24,7 +24,11 @@ OL/OLCutc.v
 OL/OLCuti.v
 OL/LJ.v
 OL/LJm.v
-OL/OLExampleLM.v
-OL/OLExampleMALL.v
-#OL/NDSeq.v
+OL/LM.v
+OL/LMm.v
 OL/LK.v
+OL/MALL.v
+OL/NDSeq.v
+
+## Example of Transition System
+TSystem/Syntax.v

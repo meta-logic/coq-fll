@@ -1776,19 +1776,23 @@ Ltac SolveIS :=
   try
     match goal with
     | [H: isOLFormulaL (_ :: _)|- isOLFormulaL _ ]  => inversion H;subst; clear H;SolveIS
+    | [H: isOLFormulaL (_ :: _)|- isOLFormula _ ]  => inversion H;subst; clear H;SolveIS
     | [H : isOLConstant (t_bin _ _ _) |- _] => inversion H
     | [H : isOLConstant (t_quant _ _) |- _] => inversion H
+    | [ |- isOLFormulaL (_ :: _)] => constructor; SolveIS
+    | [ |- Forall isOLFormula (_ :: _)] => constructor; SolveIS
+    | [H : isOLFormulaL ?L |-  IsPositiveLAtomFormulaL (LEncode ?L)] => solve [apply (isOLLencode H)]
     | [|- IsPositiveAtomFormulaL (LEncode _ ++ REncode _)] =>
       solve [ eapply IsOLPositiveLREnc; eauto]
-    | [ H : isOLFormula (t_bin _ ?F ?G) |- isOLFormulaL (?F :: _)] =>
-      solve [ inversion H;subst;[SolveIS |]; constructor;auto]
-    | [ H : isOLFormula (t_bin _ ?F ?G) |- isOLFormulaL (?G :: _)] =>
-      solve [ inversion H;subst;[SolveIS |]; constructor;auto]
-    | [ H : isOLFormula (t_quant _ ?FX) |- isOLFormulaL (?FX _ :: _) ] =>
+    | [ H : isOLFormula (t_bin _ ?F ?G) |- isOLFormula ?F] =>
+      solve [ inversion H;subst;[SolveIS |auto]]
+    | [ H : isOLFormula (t_bin _ ?F ?G) |- isOLFormula ?G] =>
+      solve [ inversion H;subst;[SolveIS |auto]]
+    | [ H : isOLFormula (t_quant _ ?FX) |- isOLFormula (?FX _) ] =>
       solve [ inversion H;subst;[SolveIS|];
               match goal with
                 [ H': lbind 0 _ = lbind 0 FX |- _] =>
-                apply lbindEq in H';auto;rewrite <- H';auto;constructor;auto
+                apply lbindEq in H';auto;rewrite <- H';auto
               end ]
     end;auto.
 

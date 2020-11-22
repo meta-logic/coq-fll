@@ -93,213 +93,62 @@ LJContr : forall L F G, (LJSeq (F :: F:: L)) G -> (LJSeq (F :: L)) G
 | (* Explicit exchange *)
 LJEx : forall L L' G, Permutation L L' -> LJSeq L G -> LJSeq L' G 
 . 
+
 Hint Constructors LJSeq : core .
-
-Definition LEncode L := map (fun x => d| x|) L.
-Definition REncode F := u| F|.
-
-
 Hint Constructors OLTheory buildTheory : core.
-Hint Constructors isOLFormula : core. 
+Hint Constructors  isOLFormula : core. 
+Hint Unfold IsPositiveLAtomFormulaL : core. 
+Hint Constructors IsPositiveRAtomFormula : core .
 
-
-Lemma isOLLencode : forall L, isOLFormulaL L -> IsPositiveLAtomFormulaL (LEncode L).
-Proof with subst;auto.
-  intros.
-  induction L. simpl...
-  inversion H...
-  assert (IsPositiveLAtomFormula (d| a |)).
-  constructor...  
-  apply ForallCons...
-  apply IHL...
-Qed.
-
-Lemma PermutationLEncode : forall L a x x1,
-    Permutation (LEncode L) (d| a | :: x) -> Permutation (a :: x1) L -> Permutation x (LEncode x1).
-Proof with subst;auto.
-  intros.      
-  assert(Permutation (d| a | :: x) (LEncode ((a :: x1)))).
-  {  symmetry.
-     symmetry in H.
-     apply Permutation_map_inv in H.
-     do 2 destruct H.
-     rewrite H.
-     apply Permutation_map.
-     eapply (perm_trans H0 H1). }
-  simpl in H1.
-  eapply (Permutation_cons_inv H1).
-Qed.
-
-Lemma InLEncode : forall L a,
-    In (d| a |) (LEncode L) -> In a L.
-Proof with subst;auto.
-  intros.      
-  apply in_map_iff in H.
-  do 2 destruct H.
-  inversion H...
-Qed.
-
-Lemma isOLFormulaIn : forall F L, 
-    isOLFormulaL L -> In F L -> isOLFormula F. 
+Global Instance LJL_morph : 
+  Proper ((@Permutation uexp) ==> eq ==> iff) (LJSeq).
 Proof.
+  unfold Proper; unfold respectful. 
   intros.
-  unfold isOLFormulaL in H.
-  generalize (Forall_forall isOLFormula L );intro.
-  destruct H1.
-  apply H1 with (x:= F) in H ;auto.
+  split;intros;subst.
+  eapply LJEx;eauto.
+  apply Permutation_sym in H.
+  eapply LJEx;eauto.
 Qed.
-
-Generalizable All Variables.
-Global Instance isOLFormulaL_morph : 
-  Proper ((@Permutation uexp) ==> Basics.impl) (Forall isOLFormula).
-Proof.
-  unfold Proper; unfold respectful; unfold Basics.impl.
-  intros.
-  eapply Forall_Permute;eauto.
-Qed.  
-
-Ltac solveIsOLForm :=
-  repeat
-    match goal with
-    | [ H: isOLFormula (t_quant _ ?FX) |- isOLFormula (?FX ?x) ] => 
-      inversion H;subst; clear H
-    | [ H: isOLConstant (t_quant _ ?FX) |- isOLFormula (?FX ?x) ] => 
-      inversion H;subst;auto       
-    | [ H: isOLFormula (t_bin _ ?A1 ?A2) |- isOLFormula ?A2 ] => 
-      inversion H;subst; clear H
-    | [ H: isOLConstant (t_bin _ ?A1 ?A2) |- isOLFormula ?A2 ] => 
-      inversion H;subst;auto  
-    | [ H: isOLFormula (t_bin _ ?A1 ?A2) |- isOLFormula ?A1 ] => 
-      inversion H;subst; clear H
-    | [ H: isOLConstant (t_bin _ ?A1 ?A2) |- isOLFormula ?A1 ] => 
-      inversion H;subst;auto 
-    | [ H1: isOLFormulaL ?L, H2: isOLFormula (t_bin _ ?A1 ?A2) |- isOLFormulaL (?A1 :: ?L) ] =>
-      inversion H2;subst; clear H2                 
-    | [ H1: isOLFormulaL ?L, H2: isOLConstant (t_bin _ ?A1 ?A2) |- isOLFormulaL (?A1 :: ?L) ] =>
-      inversion H2;subst;auto;apply ForallCons;auto  
-    | [ H1: isOLFormulaL ?L, H2: isOLFormula (t_bin _ ?A1 ?A2) |- isOLFormulaL (?A2 :: ?L) ] =>
-      inversion H2;subst; clear H2                 
-    | [ H1: isOLFormulaL ?L, H2: isOLConstant (t_bin _ ?A1 ?A2) |- isOLFormulaL (?A2 :: ?L) ] =>
-      inversion H2;subst;auto;apply ForallCons;auto           
-    end;auto.
-
-Ltac solveIsOLFormL :=
-  try solveIsOLForm;
-  repeat
-    match goal with
-    | [ H1: isOLFormulaL (?F :: ?M'), H2: isOLFormulaL ?M |- isOLFormulaL (?M ++ [?F]) ] => 
-      assert(Hp: Permutation (M ++ [F]) (F :: M) ) by perm;
-      rewrite Hp;inversion H1;subst;apply ForallCons;auto     
-    | [ H1: isOLFormulaL (?F :: ?M') |- isOLFormula ?F ] => 
-      inversion H1;subst;auto  
-    | [ H1: isOLFormulaL (?F :: ?M) |- isOLFormulaL (?F'::?M) ] => 
-      inversion H1;subst;apply ForallCons;auto  
-    | [ H1: _ |- isOLFormulaL (?F::?M) ] => 
-      try solve [repeat apply ForallCons;auto]          
-    | [ H1: isOLFormulaL (?F :: ?M) |- isOLFormulaL ?M ] => 
-      inversion H1;subst;auto 
-    | [ H1: isOLFormulaL ?M, H2: Permutation ?M ?M' |- _ ] => 
-      rewrite H2 in H1;clear H2
-    | [ H1: isOLFormulaL ?M, H2: Permutation ?M' ?M |- _ ] => 
-      rewrite <- H2 in H1;clear H2         
-    | [ H1: isOLFormulaL (?M++?N) |- isFormulaL ?M ] => 
-      eapply ForallAppInv1;eauto  
-    | [ H1: isOLFormulaL (?M++?N) |- isFormulaL ?N ] => 
-      eapply ForallAppInv2;eauto                      
-    | [ H1: In ?F ?B |- isFormula ?F ] => 
-      apply isOLFormulaIn in H1;auto  
-    end; try solveIsOLForm.
-
-
-Ltac InForall1 :=
-  match goal with
-  | [ H: In ?F (LEncode ?L) |- _ ] => 
-    assert(Ht:In (t_cons FF) L);
-    apply in_map_iff in H;
-    destruct H as [l H'];
-    destruct H' as [H'' H'''];
-    inversion H'';subst;auto;
-    apply InPermutation in Ht;
-    destruct Ht as [t Ht'];symmetry in Ht'
-  end.
-
-Ltac InForall2 :=
-  match goal with
-  | [ H: In ?F (LEncode ?L) |- _ ] => 
-    assert(Hp:exists L', Permutation (LEncode L) (F :: L')) by
-        refine(InPermutation _ _ H); destruct Hp;apply InLEncode in H;
-    apply InPermutation in H;destruct H;symmetry in H
-  end.
-
 
 Ltac solveOLTheory :=
   try
     match goal with
-    | [ H: isOLFormulaL (_  _ ?F::?L)|- OLTheory _ ] => 
-      do 2 constructor;inversion H;subst;auto 
-    | [ H: _|- OLTheory _ ] => 
-      do 2 constructor;auto 
+    | [|- OLTheory _] =>
+      first [ apply ooth_init ; auto ; SolveIS
+            | do 2 constructor;auto ; SolveIS ]
     end.
-
-Ltac simplOLFormulas :=
-  solveOLTheory;
-  try
-    match goal with
-    | [ H: _ |- isOLFormulaL (?F :: ?L)  ] => apply ForallCons;auto        
-                                                                 
-    | [ H: lbind 0 ?FX = lbind 0 ?FX'  |- _ ] => 
-      apply lbindEq in H;auto;rewrite H in *
-    | [ Hx: proper ?x,
-            H: forall t, proper t -> isOLFormula (?FX t)  |- _ ] => 
-      specialize(H x Hx) as Hf;auto
-
-    | [ H: isOLFormula (t_quant _ ?FX) |- _ ] => 
-      inversion H as [ |id H' | | | ];subst;
-      [inversion H'|]       
-    | [ H: isOLFormula (t_bin _ ?A1 ?A2) |- _ ] => 
-      inversion H as [ |id H' | | | ];subst;
-      [inversion H'|]
-    | [ H: isOLFormulaL (t_cons ?C::?L) |- _ ] => 
-      inversion H;subst; auto              
-    | [ H: isOLFormulaL (t_quant _ ?FX::?L) |- _ ] => 
-      inversion H;subst; auto        
-    | [ H: isOLFormulaL (t_bin _ ?A1 ?A2::?L) |- _ ] => 
-      inversion H;subst; auto
-    | [ H: Permutation ?L ?L', H0 : isOLFormulaL ?L' |- _ ] => 
-      assert(isOLFormulaL L);[apply (PermuteMap H0);symmetry;auto|];
-      assert(Permutation (LEncode L) (LEncode L'));[apply Permutation_map; auto|]
-    end;auto.
-
 
 Theorem Soundeness: forall L F, LJSeq L F ->
                                 isOLFormulaL L ->
                                 isOLFormula F ->
-                                seq OLTheory (LEncode L) [ REncode F] (> []).
-Proof with solveF;solveLL;simplOLFormulas.
+                                seq OLTheory (LEncode L) (REncode [F]) (> []).
+Proof with solveF;solveLL;solveOLTheory;SolveIS;solveOLTheory. 
   intros.
   induction H. 
   + (* True on the right *)
     decide3 (makeRuleConstant TT Right)...
-    tensor [REncode (t_cons TT)] (@nil oo).
+    tensor (REncode [t_cons TT]) (@nil oo).
   + (* false on the left *)
     decide3 (makeRuleConstant FF Left)...
-    tensor (@nil oo) [REncode G]...
+    tensor (@nil oo) (REncode [G])...
   + (* init *)
     decide3 (RINIT F)...
-    tensor [REncode F] (@nil oo)...
-  + (* ANDL1 *)
+    tensor (REncode [F]) (@nil oo)...
+  + (* AND *)
     decide3 (makeRuleBin AND Left F G)...      
-    tensor (@nil oo) [REncode R]...
-    LLPerm ( d| t_bin AND F G | :: d| F |  :: d| G| :: LEncode L).
+    tensor (@nil oo) (REncode [R])...
+    LLPerm ( d| t_bin AND F G | :: d| F | :: d| G|  :: LEncode L).
     apply weakening.
     apply IHLJSeq... 
   + (* And R *)
     decide3 (makeRuleBin AND Right F G)...
-    tensor [REncode (t_bin AND F G)] (@nil oo).
-    
+    tensor (REncode [t_bin AND F G]) (@nil oo).
+    apply  IHLJSeq1...
+    apply  IHLJSeq2...
   + (* Or L *)
     decide3 (makeRuleBin OR Left F G)...
-    tensor (@nil oo)  [REncode R]...
+    tensor (@nil oo)  (REncode [R])...
     
     apply weakening. LLPerm(d| F | :: LEncode L).
     apply IHLJSeq1... 
@@ -308,309 +157,191 @@ Proof with solveF;solveLL;simplOLFormulas.
     apply IHLJSeq2...
   +  (* OrR1 *)
     decide3 (makeRuleBin OR Right F G)...
-    tensor [REncode (t_bin OR F G)] (@nil oo). 
-    
+    tensor (REncode [t_bin OR F G]) (@nil oo). 
     oplus1.
+    apply IHLJSeq...
   +  (* OrR2 *)
     decide3 (makeRuleBin OR Right F G)...
-    tensor [REncode (t_bin OR F G)] (@nil oo).
-    
+    tensor (REncode [t_bin OR F G]) (@nil oo).
     oplus2.
+    apply IHLJSeq...
   + (* implication left *)
     decide3 (makeRuleBin IMP Left A B)...
-    tensor (@nil oo) [REncode G]...
-    tensor (@nil oo) [REncode G]. 
-    
+    tensor (@nil oo) (REncode [G])...
+    tensor (@nil oo) (REncode [G])...
     apply weakening.
-    apply IHLJSeq1... 
-    
+    apply IHLJSeq1...
     apply weakening.
     LLPerm (d| B | :: LEncode L ) .
     apply IHLJSeq2... 
   + (* implication right *)
     decide3 (makeRuleBin IMP Right A B)... 
-    tensor [ REncode (t_bin IMP A B)] (@nil oo).
+    tensor (REncode [t_bin IMP A B]) (@nil oo).
     
     LLPerm (d| A | :: LEncode L ) .
     apply IHLJSeq... 
   + (* forall left *)
     decide3 (makeRuleQ ALL Left FX)...
-    tensor (@nil oo) [REncode G]...
-    
+    tensor (@nil oo) (REncode [G])...
     existential t...
     apply weakening.
     LLPerm(d| FX t |:: LEncode L )...
-    
     apply IHLJSeq... 
   + (* forall right *)
     decide3 (makeRuleQ ALL Right FX)...
-    tensor ([REncode (t_quant ALL FX)]) (@nil oo)...
-
+    tensor (REncode [t_quant ALL FX]) (@nil oo)...
     apply H3...
   + (* existst left *)
     decide3 (makeRuleQ SOME Left FX)... 
-    tensor (@nil oo) [REncode G]...
-    
+    tensor (@nil oo) (REncode [G])...
     apply weakening...
     LLPerm(d| FX x |:: LEncode L )...
     apply H3...
   + (* exists right *)
     decide3 (makeRuleQ SOME Right FX)...
-    tensor  [REncode (t_quant SOME FX)] (@nil oo)... 
+    tensor  (REncode [t_quant SOME FX]) (@nil oo)... 
     existential t...
+    apply IHLJSeq...
   + (* contraction *)
     eapply contractionSet with (L0:=LEncode [F]);[firstorder|]...
     apply IHLJSeq...
-    inversion H0...
   + (* exchange *)
-    simplOLFormulas.
-    eapply (exchangeCC H4)...
+    eapply Permutation_map in  H as H'.
+    unfold LEncode; rewrite <- H'...
+    apply IHLJSeq...
+    rewrite H...
+Qed.
+
+Ltac toLJ H :=
+  match (type of H) with
+  | In (u| _ |)(LEncode _ ++ REncode _) =>
+    apply upRight in H; apply OLInPermutation in H;CleanContext
+  | In (d| _ |)(LEncode _) =>
+    apply OLInPermutationL in H;CleanContext;
+    eapply LJEx; [apply Permutation_sym;eauto | ]
+  | seqN _ _ (u| ?F | :: LEncode ?L ++ REncode ?R) [] (> []) =>
+    apply exchangeCCN with (CC' := LEncode L ++ REncode (F :: R)) in H ;[| simpl; perm]
+  | seqN _ _ (u| ?F | :: ?T :: LEncode ?L ++ REncode ?R) [] (> []) =>
+    apply exchangeCCN with (CC' := T :: LEncode L ++ REncode (F :: R)) in H ;[| simpl; perm]
+  | seqN _ _ (d| ?F | :: LEncode ?L ++ REncode ?R) [] (> []) =>
+    apply exchangeCCN with (CC' := LEncode (F :: L) ++ REncode R) in H ;[| simpl; perm]
+  | seqN _ _ (d| ?F | :: ?T :: LEncode ?L ++ REncode ?R) [] (> []) =>
+    apply exchangeCCN with (CC' := T :: LEncode (F::L) ++ REncode R) in H ;[| simpl; perm]
+  end.
+
+Theorem InIsPositiveL: forall F L,  In F (LEncode L) -> IsPositiveAtom F.
+  intros.
+  induction L;inversion H;subst;auto.
 Qed.
 
 Theorem Completeness: forall n L F , 
     isOLFormulaL L ->
     isOLFormula F ->
-    seqN OLTheory n (LEncode L) [ REncode F] (> []) ->
+    seqN OLTheory n (LEncode L)  (REncode [F]) (> []) ->
     LJSeq L F .
-Proof with solveF;solveLL.
+Proof with solveF;solveLL;SolveIS;CleanContext.
   induction n using strongind;intros.
   inversion H1.
 
-  inversion H2...
-  unfold REncode in H4... (* cannot focus on atoms *)
-  apply in_map_iff in H5. (* H5 is inconsistent since F0 must be an atom *)
-  destruct H5... (* H5 is inconsistent since F0 must be an atom *)
-
+  inversion H2;subst.
+  simpl in H5.
+  apply RemoveUnique in H5...
+  apply InIsPositiveL in H5;contradiction.
   inversion H4...
   + (* from the theory *)
     inversion H3...
     ++ (* Constant right *)
-      apply FocusingRightCte in H6;[|apply (isOLLencode H0)].
-      CleanContext.
+      apply FocusingRightCte in H6...
       (* by cases on C *)
       destruct C;simpl in H8...
     ++  (* constant left *)
-      apply FocusingLeftCte in H6;[|apply (isOLLencode H0)].
-      CleanContext.
+      apply FocusingLeftCte in H6...
       (* by cases on C *)
       destruct C;simpl in H8...
-      inversion H8... (* there is no proof o zero *)
-      
-      InForall1. (* FF must be in L *)
-      apply (LJEx Ht').
+      toLJ H7.
       apply LJFALSE.
     ++ (* binary connective right *)
-      apply FocusingRightRule in H6;[|apply (isOLLencode H0)].
-      CleanContext.
+      apply FocusingRightRule in H6...
       (* by cases on C *)
       destruct C;simpl in H8...
       { (* case AND *)
-        apply AppPARTENSORRight in H8.
-        CleanContext.
-        apply LJAndR.
-        apply (H x0);solveIsOLFormL.
-        apply (H x0);solveIsOLFormL. 
+        apply AppPARTENSORRight in H8...
+        apply LJAndR; apply (H x0)...
       }
       { (*  OR *)
-        apply AppWITHPLUSRight in H8.
-        CleanContext.
+        apply AppWITHPLUSRight in H8...
         destruct H8.
         apply LJOrR1.
-        apply (H x0);solveIsOLFormL. 
+        apply (H x0)...
         apply LJOrR2.
-        apply (H x0);solveIsOLFormL. 
+        apply (H x0)...
       }
       { (* impl *)
-        apply AppTENSORPARRight in H8.
-        CleanContext.
+        apply AppTENSORPARRight in H8...
         apply LJImpR.
-        apply (H x0);solveIsOLFormL... 
+        apply (H x0)...
       }
     ++  (* binary connective left *)
-      apply FocusingLeftRule in H6;[|apply (isOLLencode H0)].
-      CleanContext.
+      apply FocusingLeftRule in H6...
       (* by cases on C *)
       destruct C;simpl in H8...
       { (* case AND *)
-        apply AppPARTENSORLeft in H8.
-        CleanContext.
-
-        apply InLEncode in H6.
-        apply InPermutation in H6.
-        destruct H6.
-        assert(Hp : Permutation (LEncode L) (d| t_bin AND F1 G | :: LEncode x)).
-          
-        eapply Permutation_map in H5.
-        simpl in H5. exact H5.
-        symmetry in H5.
-          
-        assert(HF: isOLFormulaL (t_bin AND F1 G :: x)). 
-        rewrite H5;auto.
-          
-        apply (LJEx H5).
+        apply AppPARTENSORLeft in H8...
+        toLJ H7.
         apply LJContr. 
-        apply LJAndL.
-
+        apply LJAndL; rewrite <- H6.
         eapply (H x0)...
-        apply ForallCons...
-        inversion HF.
-        solveIsOLFormL.
-        apply ForallCons...
-        inversion HF.
-        solveIsOLFormL.
-        rewrite  <- Hp...
       }
       { (*  OR *)
-        apply AppWITHPLUSLeft in H8.
-        CleanContext.
-        InForall2.
-        assert(HF: isOLFormulaL (t_bin OR F1 G :: x1)).
-        symmetry in H6.
-        rewrite H6 in H0;auto.
-        
-        inversion HF...
-        
-        apply (LJEx H6).
+        apply AppWITHPLUSLeft in H8...
+        toLJ H7.
         apply LJContr.
-        apply LJOrL.
-        + eapply PermutationLEncode in H6;[|exact H5].
-          eapply (H x0)...
-          solveIsOLFormL.
-          rewrite <- H6.
-          rewrite <- H5...
-        + eapply PermutationLEncode in H6;[|exact H5].
-          
-          eapply (H x0)...
-          solveIsOLFormL.
-          rewrite <- H6.
-          rewrite <- H5...
+        apply LJOrL; rewrite <- H6; eapply (H x0)...
       }
       { (* impl *)
-        apply AppTENSORPARLeft in H8.
-        CleanContext.
-        
-        InForall2.
-        
-        assert(HF: isOLFormulaL (t_bin IMP F1 G :: x1)).
-        symmetry in H6.
-        rewrite H6 in H0;auto. 
-        inversion HF...
-
-        apply (LJEx H6).
+        apply AppTENSORPARLeft in H8...
+        toLJ H7.
         apply LJContr.
-        apply LJImpL.
-        + eapply PermutationLEncode in H6;[|exact H5].
-          
-          eapply (H x0)...
-          solveIsOLFormL.
-          rewrite <- H6.
-          rewrite <- H5...
-        + eapply PermutationLEncode in H6;[|exact H5].
-          
-          eapply (H x0)...
-          solveIsOLFormL.
-          rewrite <- H6.
-          rewrite <- H5...
+        apply LJImpL; rewrite <- H6; eapply (H x0)...
       }
     ++ (* Quantifier right *)
-      apply FocusingRightQ in H6;[|apply (isOLLencode H0)].
-      CleanContext.
+      apply FocusingRightQ in H6...
       (* by cases on C*)
       destruct C;simpl in H9...
       { (* case ALL *)
-        inversion H9...
-        inversion H13...
+        apply AppALLSOMERight in H9...
         apply LJAllR;intros...
-        specialize(H16 x H5).
-        
-        inversion H16...
-        apply H in H19...
-        
-        solveIsOLFormL.
-        apply lbindEq in H11...
-        rewrite <- H11...
+        specialize (H8 x H6).
+        eapply (H x0)...
       }
       { (* case SOME *)
-        inversion H9...
-        inversion H14...
-        inversion H13...
-        apply LJEXR with (t:=t)...
-        apply H in H18...
-        (* This part should be automatic *)
-        solveIsOLFormL.
-        apply lbindEq in H11...
-        rewrite <- H11...
+        apply AppSOMEALLRight in H9...
+        apply LJEXR with (t:=x1)...
+        eapply (H x0)...
       }          
     ++ (* Quantifier left *)
-      apply FocusingLeftQ in H6;[|apply (isOLLencode H0)]. 
-      CleanContext.
+      apply FocusingLeftQ in H6...
       (* by cases on C*)
       destruct C;simpl in H9...
       { (* case ALL *)
-        apply AppALLSOMELeft in H9.
-        CleanContext.
-        
-        inversion H8...
-        inversion H5...
-        
-        InForall2.
-        
-        assert(HF: isOLFormulaL (t_quant ALL FX :: x2)).
-        symmetry in H6.
-        rewrite H6 in H0;auto. 
-        inversion HF...
-        
-        apply (LJEx H6).
+        apply AppALLSOMELeft in H9...
+        toLJ H8.
         apply LJContr.
-        eapply LJAllL with (t:=x1)...
-        
-        eapply PermutationLEncode in H6;[|exact H5].
-        
-        eapply (H x0)...
-        apply ForallCons...
-        specialize(H13 x1 H9).
-        apply lbindEq in H11...
-        
-        rewrite H11 in H13...
-        
-        rewrite <- H6.
-        rewrite <- H5...
+        apply LJAllL with (t:= x1)...
+        rewrite <- H6; eapply (H x0)...
       }
       { (* case SOME *)
-        apply AppSOMEALLLeft in H9.
-        CleanContext.
-        
-        inversion H8...
-        inversion H5...
-        InForall2.
-        
-        assert(HF: isOLFormulaL (t_quant SOME FX :: x1)).
-        symmetry in H6.
-        rewrite H6 in H0;auto. 
-        inversion HF...
-        
-        apply (LJEx H6).
+        apply AppSOMEALLLeft in H9...
+        toLJ H8.
         apply LJContr.
-        eapply LJEXL...
-        intros.
-        
-        eapply PermutationLEncode in H6;[|exact H5].
-        
-        eapply (H x0)...
-        apply ForallCons...
-        specialize(H12 x2 H13).
-        apply lbindEq in H10...
-        
-        rewrite H10 in H12...
-        
         rewrite <- H6.
-        rewrite <- H5...
+        apply LJEXL;intros...
+        specialize (H9 _ H8).
+        eapply (H x0)...
       }
   + (* init *)
-    apply Init_inversion1 in H6;[|apply (isOLLencode H0)]...
-    
-    InForall2. (* OO in L *)
-    apply (LJEx H7).
+    apply Init_inversion1 in H6...
+    toLJ H6.
     apply LJinit.
 Qed.
 
@@ -618,7 +349,7 @@ Theorem Adequacy:  forall L F ,
     isOLFormulaL L ->
     isOLFormula F ->
     (
-      seq OLTheory  (LEncode L) [ REncode F] (> []) <->
+      seq OLTheory  (LEncode L) (REncode [F]) (> []) <->
       LJSeq L F ).
 Proof with solveF;solveLL.
   intros.

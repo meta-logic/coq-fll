@@ -120,6 +120,15 @@ Proof.
 Qed.
 
 
+Ltac solveOLTheory :=
+  try
+    match goal with
+    | [|- OLTheory _] =>
+      first [ apply ooth_init ; auto ; SolveIS
+            | do 2 constructor;auto ; SolveIS ]
+    end.
+
+    
 Ltac toLK H :=
   match (type of H) with
   | In (u| _ |)(LEncode _ ++ REncode _) =>
@@ -138,26 +147,13 @@ Ltac toLK H :=
     apply exchangeCCN with (CC' := T :: LEncode (F::L) ++ REncode R) in H ;[| simpl; perm]
   end.
 
-
-
-Ltac solveOLTheory :=
-  try
-    match goal with
-    | [H : isOLFormulaL (?F :: _) |-  OLTheory (RINIT ?F)] =>
-      solve [inversion H0; apply ooth_init;auto]
-    | [ H: isOLFormulaL (_  _ ?F::?L)|- OLTheory _ ] =>
-      solve [do 2 constructor;inversion H;subst;auto ]
-    | [ H: _|- OLTheory _ ] =>
-      solve [do 2 constructor;auto ]
-    end.
-
 Theorem Soundeness: forall L L', LKSeq L L' ->
                                  isOLFormulaL L ->
                                  isOLFormulaL L' ->
                                  seq OLTheory (LEncode L ++  REncode L') [] (> []).
-Proof with solveF;solveLL;solveOLTheory;SolveIS. 
+Proof with solveF;solveLL;SolveIS;solveOLTheory.
   intros.
-  induction H. 
+  induction H.
   + (* True on the right *)
     decide3 (makeRuleConstant TT Right)...
     apply in_or_app...
@@ -169,7 +165,7 @@ Proof with solveF;solveLL;solveOLTheory;SolveIS.
     right...
     apply in_or_app...
   + (* ANDL1 *)
-    decide3 (makeRuleBin AND Left F G)...      
+    decide3 (makeRuleBin AND Left F G)...
     LLPerm (d| t_bin AND F G | :: d| F | ::  d| G | :: (LEncode L ++ REncode L')).
     apply weakening.
     apply IHLKSeq...
@@ -248,11 +244,9 @@ Proof with solveF;solveLL;solveOLTheory;SolveIS.
     simpl.
     assert(seq OLTheory (d| F | :: d| F | :: LEncode L ++ REncode L') [] (> [])).
     apply IHLKSeq...
-    constructor...
     eapply contraction in H2...
   + assert (seq OLTheory (LEncode L ++ REncode (F :: F :: L')) [] (> [])).
     apply IHLKSeq...
-    constructor...
     simpl in H2.
     LLPermH H2 (u| F | :: u| F | :: LEncode L ++  REncode L') .
     simpl.
