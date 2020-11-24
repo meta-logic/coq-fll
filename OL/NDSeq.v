@@ -5,7 +5,7 @@ sequent calculus for minimal logic. Then, using the
 cut-elimination theorem of LL we prove the relative completeness of
 these systems
  *)
-
+Require Import FLL.Misc.Permutations.
 Require Import FLL.SL.CutElimination.
 Require Export FLL.OL.LM.
 
@@ -31,6 +31,11 @@ Definition CONJ_INTRO F G := (perp (up (t_bin AND F G))) ** (  (atom (up F)) & (
 Definition ALL_ELIMINATION FX := E{ fun t => (perp ( up (FX t))) ** (! atom (up( t_quant ALL FX)))}.
 Definition ALL_INTRO FX  := (perp (up ( t_quant ALL FX))) ** F{ fun t => atom (up (FX t))}.
 
+Notation "F *** G" := (t_bin AND F G) (at level 10) .
+Notation "F ---> G" := (t_bin IMP F G) (at level 10) .
+Notation "'FALL' FX " := (t_quant ALL FX) (at level 10).
+
+
 (** Natural deduction system *)
 Inductive NM : oo -> Prop :=
 | IMP_I : forall F G, isOLFormula F -> isOLFormula G ->
@@ -45,6 +50,21 @@ Inductive NM : oo -> Prop :=
                      NM (ALL_INTRO FX)
 | ALL_E : forall FX , uniform FX -> (forall t, proper t -> isOLFormula (FX t)) ->
                       NM (ALL_ELIMINATION FX ).
+
+Inductive NMSeq : list uexp -> uexp -> Prop :=
+| NMinit : forall L F,  NMSeq (F:: L) F
+| NMImpElim: forall L A B , isOLFormula A -> NMSeq L A -> NMSeq L (A ---> B) -> NMSeq L B
+| NMImpIntro: forall L A B, NMSeq (A :: L) B  -> NMSeq L (A ---> B)
+| NMAndElim1 : forall L A B, isOLFormula B -> NMSeq L (A *** B) -> NMSeq L A
+| NMAndElim2 : forall L A B, isOLFormula A -> NMSeq L (A *** B) -> NMSeq L B
+| NMAndIntro : forall L A B, NMSeq L A -> NMSeq L B -> NMSeq L (A *** B)
+| NMAllElim :forall L FX t, isOLFormula (FALL FX) -> uniform FX -> proper t -> NMSeq L (FALL FX) -> NMSeq L (FX t)
+| NMAllIntro : forall L FX, uniform FX -> (forall t, proper t -> NMSeq  L (FX t)) -> NMSeq L (FALL FX)
+| (* Explicit exchange *)                                                       
+NMEx : forall L L' G, Permutation L L' -> NMSeq L G -> NMSeq L' G
+| (* Contraction *)
+NMContr : forall L F G, (NMSeq (F :: F:: L)) G -> (NMSeq (F :: L)) G
+.
 
 (* A Theory including TH + INIT + CUT + CUTi *)
 Inductive StrRulesPOS : oo -> Prop :=
@@ -614,8 +634,361 @@ Proof with solveF;SolveIsFormulas.
   inversion H4...
 Qed.
 
+
+
+
+Hint Constructors NMSeq : core .
+Hint Constructors OLTheory buildTheory : core.
+Hint Constructors  isOLFormula : core. 
+Hint Unfold IsPositiveLAtomFormulaL : core. 
+Hint Constructors IsPositiveRAtomFormula : core .
+
+Global Instance NML_morph : 
+  Proper ((@Permutation uexp) ==> eq ==> iff) (NMSeq).
+Proof.
+  unfold Proper; unfold respectful. 
+  intros.
+  split;intros;subst.
+  eapply NMEx;eauto.
+  apply Permutation_sym in H.
+  eapply NMEx;eauto.
+Qed.
+
+Ltac solveOLTheory :=
+  try
+    match goal with
+    | [|- NMSTR _] =>
+      first [ apply ooth_init ; auto ; SolveIS
+            | do 2 constructor;auto ; SolveIS ]
+    end.
+
+Lemma temp: forall FX, uniform FX -> uniform (fun _ : uexp => t_quant ALL FX).
+  intros.
+  unfold t_quant.
+  apply uniform_app.
+  apply uniform_con.
+  apply abstr_lambda;auto.
+Qed.
+
+Theorem Soundeness: forall L F, NMSeq L F ->
+                                isOLFormulaL L ->
+                                isOLFormula F ->
+                                seq NMSTR (LEncode L) (REncode [F]) (> []).
+Proof with solveF;solveLL;solveOLTheory;SolveIS;solveOLTheory.
+  intros.
+  induction H. 
+  + (* init *)
+    decide3 (RINIT F)...
+    tensor (REncode [F]) (@nil oo)...
+  + (* IMP Elimination *)
+    decide3 (IMP_ELIMINATION  A B)...
+    tensor [u| B |] (@nil oo).
+    tensor [u| B |] (@nil oo).
+  + (* IMP introduction *)
+    inversion H1...
+    decide3 (IMP_INTRO  A B)...
+    tensor  [u| A ---> B |] (@nil oo).
+    assert(Permutation (LEncode L ++ [d| A |]) (LEncode (A :: L))).
+    rewrite Permutation_app_comm...
+    rewrite H2;apply IHNMSeq...
+  + (* AND Elimination 1*)
+    decide3 (CONJ_ELIMINATION  A B)...
+    unfold CONJ_ELIMINATION.
+    tensor  [u| A  |] (@nil oo).
+  + (* AND Elimination 2 *)
+    decide3 (CONJ_ELIMINATION  A B)...
+    unfold CONJ_ELIMINATION.
+    tensor  [u| B  |] (@nil oo).
+  + (* AND Intro *)
+    inversion H1...
+    decide3 (CONJ_INTRO  A B)...
+    tensor [u| A *** B |] (@nil oo).
+  + (* ALL Elim *)
+    decide3 (ALL_ELIMINATION  FX)...
+    intros.
+    inversion H...
+    existential t...
+    tensor  [u| FX t |] (@nil oo).
+  + (* ALL Intro *)
+    decide3 (ALL_INTRO FX)...
+    intros.
+    inversion H1...
+    tensor [u| FALL FX |] (@nil oo).
+    specialize (H3 x properX)...
+    apply H3...
+  +  (* Exchange *)
+    eapply Permutation_map in  H as H'.
+    unfold LEncode; rewrite <- H'...
+    apply IHNMSeq...
+    rewrite H...
+  + (* Contraction *)
+    eapply contractionSet with (L0:=LEncode [F]);[firstorder|]...
+    apply IHNMSeq...
+Qed.
+
+Ltac toNM H :=
+  match (type of H) with
+  | In (u| _ |)(LEncode _ ++ REncode _) =>
+    apply upRight in H; apply OLInPermutation in H;CleanContext
+  | In (d| _ |)(LEncode _) =>
+    apply OLInPermutationL in H;CleanContext;
+    eapply NMEx; [apply Permutation_sym;eauto | ]
+  | seqN _ _ (u| ?F | :: LEncode ?L ++ REncode ?R) [] (> []) =>
+    apply exchangeCCN with (CC' := LEncode L ++ REncode (F :: R)) in H ;[| simpl; perm]
+  | seqN _ _ (u| ?F | :: ?T :: LEncode ?L ++ REncode ?R) [] (> []) =>
+    apply exchangeCCN with (CC' := T :: LEncode L ++ REncode (F :: R)) in H ;[| simpl; perm]
+  | seqN _ _ (d| ?F | :: LEncode ?L ++ REncode ?R) [] (> []) =>
+    apply exchangeCCN with (CC' := LEncode (F :: L) ++ REncode R) in H ;[| simpl; perm]
+  | seqN _ _ (d| ?F | :: ?T :: LEncode ?L ++ REncode ?R) [] (> []) =>
+    apply exchangeCCN with (CC' := T :: LEncode (F::L) ++ REncode R) in H ;[| simpl; perm]
+  end.
+
+
+Lemma AppUnq : forall {T:Type} (L L' : list T) A, [A] = L ++ L' ->  (L = [A] /\ L' = []) \/ ( L = [] /\ L' = [A]).
+  intros.
+  remember (L ++ L').
+  destruct l;inversion H;subst.
+  destruct L.
+  simpl in Heql;subst;firstorder.
+  inversion Heql.
+  apply AppNilNil in H2;destruct H2;subst;firstorder.
+Qed.
+
+Lemma AbsoroptionAtom : forall th n Gamma Delta A X,
+    seqN th n Gamma ( atom A::Delta)  X ->
+    seqN th n (atom A :: Gamma) Delta  X.
+Proof with solveF.
+  induction n using strongind ;intros.
+  inversion H;solveF;solveLL...
+  inversion H0;solveF;solveLL...
+  + apply PermutationInCons in H2 as H2'.
+    apply in_app_or in H2'.
+    destruct H2'.
+    { apply InPermutation in H1.
+      destruct H1.
+      rewrite H1 in H2;simpl in H2.
+      apply Permutation_cons_inv in H2.
+      rewrite H1 in H3.
+      apply H in H3...
+      tensor x N.
+      apply weakeningN...
+    }
+    {
+      apply InPermutation in H1.
+      destruct H1.
+      rewrite H1 in H2;simpl in H2.
+      rewrite <- perm_takeit_2 in H2.
+      apply Permutation_cons_inv in H2.
+      rewrite H1 in H4.
+      apply H in H4...
+      tensor M x.
+      apply weakeningN...
+    }
+  + inversion H3...
+    apply H in H4...
+    decide1 F;eauto.
+  + apply H in H4...
+    decide2 F...
+  + apply H in H4...
+    decide3 F.
+  + apply H in H4...
+    existential t.
+Qed.
+
+Theorem OnlyLeft : forall n L, ~  seqN NMSTR n (LEncode L) [] (> []).
+Proof with solveF.
+  induction n using strongind;intros;intro Hneg;
+    inversion Hneg...
+  inversion H2.
+  apply InIsPositiveL in H2...
+  inversion H1...
+  + (* rule *)
+    inversion H0...
+    ++ FLLInversionAll.
+       simpl in H8. 
+       apply Permutation_nil in H8;inversion H8.
+       apply NoUinL in H9;contradiction.
+    ++ FLLInversionAll.
+       simpl in H9.
+       rewrite app_nil_r in H8.
+       apply Permutation_nil in H8...
+       apply Permutation_nil in H9...
+       apply NoUinL in H7;contradiction.
+    ++ FLLInversionAll.
+       apply Permutation_nil in H8...
+       inversion H8...
+       apply NoUinL in H9;contradiction.
+    ++ FLLInversionAll.
+       apply Permutation_nil in H8... inversion H8.
+       apply NoUinL in H7;contradiction.
+       apply Permutation_nil in H8... inversion H8.
+       apply NoUinL in H7;contradiction.
+    ++ FLLInversionAll.
+       apply Permutation_nil in H8... inversion H8.
+       apply NoUinL in H9;contradiction.
+    ++ FLLInversionAll.
+       apply Permutation_nil in H9... inversion H9.
+       apply NoUinL in H10;contradiction.
+  +  (* Structural *)
+    inversion H0...
+    ++ (* CUTPOS *)
+      unfold RCUTPOS in H3.
+      FLLInversionAll.
+      rewrite app_nil_r in H7.
+      apply Permutation_nil in H7...
+      assert (n0 <= S (S (S n0)) ) by lia.
+      specialize (H n0 H3 ((L ++ [F0 ]))).
+      apply H.
+      unfold LEncode in *.
+      rewrite map_app...
+    ++ (* CUT *)
+      unfold RCUT in H3.
+      FLLInversionAll.
+      apply Permutation_nil in H7...
+      apply app_eq_nil in H7...
+      apply AbsoroptionAtom in H16.
+      assert (n0 <= S (S (S n0)) ) by lia.
+      specialize (H n0 H3 (F0 :: L)).
+      apply H...
+    ++ (* POS *)
+      unfold POS in H3.
+      FLLInversionAll.
+      apply Permutation_nil in H7... inversion H7.
+      assert (n0 <= S (S (S n0)) ) by lia.
+      specialize (H n0 H6 (L ++ [F0])).
+      apply H...
+      unfold LEncode in *.
+      rewrite map_app...
+      LLExact H13.
+      rewrite H7...
+    ++ (* INit *)
+      FLLInversionAll.
+      apply Permutation_nil in H7... inversion H7.
+      apply NoUinL in H8;contradiction.
+      apply Permutation_nil in H7... inversion H7.
+      apply NoUinL in H9;contradiction.
+Qed.
+
+       
+Theorem Completeness: forall n L F , 
+    isOLFormulaL L ->
+    isOLFormula F ->
+    seqN NMSTR n (LEncode L)  (REncode [F]) (> []) ->
+    NMSeq L F .
+Proof with solveF;solveLL;SolveIS;CleanContext.
+  induction n using strongind;intros.
+  inversion H1.
+  inversion H2;subst.
+  simpl in H5.
+  apply RemoveUnique in H5...
+  apply InIsPositiveL in H5;contradiction.
+  inversion H4...
+  + (* from the theory *)
+    inversion H3;clear H2...
+    ++ (* IMP Intro *)
+      FLLInversionAll.
+      inversion H9...
+      apply NMImpIntro.
+      eapply (H n0)...
+      LLExact H16.
+      apply NoUinL in H10;contradiction.
+    ++ (* IMP Elimination *)
+      FLLInversionAll.
+      rewrite app_nil_r in H9...
+      rewrite app_nil_r in H10...
+      apply NMImpElim with (A:= F1)...
+      eapply (H n)...
+      eapply (H (S n))...
+      apply NoUinL in H8;contradiction.
+    ++ (* Conj Intro *)
+      FLLInversionAll.
+      inversion H9...
+      apply NMAndIntro;eapply (H n)...
+      apply NoUinL in H10;contradiction.
+    ++ (* Conj Elim *)
+      FLLInversionAll.
+      rewrite app_nil_r in H9...
+      apply NMAndElim1 with (B:=G)...
+      apply (H n0)...
+      rewrite app_nil_r in H9...
+      apply NMAndElim2 with (A:=F1)...
+      apply (H n0)...
+    ++ (* All Intro *)
+      FLLInversionAll.
+      inversion H9...
+      apply NMAllIntro...
+      intros.
+      specialize (H16 _ H6).
+      invTri H16.
+      apply (H n)...
+      apply NoUinL in H10;contradiction.
+    ++ (* All Elim *)
+      FLLInversionAll.
+      inversion H10...
+      apply NMAllElim ...
+      apply (H n)...
+  + (* Structural rule *)
+    inversion H3;clear H2...
+    ++ (* CUTPOS *)
+      unfold RCUTPOS in H6.
+      FLLInversionAll.
+      rewrite app_nil_r in H8.
+      apply Permutation_unq in H8...
+      apply NMImpElim with (A:=F1)...
+      apply (H n0)...
+      apply NMImpIntro.
+      apply (H n0)...
+      LLExact H12.
+    ++ (* CUT LIN *)
+      unfold RCUT in H6.
+      FLLInversionAll.
+      apply Permutation_unq in H8...
+      symmetry in H8.
+      apply AppUnq in H8.
+      destruct H8...
+      apply AbsoroptionAtom in H17.
+      assert( seqN NMSTR n0 (LEncode ( F1 ::  L)) [] (> [])).
+      LLExact H17.
+      apply OnlyLeft in H2...
+      rewrite Permutation_app_comm in H17;simpl in H17.
+      apply AbsoroptionAtom in H17.
+      apply NMImpElim with (A:=F1)...
+      apply (H n0)...
+      apply NMImpIntro.
+      apply (H n0)...
+    ++ (* POS *)
+      unfold POS in H6.
+      FLLInversionAll.
+      inversion H8...
+      rewrite Permutation_app_comm in H14;simpl in H14.
+      apply contractionN in H14...
+      apply (H n0)...
+    ++ FLLInversionAll;
+         inversion H8...
+       apply in_map_iff in H7...
+       inversion H7...
+       apply InPermutation in H9...
+       rewrite H7.
+       apply NMinit.
+Qed.
+
+
+Theorem Adequacy:  forall L F , 
+    isOLFormulaL L ->
+    isOLFormula F ->
+    seq NMSTR  (LEncode L)  (REncode [F]) (> []) <->
+    NMSeq L F .
+Proof with solveF.
+  split;intros.
+  apply seqtoSeqN in H1;CleanContext.
+  eapply Completeness;eauto.
+  apply Soundeness in H1...
+Qed.
+
+
+      
 (** Mutual relative completeness of natural deduction and sequent calculus.  *)
-Theorem Adequacy: forall F, isOLFormula F -> 
+Theorem NDSeqAdequacy: forall F, isOLFormula F -> 
                             (seq SEQSTR  [] [ atom (up F) ] (> [ ]))  <->
                             (seq NMSTR  [] [ atom (up F) ]  (> [ ])).
 Proof with solveF;SolveIsFormulas.
