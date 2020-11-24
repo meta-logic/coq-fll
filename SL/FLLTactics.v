@@ -29,7 +29,7 @@ Ltac solveUniform :=
   repeat 
     match goal with
     | [|- uniform_oo _] =>  constructor 
-    | [|- uniform _ ] => eauto 10  using uniform_id, uniform_con, uniform_app, proper_uniform
+    | [|- uniform _ ] => eauto 10  using uniform_id, uniform_con, uniform_app, proper_uniform, abstr_lambda
     | [|- uniform_atm _ ] => constructor
     | [|- proper _ ] => constructor
     | [|- level _ _ ] => constructor
