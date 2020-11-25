@@ -570,44 +570,30 @@ Ltac CleanContext :=
     end;subst.
 
 (* Check if the permutation P applies to the sequent in H and rewrites it *)
-Ltac LLPermH H P :=
+Ltac LLPermH H LI :=
   match goal with
-  | [ H : seqN _ _ ?Gamma ?Delta _ |- _] =>
-    let HP := fresh "H" in
-    first[
-        assert(HP : Permutation Gamma P ) by perm; rewrite HP in H;clear HP
-      | assert(HP : Permutation Delta P ) by perm; rewrite HP in H;clear HP
-      ]
-  |[ H : seq _ ?Gamma ?Delta _ |- _] =>
-   let HP := fresh "H" in
-   first[
-       assert(HP : Permutation Gamma P ) by perm; rewrite HP in H;clear HP
-     | assert(HP : Permutation Delta P ) by perm; rewrite HP in H;clear HP
-                                               
-     ]
+  | [ H : seqN _ _ _ _ _ |- _] =>
+          first[ apply exchangeLCN with (LC' := LI) in H ;[|perm]
+               | apply exchangeCCN with (CC' := LI) in H ;[|perm]]
+  | [ H : seq _ _ _ _ |- _] =>
+          first[ apply exchangeLC with (LC' := LI) in H ;[|perm]
+               | apply exchangeCC with (CC' := LI) in H ;[|perm]]
   end.
-Ltac LLPerm P :=
+Ltac LLPerm LI :=
   match goal with
-  | [ |- seqN _ _ ?Gamma ?Delta _ ] =>
-    let HP := fresh "H" in
-    first[
-        assert(HP : Permutation Gamma P ) by perm; rewrite HP;clear HP
-      | assert(HP : Permutation Delta P ) by perm; rewrite HP;clear HP
-      ]
-  |[ |- seq _ ?Gamma ?Delta _ ] =>
-   let HP := fresh "H" in
-   first[
-       assert(HP : Permutation Gamma P ) by perm; rewrite HP;clear HP
-     | assert(HP : Permutation Delta P ) by perm; rewrite HP;clear HP
-     ]
-  end.
-  
+  | [ |- seqN _ _ _ _ _ ] =>
+          first[ apply exchangeLCN with (LC := LI);[perm|]
+               | apply exchangeCCN with (CC := LI);[perm|]]
+  | [ |- seq _ _ _ _ ] =>
+          first[ apply exchangeLC with (LC := LI);[perm|]
+               | apply exchangeCC with (CC := LI);[perm|]]
+end.
 
 (** "rewrite perm_swap in H" would be enough for exchanging the first 2
 elements of a list. However, such rewrite is quite slow (probably for
 Coq's search mechanism in Class Instances). This tactic implement the
 same step without using rewriting *)
-Ltac permswap H :=
+Ltac LLSwapH H :=
         let Hs := type of H in 
         match Hs with
         |  (seqN _ _ (?F :: ?G :: ?L) _ _) =>
@@ -615,3 +601,12 @@ Ltac permswap H :=
         |  (seq  _ (?F :: ?G :: ?L) _ _) =>
            apply exchangeCC with (CC':= (G :: F :: L)) in H;[|perm]
         end.
+
+Ltac LLSwap :=
+  match goal with
+  | [ |-seqN _ _ (?A :: ?B :: ?G) _ _] => LLPerm (B :: A :: G)
+  | [ |-seqN _ _ _ (?A :: ?B :: ?G) _] => LLPerm (B :: A :: G)
+  | [ |-seq  _ (?A :: ?B :: ?G) _ _] => LLPerm (B :: A :: G)
+  | [ |-seq  _ _ (?A :: ?B :: ?G) _] => LLPerm (B :: A :: G)
+  end.
+

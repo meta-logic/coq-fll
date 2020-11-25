@@ -38,7 +38,6 @@ Hint Constructors isOLFormula : core.
 Hint Constructors IsPositiveLAtomFormula : core .
 Hint Unfold IsPositiveLAtomFormulaL : core.
 
-
 (** This tactic solves most of the [IsPositiveLSolve] goals *)
 Ltac IsPositiveLSolve :=
   match goal with
@@ -153,7 +152,6 @@ Section CutCoherence.
       tensor [( d^| A |)]  (@nil oo).
       decide1 (d^|A|).
       decide2 (u^|A|).
-      
       decide3 (RCUTPOS B)...
       apply @ctn with (m:=m)... 
       tensor   [ d^| B |]  (@nil oo).
@@ -428,8 +426,6 @@ Section Bipoles.
     inversion H;subst.
     apply oothc_cutn;auto.
   Qed.
-
-  Hint Unfold down' up' : core .
 
   (** ** Invertibility lemmas *)
   (** In the following we prove that, when focusing on the bipole
@@ -885,7 +881,7 @@ Section OLCutElimination.
   Hint Unfold makeRuleConstant makeRuleBin (*makeLRuleQ makeRRuleQ*) : core.
   Hint Constructors  OLTheoryCut OLTheory  : core.
   Hint Unfold RINIT RCUTPOS : core.	
-  Hint Unfold down' up' : core .
+  Hint Unfold down up : core .
 
   Theorem TheoryCutIsFormula n F:
     OLTheoryCut n F -> isFormula F.
@@ -966,7 +962,7 @@ Section OLCutElimination.
       rewrite <- Heqr... solveLL.
       rewrite Permutation_app_comm...
       apply IH with (m:=x0 + S (S h2)) (h2 := S (S h2))  (h1:= x0) (FCut:=FCut)...
-      rewrite perm_swap...
+      LLSwap...
       eapply weakeningN...
     + apply AppPLUSWITHRight in H1.
       CleanContext.
@@ -1100,7 +1096,7 @@ Section OLCutElimination.
            rewrite <- Heqr...
            solveLL...
            rewrite Permutation_app_comm...
-           rewrite perm_swap in H4.
+           LLSwapH H4.
            apply IH with (m:=x0 + S (S h2)) (h2:=S (S h2))  (h1:= x0) (FCut:=(t_cons C))...
            apply weakeningN...
         ++ apply AppPLUSWITHRight in H4.
@@ -1136,8 +1132,8 @@ Section OLCutElimination.
            inversion H3...
            decide3 (makeRuleBin C0 Left F0 G)...
            tensor (@nil oo) [u| R |].
-           permswap H6.
-           permswap H7.
+           LLSwapH H6.
+           LLSwapH H7.
            rewrite <- Heqr... solveLL;rewrite Permutation_app_comm...
            
            apply IH with (m:=x0 + S (S h2)) (h2:=S (S h2))  (h1:= x0) (FCut:=(t_cons C))...
@@ -1154,7 +1150,7 @@ Section OLCutElimination.
            tensor (@nil oo) [u| R |].
            apply IH with (m:=x0 + S (S h2)) (h2:=S (S h2))  (h1:= x0) (FCut:=(t_cons C))...
            rewrite Permutation_app_comm...
-           permswap H7.
+           LLSwapH H7.
            apply IH with (m:=x0 + S (S h2)) (h2:=S (S h2))  (h1:= x0) (FCut:=(t_cons C))...
            eapply weakeningN...
         ++ apply AppPLUSWITHLeft in H4.
@@ -1164,14 +1160,14 @@ Section OLCutElimination.
            tensor (@nil oo) [u| R |].
            destruct H6.
            
-           permswap H4.
+           LLSwapH H4.
            rewrite <- Heqr...
            oplus1.
            rewrite Permutation_app_comm...
            apply IH with (m:=x0 + S (S h2)) (h2:=S (S h2))  (h1:= x0) (FCut:=(t_cons C))...
            eapply weakeningN...
 
-           permswap H4.
+           LLSwapH H4.
            rewrite <- Heqr...
            oplus2.
            rewrite Permutation_app_comm...
@@ -1530,7 +1526,8 @@ Section OLCutElimination.
             invTri H5.
             invTri H12.
             invTri H13.
-            LLPermH H12  (d| t_quant C0 FX| :: d| FX0 t | :: Gamma ).
+            repeat fold down in H12. fold up in H12.
+            LLPermH H12  (d| t_quant C0 FX| :: d| FX0 t| :: Gamma ).
             assert (Cut1: seq (OLTheoryCut (pred n)) (d| FX0 t| :: Gamma) [u| R |] (> [])) .
             {
               apply IH with (h1 := n0) (h2:=S (S h2)) (m := n0+ S (S h2)) (FCut:= t_quant C0 FX)...
@@ -1580,7 +1577,8 @@ Section OLCutElimination.
             tensor (@nil oo) [u| R |].
             rewrite <- Heqq.
             existential t...
-            LLPermH  H12 (d| t_quant C FX | :: d| FX0 t| :: Gamma).
+            repeat fold down in H11. fold up in H12.
+            LLPermH  H12 (atom (down' (t_quant C FX)) :: atom (down' (FX0 t)) :: Gamma).
             LLPerm  (d| FX0 t | :: Gamma ).
             apply IH with (h1 := n0) (h2:=S (S h2)) (m := n0+ S (S h2)) (FCut:= t_quant C FX)...
             eapply weakeningN...
@@ -1601,7 +1599,9 @@ Section OLCutElimination.
             specialize(H13 (Var 0) (proper_VAR _ 0)).  inversion H13.
             assert (forall x, proper x -> seqN OLTheory n1 (d| t_quant C0 FX | ::  d| FX0 x | :: Gamma) [u| R |] (> [])).
             intros.
-            specialize(H13 x H0). invTri H13. LLExact H11. clear H13.
+            specialize(H13 x H0). invTri H13.
+            repeat fold down in H11. fold up in H11.
+            LLExact H11. clear H13.
             
             assert (Cut1: forall t, proper t -> seq (OLTheoryCut (pred n)) (d| FX0 t| :: Gamma) [u| R |] (> [])) .
             {
@@ -1652,6 +1652,7 @@ Section OLCutElimination.
             LLPerm  (d| FX0 x | :: Gamma ).
             specialize (H13 x properX).
             inversion H13...
+            repeat fold down in H10. fold up in H10.
             LLPermH  H10 (d| t_quant C FX | :: d| FX0 x| :: Gamma).
             apply IH with (h1 := n0) (h2:=S (S h2)) (m := n0+ S (S h2)) (FCut:= t_quant C FX)...
             eapply weakeningN...
@@ -1743,8 +1744,8 @@ Section OLCutElimination.
           +++ apply AppWITHPLUSLeft in H5.
               CleanContext.
               inversion H3...
-              permswap H5.
-              permswap H6.
+              LLSwapH H5.
+              LLSwapH H6.
               assert(Cut1:  seq (OLTheoryCut (pred n))  (d| F0 | :: Gamma) [u| R |] (> [])).
               apply IH with (h1 := x0) (h2:=S (S h2)) (m := x0+ S (S h2)) (FCut:= t_bin C0 F0 G)...
               apply weakeningN...
@@ -1760,7 +1761,7 @@ Section OLCutElimination.
           +++ apply AppTENSORPARLeft in H5.
               CleanContext.
               inversion H3...
-              permswap H6.
+              LLSwapH H6.
               assert(Cut1:  seq (OLTheoryCut (pred n))  Gamma [u| F0 |] (> [])).
               apply IH with (h1 := x0) (h2:=S (S h2)) (m := x0+ S (S h2)) (FCut:= t_bin C0 F0 G)...
               assert(Cut1':  seq (OLTheoryCut (pred n))  (d|G| :: Gamma) [u| R |] (> [])).
@@ -1775,7 +1776,7 @@ Section OLCutElimination.
               CleanContext.
               inversion H3...
               destruct H5.
-              {permswap H0.
+              {LLSwapH H0.
                assert(Cut1:  seq (OLTheoryCut (pred n))  (d| F0 | :: Gamma) [u| R |] (> [])).
                apply IH with (h1 := x0) (h2:=S (S h2)) (m := x0+ S (S h2)) (FCut:= t_bin C0 F0 G)...
                apply weakeningN...
@@ -1785,7 +1786,7 @@ Section OLCutElimination.
                assert(Cut3: seq (OLTheoryCut (pred n)) Gamma [] (>> ! RulesDefs PLUSWITH Right F0 G)) by (eapply PlusWithInvR;eauto).
                eapply CutObjectLL;eauto.
               }
-              {permswap H0.
+              {LLSwapH H0.
                assert(Cut1:  seq (OLTheoryCut (pred n))  (d| G | :: Gamma) [u| R |] (> [])).
                apply IH with (h1 := x0) (h2:=S (S h2)) (m := x0+ S (S h2)) (FCut:= t_bin C0 F0 G)...
                apply weakeningN...
@@ -1812,8 +1813,8 @@ Section OLCutElimination.
               CleanContext.
               decide3 (makeRuleBin C0 Left F0 G  ) .
               tensor (@nil oo) [u| R |].
-              permswap H6.
-              permswap H7.
+              LLSwapH H6.
+              LLSwapH H7.
               rewrite <- Heqr... solveLL;rewrite Permutation_app_comm...
               eapply IH with (h1 := x0) (h2:=S (S h2)) (m := x0+ S (S h2)) (FCut:= t_bin C A B)...
               eapply weakeningN...
@@ -1822,7 +1823,7 @@ Section OLCutElimination.
           +++ apply AppTENSORPARLeft in H5.
               CleanContext.
               decide3 (makeRuleBin C0 Left F0 G  ) .
-              permswap H7.
+              LLSwapH H7.
               tensor (@nil oo) [u| R |].
               rewrite <- Heqr...
               tensor (@nil oo) [u| R |].
@@ -1956,12 +1957,12 @@ Section OLCutElimination.
     destruct r...
     + apply AppPARTENSORLeft in H1...
       CleanContext.
-      apply weakeningGenN with (CC':= [atom (down'  A); atom (down' B)]) in Hseq1;simpl in Hseq1.
+      apply weakeningGenN with (CC':= [atom (down  A); atom (down B)]) in Hseq1;simpl in Hseq1.
       decide3 ( makeRuleBin C Left A B)...
       tensor (@nil oo)  [u| R | ].
       rewrite <-  Heqr... solveLL.
-      LLPermH Hseq1 (d| FCut | :: atom (down' A) :: atom (down' B)  :: Gamma) .
-      LLPerm (atom (down' A) :: atom (down' B) :: Gamma)...
+      LLPermH Hseq1 (d| FCut | :: atom (down A) :: atom (down B)  :: Gamma) .
+      LLPerm (atom (down A) :: atom (down B) :: Gamma)...
       eapply IH with (h1 := h1) (h2:=x0) (m := h1+ x0) (FCut := FCut)...
     + apply AppWITHPLUSLeft in H1...
       CleanContext.
@@ -1970,13 +1971,13 @@ Section OLCutElimination.
       tensor (@nil oo)  [u| R |].
       rewrite <-  Heqr... solveLL.
       
-      apply weakeningGenN with (CC':= [atom (down'  A)]) in Hseq1.
-      LLPermH Hseq1 (d| FCut | :: Gamma ++ [atom (down' A)]).
+      apply weakeningGenN with (CC':= [atom (down  A)]) in Hseq1.
+      LLPermH Hseq1 (d| FCut | :: Gamma ++ [atom (down A)]).
       eapply IH with (h1 := h1) (h2:=x0) (m := h1+ x0) (FCut := FCut)...
       rewrite Permutation_app_comm...
 
-      apply weakeningGenN with (CC':= [atom (down'  B)]) in Hseq1.
-      LLPermH Hseq1 (d| FCut | :: Gamma ++ [atom (down' B)]).
+      apply weakeningGenN with (CC':= [atom (down  B)]) in Hseq1.
+      LLPermH Hseq1 (d| FCut | :: Gamma ++ [atom (down B)]).
       eapply IH with (h1 := h1) (h2:=x0) (m := h1+ x0) (FCut := FCut)...
       rewrite Permutation_app_comm...
 
@@ -1990,9 +1991,9 @@ Section OLCutElimination.
       apply WeakTheory with (theory' := (OLTheoryCut (pred n)) ) in H1 ;auto using TheoryEmb1;CutTac.
 
       rewrite Permutation_app_comm...
-      apply weakeningGenN with (CC':= [atom (down'  B)]) in Hseq1.
+      apply weakeningGenN with (CC':= [atom (down  B)]) in Hseq1.
       eapply IH with (h1 := h1) (h2:=x0) (m := h1+ x0) (FCut := FCut)...
-      LLPerm ([atom (down' B)] ++ d| FCut | :: Gamma)...
+      LLPerm ([atom (down B)] ++ d| FCut | :: Gamma)...
     + apply AppPLUSWITHLeft in H1...
       CleanContext.
       decide3 ( makeRuleBin C Left A B)...
@@ -2101,6 +2102,7 @@ Section OLCutElimination.
               tensor (@nil oo)  [u| R |].
               rewrite <- Heqq.
               existential t .
+              repeat fold down in H15. fold up in H15.
               LLPermH H15 (d| t_cons C | :: ( d| FX t | :: Gamma)).
               LLPerm (d| FX t| :: Gamma).
               apply IH with (m:=n0 + S (S x)) (h2:=S (S x))  (h1:= n0) (FCut:=(t_cons C))...
@@ -2118,7 +2120,8 @@ Section OLCutElimination.
               simpl;solveLL.
               specialize (H16 x0 properX).
               inversion H16...
-              LLPermH H16 (d| t_cons C | :: ( d| FX x0 | :: Gamma)).
+              repeat fold down in H13. fold up in H13.
+              LLPermH H13 (d| t_cons C | :: ( d| FX x0 | :: Gamma)).
               LLPerm (d| FX x0| :: Gamma).
               apply IH with (m:=n0 + S (S x)) (h2:=S (S x))  (h1:= n0) (FCut:=(t_cons C))...
               eapply weakeningN...

@@ -13,29 +13,15 @@ Export ListNotations.
 Export LLNotations.
 
 Set Implicit Arguments.
-
-
-Hint Resolve level_CON level_VAR level_BND level_APP level_ABS : hybrid.
-Hint Resolve proper_APP uniform_proper : hybrid.
-Hint Unfold proper: hybrid.
-Hint Rewrite ext_eq_eta : hybrid.
-Hint Resolve uniform_id uniform_con uniform_app : hybrid.
-Hint Resolve proper_VAR : hybrid.
-Hint Resolve lbindEq exprInhabited : hybrid.
-Hint Constructors uniform_oo : hybrid.
+ 
 Hint Constructors seq seqN : core .
 Hint Constructors uniform_oo : core.
 Hint Constructors isFormula : core.
 Hint Constructors isOLFormula : core.
 
-
-
 Section PositiveAtoms.
   Context `{OL: OLSyntax}.
-  Definition down' : uexp -> atm := down.
-  Definition up' : uexp -> atm := up.
 
-  
   (** Positive atoms are only [down] and [up] atoms. The linear and
   the classical context of the encoding must contain only formulas of
   this kind *)
@@ -295,7 +281,7 @@ Section PositiveAtoms.
     eauto using PermuteMap.
   Qed.
 
-  Hint Unfold down' up' : core .
+  Hint Unfold down up : core .
 
   Theorem NotUpInLAtom :   forall M R,
       IsPositiveLAtomFormulaL M ->
@@ -317,7 +303,7 @@ Section PositiveAtoms.
   Proof with solveF.
     intros.
     apply Permutation_sym in H0.
-    apply Permutation_in with (x:= atom (up' R2)) in H0 as H0'...
+    apply Permutation_in with (x:= atom (up R2)) in H0 as H0'...
     inversion H0'...
     subst.
     apply Permutation_cons_inv in H0.
@@ -393,9 +379,6 @@ Ltac SolveIsFormulas :=
                                           
     end;
   solveF.
-
-
-
 
 (** This tactic solves most of the [IsPositiveLSolve] goals *)
 Ltac IsPositiveLSolve :=
@@ -775,8 +758,6 @@ Section Bipoles.
         end
       end.
     
-    
-
     Definition BiPoleBinary (lab: connectives) (s:Side) (t : BipoleEnum): Prop :=
       match (sideBinary s) with
       | (rule, body, pred) =>
@@ -859,147 +840,6 @@ Section Bipoles.
     constructor;auto.
   Qed.
 
-  (** [up] and [down] can be proved to be dual using the rules [RINIT] and [RCUT] *)
-  Section Dualities.
-    Hint Unfold down' up' : core .
-
-    (* Cut and Init proves The dualities *)
-    Theorem UpDownDuality1 : forall (th : oo -> Prop)  F,
-        isOLFormula F -> (th (RINIT F)) -> (th (RCUT F)) ->
-        (seq th [] [] (> [ perp (up F) ; perp (down F) ])).
-    Proof with solveF.
-      intros th F isF HInit HCut.
-      solveLL.
-      bipole' (RCUT F).
-    Qed.
-
-    Theorem UpDownDuality1' : forall  F G, isOLFormula F -> 
-                                           (seq StrRulesPos G [ perp (up F) ; perp (down F) ] (> [] )).
-    Proof with solveF.
-      intros.
-      assert (seq StrRulesPos G [] (> [ perp (up F) ; perp (down F) ] )).
-      assert (seq StrRulesPos [] [] (> [perp (up F); perp (down F)])). apply UpDownDuality1;auto.
-      change G with ([] ++ G).
-      rewrite Permutation_app_comm.
-      eapply weakeningGen;auto.
-      FLLInversionAll;auto.
-    Qed.
-
-    Theorem UpDownDuality2 : forall (th : oo -> Prop)  F, isOLFormula F -> (th (RINIT F)) -> (th (RCUT F)) ->
-                                                          (seq th [] [] (> [ atom (up F) ; atom (down F) ])).
-    Proof with solveF.
-      intros th F isF HInit HCut.
-      solveLL.
-      bipole' (RINIT F).
-    Qed.
-
-    Theorem UpDownDuality2' : forall (th : oo -> Prop)  F, isOLFormula F -> (th (RINIT F)) -> (th (RCUT F)) ->
-                                                           (seq th [] [ atom (up F) ; atom (down F) ] (> [])).
-    Proof with solveF.
-      intros th F isF HInit HCut.
-      solveLL.
-      bipole' (RINIT F).
-    Qed.
-
-    (** Some theorems allowing us to change from [atom (up F)] to
-    [perp (down F)] and vice-versa *)
-    Theorem DualityCut1 : forall  G D F,
-        isOLFormula F -> isFormulaL G -> isFormulaL D -> isNotAsyncL D ->
-        (seq StrRulesPos G ( (atom (up F)) :: D) (> [])) ->
-        (seq StrRulesPos G ( (perp (down F)) :: D) (> [])).
-    Proof with solveF.
-      intros G D F isF isG isD isNotAsyncD HSeq.
-      change down with down'.
-      change (perp (down' F) :: D) with ( [ perp (down' F)] ++  D).
-      eapply GeneralCut' with (dualC:= atom (up' F) ) (C:=  perp (up' F)) ; SolveIsFormulas.
-      eauto using StrRulesPosFormulas, IsPositiveAtomNotAsync, IsPositiveIsFormula.
-      solveLL.
-      rewrite perm_swap.
-      apply UpDownDuality1';auto.
-      solveLL.
-      rewrite <- Permutation_cons_append;auto.
-    Qed.
-
-    Theorem DualityCut2 : forall  G D F,
-        isOLFormula F -> isFormulaL G -> isFormulaL D -> isNotAsyncL D ->
-        (seq StrRulesPos G ( (perp (down F)) :: D) (> [])) ->
-        (seq StrRulesPos G ( (atom (up F)) :: D) (> [])).
-    Proof with solveF.
-      intros G D F isF isG isD isNotAsyncD HSeq.
-      change up with up'.
-      change (atom (up' F) :: D) with ( [ atom (up' F)] ++  D).
-      rewrite <- Permutation_app_comm;auto.
-      eapply GeneralCut' with (dualC:= atom (down' F) ) (C:=  perp (down' F)) ; SolveIsFormulas.
-      eauto using StrRulesPosFormulas, IsPositiveAtomNotAsync, IsPositiveIsFormula.
-      solveLL.
-      rewrite <- Permutation_cons_append;auto.
-      solveLL.
-      change G with ([] ++ G).
-      rewrite Permutation_app_comm.
-      eapply weakeningGen;auto.
-      apply UpDownDuality2';auto.
-    Qed.
-
-    Theorem DualityCut3 : forall  G D F,
-        isOLFormula F -> isFormulaL G -> isFormulaL D -> isNotAsyncL D ->
-        (seq StrRulesPos G ( (perp (up F)) :: D) (> [])) ->
-        (seq StrRulesPos G ( (atom (down F)) :: D) (> [])).
-    Proof with solveF.
-      intros G D F isF isG isD isNotAsyncD HSeq.
-      change down with down'.
-      change (atom (down' F) :: D) with ( [ atom (down' F)] ++  D).
-      rewrite Permutation_app_comm.
-      eapply GeneralCut' with (dualC:= atom (up' F) ) (C:=  perp (up' F)) ; SolveIsFormulas.
-      eauto using StrRulesPosFormulas, IsPositiveAtomNotAsync, IsPositiveIsFormula.
-      solveLL.
-      rewrite Permutation_app_comm...
-      solveLL.
-      ExchangeFront' 2.
-      change G with ([] ++ G).
-      rewrite Permutation_app_comm.
-      eapply weakeningGen;auto.
-      apply UpDownDuality2'...
-    Qed.
-
-    Theorem DualityCut4 : forall  G D F,
-        isOLFormula F -> isFormulaL G -> isFormulaL D -> isNotAsyncL D ->
-        (seq StrRulesPos G ( (atom (down F)) :: D) (> [])) ->
-        (seq StrRulesPos G ( (perp (up F)) :: D) (> [])).
-    Proof with solveF.
-      intros G D F isF isG isD isNotAsyncD HSeq.
-      change up with up'.
-      change (perp(up' F) :: D) with ( [perp (up' F)] ++  D).
-      eapply GeneralCut' with (dualC:= atom (down' F) ) (C:=  perp (down' F)) ; SolveIsFormulas.
-      eauto using StrRulesPosFormulas, IsPositiveAtomNotAsync, IsPositiveIsFormula.
-      solveLL.
-      apply UpDownDuality1'...
-      solveLL.
-      rewrite Permutation_app_comm...
-    Qed.
-
-
-    Theorem DualityCut4C : forall  G D F,
-        isOLFormula F -> isFormulaL G -> isFormulaL D -> isNotAsyncL D ->
-        (seq StrRulesPos ((atom (down F)) :: G) D (> [])) ->
-        (seq StrRulesPos ((perp (up F)) :: G)  D (> [])).
-    Proof with solveF.
-      intros G D F isF isG isD isNotAsyncD HSeq.
-      change D with ([] ++ D).
-      rewrite Permutation_app_comm.
-      eapply GeneralCut' with (C:= ? (atom (down' F)) ) (dualC:=  ! (perp (down' F))) ; SolveIsFormulas.
-      eauto using StrRulesPosFormulas, IsPositiveAtomNotAsync, IsPositiveIsFormula.
-      solveLL.
-      simpl.
-      apply weakening.
-      rewrite Permutation_app_comm...
-      solveLL.
-      apply DualityCut1;SolveIsFormulas.
-      decide2 (perp (up F)) .
-    Qed.
-
-  End Dualities. 
-
-  
   
   (** The cut rule applied on object level terms of a given size  *)
   Inductive CutRuleN (n:nat) : oo -> Prop :=
@@ -1343,10 +1183,10 @@ Section BipoleInstance.
                                          (ANDR_TENSOR_HEAD **  ANDR_TENSOR_RULE) ANDR_TENSOR_RULE up.
   Proof with WFSolver.
     intros n HSeq HIs...
-    FLLInversionAll...
+    FLLInversionAll.
     ++ exists M0.  exists N0.
-       exists [atom (up' Fo)].
-       exists [atom (up' Go)].
+       exists [atom (up Fo)].
+       exists [atom (up Go)].
        exists (@nil oo). exists (@nil oo).
        eexists. exists 4...
        rewrite H1.
@@ -1357,8 +1197,8 @@ Section BipoleInstance.
        tensor. 
        
     ++ exists M0.  exists N0.
-       exists [atom (up' Fo)].
-       exists [atom (up' Go)].
+       exists [atom (up  Fo)].
+       exists [atom (up  Go)].
        exists (@nil oo). exists (@nil oo).
        eexists. exists 4...
        rewrite H1.
@@ -1366,7 +1206,7 @@ Section BipoleInstance.
        tensor...
        decide3 (perp (up (t_bin BC Fo Go)) ** (atom (up Fo) ** atom (up Go))) ...
        tensor (@nil oo) (Delta1 ++ Delta2)...
-       tensor...
+       tensor.
   Qed.
 
   (** Conjunction left as par *)
@@ -1380,14 +1220,13 @@ Section BipoleInstance.
   Proof with WFSolver.
     intros n HSeq HIs...
     FLLInversionAll.
-    
-    ++ exists ([atom (down' Fo)] ++ [atom (down' Go)]).
+    ++ exists ([atom (down  Fo)] ++ [atom (down Go)]).
        exists (@nil oo).
        eexists. exists 5...
        left.  exists N...
        decide3  (perp (down (t_bin BC Fo Go)) ** (atom (down Fo) $ atom (down Go))). 
        tensor [(atom (down (t_bin BC Fo Go)))] Delta1... 
-    ++  exists ([atom (down' Fo)] ++ [atom (down' Go)]).
+    ++  exists ([atom (down Fo)] ++ [atom (down Go)]).
         exists (@nil oo).
         eexists. exists 5...
         rewrite H1.
@@ -1409,16 +1248,16 @@ Section BipoleInstance.
     intros n HSeq HIs...
     FLLInversionAll...
     ++ exists N. 
-       exists [atom (down' Fo)].
-       exists [atom (down' Go)].
+       exists [atom (down Fo)].
+       exists [atom (down Go)].
        exists (@nil oo). exists (@nil oo).
        eexists. exists 4...
        left...
        decide3  (perp (down (t_bin BC Fo Go)) ** (atom (down Fo) & atom (down Go))) ...
        tensor [ (atom (down (t_bin BC Fo Go)))] Delta12.
     ++ exists N. 
-       exists [atom (down' Fo)].
-       exists [atom (down' Go)].
+       exists [atom (down Fo)].
+       exists [atom (down Go)].
        exists (@nil oo). exists (@nil oo).
        eexists. exists 4...
        right...
@@ -1437,37 +1276,37 @@ Section BipoleInstance.
     intros n HSeq HIs...
     FLLInversionAll.
 
-    exists  [atom (up' Fo)]. exists (@nil oo).
+    exists  [atom (up Fo)]. exists (@nil oo).
     eexists. exists 4...
     rewrite H1.
     left.
     exists N...
-    apply tri_plus1'...
+    oplus1...
     decide3  (perp (up (t_bin BC Fo Go)) ** (atom (up Fo) op atom (up Go))) ...
     tensor [ (atom (up (t_bin BC Fo Go)))] Delta1.
 
-    exists  [atom (up' Fo)]. exists (@nil oo).
+    exists  [atom (up Fo)]. exists (@nil oo).
     eexists. exists 4...
     rewrite H1.
     right...
-    apply tri_plus1'...
+    oplus1...
     decide3  (perp (up (t_bin BC Fo Go)) ** (atom (up Fo) op atom (up Go)))...
     tensor (@nil oo) Delta1.
 
-    exists  [atom (up' Go)]. exists (@nil oo).
+    exists  [atom (up  Go)]. exists (@nil oo).
     eexists. exists 4...
     rewrite H1.
     left.
     exists N...
-    apply tri_plus2'...
+    oplus2...
     decide3  (perp (up (t_bin BC Fo Go)) ** (atom (up Fo) op atom (up Go)))...
     tensor [ (atom (up (t_bin BC Fo Go)))] Delta1.
 
-    exists  [atom (up' Go)]. exists (@nil oo).
+    exists  [atom (up Go)]. exists (@nil oo).
     eexists. exists 4...
     rewrite H1.
     right...
-    apply tri_plus2'...
+    oplus2...
     decide3  (perp (up (t_bin BC Fo Go)) ** (atom (up Fo) op atom (up Go)))...
     tensor (@nil oo) Delta1.
   Qed.
@@ -1484,13 +1323,13 @@ Section BipoleInstance.
     intros n HSeq HIs...
     FLLInversionAll.
     
-    ++ exists ([atom (down' Fo)] ++ [atom (up' Go)]).
+    ++ exists ([atom (down  Fo)] ++ [atom (up Go)]).
        exists (@nil oo).
        eexists. exists 5...
        left.  exists N...
        decide3  (perp (up (t_bin BC Fo Go)) ** (atom (down Fo) $ atom (up Go))).
        tensor [(atom (up (t_bin BC Fo Go)))] Delta1... 
-    ++  exists ([atom (down' Fo)] ++ [atom (up' Go)]).
+    ++  exists ([atom (down  Fo)] ++ [atom (up Go)]).
         exists (@nil oo).
         eexists. exists 5...
         rewrite H1.
@@ -1511,8 +1350,8 @@ Section BipoleInstance.
     intros n HSeq HIs...
     FLLInversionAll...
     ++ exists M0.  exists N0.
-       exists [atom (up' Fo)].
-       exists [atom (down' Go)].
+       exists [atom (up  Fo)].
+       exists [atom (down  Go)].
        exists (@nil oo). exists (@nil oo).
        eexists. exists 4...
        rewrite H1.
@@ -1523,8 +1362,8 @@ Section BipoleInstance.
        tensor. 
        
     ++ exists M0.  exists N0.
-       exists [atom (up' Fo)].
-       exists [atom (down' Go)].
+       exists [atom (up  Fo)].
+       exists [atom (down Go)].
        exists (@nil oo). exists (@nil oo).
        eexists. exists 4...
        rewrite H1.
@@ -1757,6 +1596,7 @@ Section OLEncodings.
     apply isOLRIsOLFormula;auto.
   Qed.
 
+
   Generalizable All Variables.
   Global Instance isOLFormulaL_morph : 
     Proper ((@Permutation uexp) ==> Basics.impl) (Forall isOLFormula).
@@ -1795,4 +1635,3 @@ Ltac SolveIS :=
                 apply lbindEq in H';auto;rewrite <- H';auto
               end ]
     end;auto.
-

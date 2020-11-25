@@ -299,14 +299,15 @@ Section OLSyntax.
   (** Predicates [up] (formulas on the right of the HyLL sequent) and
   [down] (formulas on the left of the HyLL sequent) *)
   Inductive atm' : Set :=
-  | up : uexp -> atm'    (* formulas on the right *)
-  | down : uexp -> atm'  (* formulas on the left *)
+  | up' : uexp -> atm'    (* formulas on the right *)
+  | down' : uexp -> atm'  (* formulas on the left *)
   .
+
   
   (** Uniform Predicate for atoms *)
   Inductive uniform_atm' : (uexp -> atm') -> Prop :=
-  | uniform_up: forall FX, uniform FX -> uniform_atm' (fun x:uexp => up (FX x))
-  | uniform_down: forall FX, uniform FX -> uniform_atm' (fun x:uexp => down (FX x))
+  | uniform_up: forall FX, uniform FX -> uniform_atm' (fun x:uexp => up' (FX x))
+  | uniform_down: forall FX, uniform FX -> uniform_atm' (fun x:uexp => down' (FX x))
   .
   Hint Constructors uniform_atm' : core.
 
@@ -325,6 +326,9 @@ Section OLSyntax.
       con := Econ ;
       uniform_atm := uniform_atm'
     |}.
+   
+   Definition up : uexp -> atm := up'.
+   Definition down : uexp -> atm := down'.
 
 End OLSyntax.
 

@@ -95,9 +95,6 @@ Hint Unfold IMP_ELIMINATION IMP_INTRO   POS RCUT RINIT CONJ_ELIMINATION CONJ_INT
 Hint Unfold ALL_ELIMINATION ALL_INTRO    : core.
 
 Hint Constructors StrRulesPos : core .
-Definition down' : uexp -> atm := down.
-Definition up' : uexp -> atm := up.
-Hint Unfold down' up' : core .
 
 Hint Constructors isFormula : core.
 

@@ -25,7 +25,6 @@ Hint Resolve lbindEq exprInhabited : hybrid.
 Hint Constructors uniform_oo : hybrid.
 Hint Constructors seq seqN : core .
 Hint Constructors uniform_oo : core.
-
 Hint Constructors isFormula : core.
 Hint Constructors isOLFormula : core.
 
@@ -459,11 +458,10 @@ decomposition (telling how to rebuild the proof from the presmies. *)
     end.
 
   Ltac DualPred p FCut :=
-    eval compute in
-      match (p FCut) with
-      | (down FCut) => up FCut
-      | (up FCut) => down FCut
-      end.
+    match p with
+    | down => constr:(up FCut)
+    | up => constr:(down FCut)
+    end.
 
   Ltac SolveOnePremise :=
     match goal with
@@ -2367,7 +2365,7 @@ decomposition (telling how to rebuild the proof from the presmies. *)
       apply H in H20...
       apply WeakTheory with (theory' := OLTheory) in H19;auto;try apply  OOTheryCut0.
       apply WeakTheory with (theory' := OLTheory) in H20;auto;try apply  OOTheryCut0.
-      assert (seq OLTheory B N0 (>> (atom (down F0) ))) by solveLL.
+      assert (seq OLTheory B N0 (>> (atom (down F0) ))).  solveLL. LLExact H20.
       assert (seq OLTheory B M (>> (atom (up F0) ))) by solveLL.
       apply seqtoSeqN  in H5.
       apply seqtoSeqN  in H6.
