@@ -22,10 +22,11 @@ Hint Constructors uniform_oo : core.
 Hint Constructors isFormula : core.
 
 Section Syntax.
-Variable W : Set. (* Set of Worlds *)
-Variable T : Set. (* Terms of the object logic *)
+  Variable W : Set. (* Set of Worlds *)
+  Variable ID : W.
+  Variable T : Set. (* Terms of the object logic *)
 
-Inductive Econ: Set :=
+  Inductive Econ: Set :=
   | oo_term : T -> Econ (* term at the object level *)
   | oo_atom : nat  -> Econ (* Nat is the id of the predicate *)
   | oo_tensor
@@ -37,121 +38,121 @@ Inductive Econ: Set :=
   | oo_atW (* F @ w *)
   | oo_world : W -> Econ (* building worlds from W *)
   | oo_wop (* monoidal operator on worlds: w wop w' *)
-.
+  .
 
-(** Notation for Syntax *)
-Definition uexp : Set := expr Econ.
-Definition Var : var -> uexp := (VAR Econ).
-Definition Bnd : bnd -> uexp := (BND Econ).
+  (** Notation for Syntax *)
+  Definition uexp : Set := expr Econ.
+  Definition Var : var -> uexp := (VAR Econ).
+  Definition Bnd : bnd -> uexp := (BND Econ).
 
-(** Terms *)
-Definition t_term (t:T) : uexp := (CON (oo_term  t)) .   
-(** Atoms  *)
-Definition t_atom (id:nat) (t: uexp)  := APP (CON (oo_atom  id)) t.
-(* Words *)
-Definition t_world (w : W)  :uexp :=  CON (oo_world  w) .
+  (** Terms *)
+  Definition t_term (t:T) : uexp := (CON (oo_term  t)) .   
+  (** Atoms  *)
+  Definition t_atom (id:nat) (t: uexp)  := APP (CON (oo_atom  id)) t.
+  (* Words *)
+  Definition t_world (w : W)  :uexp :=  CON (oo_world  w) .
+  
 
+  (** Tensor *)
+  Definition t_tensor (A B :uexp) :uexp  :=  (APP (APP (CON oo_tensor) A) B).
 
-(** Tensor *)
-Definition t_tensor (A B :uexp) :uexp  :=  (APP (APP (CON oo_tensor) A) B).
+  (** Implication *)
+  Definition t_impl (A B :uexp) :uexp  :=  (APP (APP (CON oo_impl) A) B).
 
-(** Implication *)
-Definition t_impl (A B :uexp) :uexp  :=  (APP (APP (CON oo_impl) A) B).
+  (* Universal quantifier *)
+  Definition t_all (FX: uexp -> uexp) : uexp := (APP (CON oo_all) (lambda FX)).
 
-(* Universal quantifier *)
-Definition t_all (FX: uexp -> uexp) : uexp := (APP (CON oo_all) (lambda FX)).
+  (* F at w *)
+  Definition t_at (F : uexp) (wexp : uexp) :uexp := (APP (APP (CON oo_at) F) wexp).
 
-(* F at w *)
-Definition t_at (F : uexp) (wexp : uexp) :uexp := (APP (APP (CON oo_at) F) wexp).
+  (* F arrow v -- binder *)
+  Definition t_arrow (FX : uexp -> uexp) : uexp := (APP (CON oo_arrow) (lambda FX)).
 
-(* F arrow v -- binder *)
-Definition t_arrow (FX : uexp -> uexp) : uexp := (APP (CON oo_arrow) (lambda FX)).
+  (* ! F  *)
+  Definition t_bang (A : uexp) : uexp := (APP (CON oo_bang) A).
 
-(* ! F  *)
-Definition t_bang (A : uexp) : uexp := (APP (CON oo_bang) A).
+  (* monoidal operations on worlds *)
+  Definition t_wop (wexp wexp': uexp) : uexp := (APP (APP (CON oo_wop) wexp) wexp').
+  
+  (* F @ w *)
+  Definition t_atW  (F: uexp) (wexp  :uexp) : uexp  :=  (APP (APP (CON oo_atW) F) wexp).
 
-(* monoidal operations on worlds *)
-Definition t_wop (wexp wexp': uexp) : uexp := (APP (APP (CON oo_wop) wexp) wexp').
+  (* Hint Unfold  t_term t_atom t_world t_tensor t_impl t_all t_arrow t_bang t_wop t_at  t_atW : core. *)
 
-(* F @ w *)
-Definition t_atW  (F: uexp) (wexp  :uexp) : uexp  :=  (APP (APP (CON oo_atW) F) wexp).
+  Notation "F @ w" := (t_atW F w) (at level 10) .
+  Notation "F *** G" := (t_tensor F G) (at level 10) .
+  Notation "F --o G" := (t_impl F G) (at level 10) .
+  Notation "'ALL' FX" := (t_all FX) (at level 10) .
+  Notation "F 'AT' u" := (t_at F u) (at level 10) .
+  Notation " !! F" := (t_bang F) (at level 10) .
+  Notation "'ARROW' FW " := (t_arrow FW) (at level 10) .
+  Notation "w 'wop' v" := (t_wop w v) (at level 10) .
 
-(* Hint Unfold  t_term t_atom t_world t_tensor t_impl t_all t_arrow t_bang t_wop t_at  t_atW : core. *)
-
-Notation "F @ w" := (t_atW F w) (at level 10) .
-Notation "F *** G" := (t_tensor F G) (at level 10) .
-Notation "F --o G" := (t_impl F G) (at level 10) .
-Notation "'ALL' FX" := (t_all FX) (at level 10) .
-Notation "F 'AT' u" := (t_at F u) (at level 10) .
-Notation " !! F" := (t_bang F) (at level 10) .
-Notation "'ARROW' FW " := (t_arrow FW) (at level 10) .
-Notation "w 'wop' v" := (t_wop w v) (at level 10) .
-
-(** *** Well-formedness conditions *)
-Inductive isOLTerm : uexp -> Prop :=
+  (** *** Well-formedness conditions *)
+  Inductive isOLTerm : uexp -> Prop :=
   | isOLTermT  : forall t, isOLTerm (t_term  t).
 
-Inductive isOLAtom : uexp -> Prop :=
+  Inductive isOLAtom : uexp -> Prop :=
   | isOLAtom' : forall id t ,  isOLTerm t -> isOLAtom (t_atom id t).
 
-Inductive isWorldExp : uexp -> Prop :=
+  Inductive isWorldExp : uexp -> Prop :=
   | isWorldExp' : forall w, isWorldExp (t_world w)
   | isWorldExp'' : forall wexp wexp', isWorldExp wexp -> isWorldExp wexp' -> isWorldExp (t_wop wexp wexp')
-.
-
-Inductive isOLFormula' : uexp -> Prop :=
+  .
+  
+  Inductive isOLFormula' : uexp -> Prop :=
   | isFAtom : forall t id , isOLTerm t -> isOLFormula' (t_atom id t)
   | isFTensor : forall A B , isOLFormula' A -> isOLFormula' B -> isOLFormula' (A *** B)
   | isFImpl : forall A B , isOLFormula' A -> isOLFormula' B -> isOLFormula' (A --o B)
   | isBang : forall A, isOLFormula' A -> isOLFormula' ( !! A)
   | isFAt : forall F wexp, isOLFormula' F -> isWorldExp wexp -> isOLFormula' (F AT wexp)
   | isFArrow : forall (FW: uexp -> uexp),
-  uniform FW -> (forall (t:uexp), proper t -> isWorldExp t ->  isOLFormula' (FW t)) -> isOLFormula' (ARROW FW) 
+      uniform FW -> (forall (t:uexp), proper t -> isWorldExp t ->  isOLFormula' (FW t)) -> isOLFormula' (ARROW FW) 
   | isFQ : forall  (FX : uexp -> uexp),
-  uniform FX -> (forall (t:uexp), proper t -> isOLFormula' (FX t)) ->
-  isOLFormula' (ALL FX)
+      uniform FX -> (forall (t:uexp), proper t -> isOLFormula' (FX t)) ->
+      isOLFormula' (ALL FX)
   .
 
+  
 
-
-Inductive isOLFormula : uexp -> Prop :=
+  Inductive isOLFormula : uexp -> Prop :=
   | isOL : forall F wexp , isOLFormula' F -> isWorldExp wexp -> isOLFormula (F @ wexp)
-.
+  .
+  
+  (** Well formendness conditions for lists of formulas and list of judgments *)
+  Definition isOLFormulaL  L : Prop := Forall isOLFormula L.
 
-(** Well formendness conditions for lists of formulas and list of judgments *)
-Definition isOLFormulaL  L : Prop := Forall isOLFormula L.
-
-Hint Constructors isOLTerm isOLAtom isWorldExp isOLFormula' isOLFormula : core.
-Hint Unfold isOLFormulaL : core.
-
-Inductive atm' : Set :=
+  Hint Constructors isOLTerm isOLAtom isWorldExp isOLFormula' isOLFormula : core.
+  Hint Unfold isOLFormulaL : core.
+  
+  Inductive atm' : Set :=
   | up : uexp -> atm'    (* formulas on the right *)
   | down : uexp -> atm'  (* formulas on the left *)
   | ddown : uexp -> atm'  (* formulas on the classical context (left) *)
-.
+  .
 
-(** Uniform Predicate for atoms *)
-Inductive uniform_atm' : (uexp -> atm') -> Prop :=
+  (** Uniform Predicate for atoms *)
+  Inductive uniform_atm' : (uexp -> atm') -> Prop :=
   | uniform_up: forall FX, uniform FX -> uniform_atm' (fun x:uexp => up (FX x))
   | uniform_down: forall FX, uniform FX -> uniform_atm' (fun x:uexp => down (FX x))
   | uniform_ddown: forall FX, uniform FX -> uniform_atm' (fun x:uexp => ddown (FX x))
-.
+  .
+  
+  Hint Constructors uniform_atm' : core.
 
-Hint Constructors uniform_atm' : core.
+  Global Instance OLSyntaxIns : OLSig :=
+    {|
+      atm := atm';
+      con := Econ ;
+      uniform_atm := uniform_atm'
+    |}.
 
-Global Instance OLSyntaxIns : OLSig :=
-{|
-atm := atm';
-con := Econ ;
-uniform_atm := uniform_atm'
-|}.
-
-Notation "'u|' A '|'" := (atom (up A)) (at level 10) .
-Notation "'d|' A '|'" := (atom (down A)) (at level 10) .
-Notation "'dd|' A '|'" := (atom (ddown A)) (at level 10) .
-Notation "'u^|' A '|'" := (perp (up A)) (at level 10) .
-Notation "'d^|' A '|'" := (perp (down A)) (at level 10) .
-Notation "'dd^|' A '|'" := (perp (ddown A)) (at level 10) .
+  Notation "'u|' A '|'" := (atom (up A)) (at level 10) .
+  Notation "'d|' A '|'" := (atom (down A)) (at level 10) .
+  Notation "'dd|' A '|'" := (atom (ddown A)) (at level 10) .
+  Notation "'u^|' A '|'" := (perp (up A)) (at level 10) .
+  Notation "'d^|' A '|'" := (perp (down A)) (at level 10) .
+  Notation "'dd^|' A '|'" := (perp (ddown A)) (at level 10) .
 
 Inductive HyLL : (list uexp) -> (list uexp) -> uexp -> Prop :=
   | hy_init : forall Gamma F, HyLL Gamma [ F]  F
@@ -172,66 +173,66 @@ Inductive HyLL : (list uexp) -> (list uexp) -> uexp -> Prop :=
   | hy_exange : forall Gamma L L' G, Permutation L L' -> HyLL Gamma L' G -> HyLL Gamma  L G
 .
 
-Hint Constructors HyLL : core .
+  Hint Constructors HyLL : core .
 
-Lemma isWorldProper: forall w, isWorldExp w -> proper w.
-Proof with repeat constructor;auto.
-  intros.
-  induction H...
-Qed.
+  Lemma isWorldProper: forall w, isWorldExp w -> proper w.
+  Proof with repeat constructor;auto.
+    intros.
+    induction H...
+  Qed.
 
-Lemma isOLFormulaProper' : forall F, isOLFormula' F -> proper F.
-Proof with repeat constructor;auto.
-  intros.
-  induction H;solveF;try solve [auto;repeat constructor;auto].
-  inversion H ...
-  eauto with hybrid...
-  apply isWorldProper in H0...
-  constructor; eauto with hybrid.
-  constructor; eauto with hybrid.
-Qed.
+  Lemma isOLFormulaProper' : forall F, isOLFormula' F -> proper F.
+  Proof with repeat constructor;auto.
+    intros.
+    induction H;solveF;try solve [auto;repeat constructor;auto].
+    inversion H ...
+    eauto with hybrid...
+    apply isWorldProper in H0...
+    constructor; eauto with hybrid.
+    constructor; eauto with hybrid.
+  Qed.
+  
+  Lemma isOLFormulaProper : forall F, isOLFormula F -> proper F.
+  Proof with repeat constructor;auto.
+    intros.
+    induction H.
+    apply isOLFormulaProper' in H.
+    apply isWorldProper in H0...
+  Qed.
 
-Lemma isOLFormulaProper : forall F, isOLFormula F -> proper F.
-Proof with repeat constructor;auto.
-  intros.
-  induction H.
-  apply isOLFormulaProper' in H.
-  apply isWorldProper in H0...
-Qed.
+  Hint Resolve isWorldProper isOLFormulaProper' isOLFormulaProper:core.
 
-Hint Resolve isWorldProper isOLFormulaProper' isOLFormulaProper.
+  Example HyLL1: forall (a:T) (w:uexp) (t:T) id ,
+      isWorldExp w ->
+      HyLL [] [(ALL (fun x => t_atom id x)) @ w] ( (t_atom id (t_term t)) @ w).
+  Proof with solveF.
+    intros.
+    apply hy_allL with (t:= t_term t)...
+    constructor.
+  Qed.
 
-Example HyLL1: forall (a:T) (w:uexp) (t:T) id ,
-  isWorldExp w ->
-  HyLL [] [(ALL (fun x => t_atom id x)) @ w] ( (t_atom id (t_term t)) @ w).
-Proof with solveF.
-  intros.
-  apply hy_allL with (t:= t_term t)...
-  constructor.
-Qed.
+  Example HyLL2: forall (a:T) (w:uexp)  id , isWorldExp w -> HyLL [] [(ALL (fun x => t_atom id x)) @ w] ((ALL (fun x => t_atom id x)) @ w).
+  Proof with solveF.
+    intros.
+    eapply  hy_allR...
+    intros.
+    apply hy_allL with (t:= t)...
+  Qed.
 
-Example HyLL2: forall (a:T) (w:uexp)  id , isWorldExp w -> HyLL [] [(ALL (fun x => t_atom id x)) @ w] ((ALL (fun x => t_atom id x)) @ w).
-Proof with solveF.
-  intros.
-  eapply  hy_allR...
-  intros.
-  apply hy_allL with (t:= t)...
-Qed.
+  Example HyLL3: forall (F:uexp) (wexp:uexp)  , isWorldExp wexp -> isOLFormula' F ->  HyLL[] [ (ARROW (fun x => (F AT x))) @ wexp ] ((ARROW (fun x => (F AT x))) @ wexp) .
+  Proof with solveF.
+    intros.
+    eapply hy_arrowR...
+    eapply hy_atR...
+    eapply hy_arrowL...
+  Qed.
 
-Example HyLL3: forall (F:uexp) (wexp:uexp)  , isWorldExp wexp -> isOLFormula' F ->  HyLL[] [ (ARROW (fun x => (F AT x))) @ wexp ] ((ARROW (fun x => (F AT x))) @ wexp) .
-Proof with solveF.
-  intros.
-  eapply hy_arrowR...
-  eapply hy_atR...
-  eapply hy_arrowL...
-Qed.
-
-Example HyLL4: forall (F:uexp) (w:uexp)  , isWorldExp w -> isOLFormula' F ->  HyLL [] [ (ARROW (fun x => (F AT (x wop w)))) @ w ] (F @ (w wop w)) .
-Proof with solveF.
-intros.
-eapply hy_arrowL...
-Qed.
-
+  Example HyLL4: forall (F:uexp) (w:uexp)  , isWorldExp w -> isOLFormula' F ->  HyLL [] [ (ARROW (fun x => (F AT (x wop w)))) @ w ] (F @ (w wop w)) .
+  Proof with solveF.
+    intros.
+    eapply hy_arrowL...
+  Qed.
+  
 Definition RINIT (F:uexp) (w:uexp) : oo := u^|F @ w|  ** ( d^|F @ w| ) .
 Definition RTENSORL (F G w :uexp) :oo := d^| (F *** G) @ w| ** (d|F @ w| $ d|G @ w|).
 Definition RTENSORR (F G w :uexp) :oo := u^| (F *** G) @ w| ** (u|F @ w| ** u|G @ w|).
@@ -247,8 +248,8 @@ Definition RCOPY F w := dd^| F @ w| ** d| F @ w| .
 Definition RALLL FX w := d^|(ALL FX) @ w| ** E{ fun x => d|(FX x) @ w|} .
 Definition RALLR FX w := u^|(ALL FX) @ w| ** F{ fun x => u|(FX x) @ w|}.
 
-Hint Unfold RINIT RTENSORL RTENSORR RIMPLL RIMPLR RATL RATR RARROWL RARROWR RBANGL RBANGR RCOPY  RALLL RALLR : core.
-
+  Hint Unfold RINIT RTENSORL RTENSORR RIMPLL RIMPLR RATL RATR RARROWL RARROWR RBANGL RBANGR RCOPY  RALLL RALLR : enc.
+  
 Inductive OLTheory  : oo ->  Prop :=
   | ll_init : forall F w, isOLFormula (F @ w) -> OLTheory(RINIT  F w)
   | ll_tenL : forall F G w , isOLFormula ((F *** G) @ w)  -> OLTheory (RTENSORL F G w)
@@ -263,18 +264,119 @@ Inductive OLTheory  : oo ->  Prop :=
   | ll_bangR : forall F w, isOLFormula ( (!! F) @ w) -> OLTheory (RBANGR F w)
   | ll_copy : forall F w, isOLFormula (F @ w) -> OLTheory (RCOPY F w)
   | ll_allL : forall FX w, uniform FX ->  isOLFormula ((ALL FX) @ w) -> OLTheory(RALLL FX w)
-  | ll_allR : forall FX w, uniform FX -> isOLFormula ((ALL FX) @ w) -> OLTheory(RALLR FX w)
-.
+  | ll_allR : forall FX w, uniform FX -> isOLFormula ((ALL FX) @ w) -> OLTheory(RALLR FX w).
 
-Definition LEncode L := map (fun x => d| x|) L.
-Definition CLEncode L := map (fun x => dd| x|) L. (* classical encoding *)
-Definition REncode F := u| F|.
+  Definition LEncode L := map (fun x => d| x|) L.
+  Definition CLEncode L := map (fun x => dd| x|) L. (* classical encoding *) 
+  Definition REncode F := u| F|.
+       
+  Hint Constructors OLTheory: core.
+  Hint Constructors isOLFormula : core.
 
 
-Hint Constructors OLTheory: core.
-Hint Constructors isOLFormula : core.
-Hint Unfold LEncode REncode .
+  Ltac solveOLFormula :=
+      match goal with  
+      
+   | [ H1 : forall t,proper t -> isWorldExp t -> isOLFormula' (?FW0 t),
+       H2 : lbind 0 ?FW0 = lbind 0 ?FW |- _ ] => 
+        apply lbindEq in H2;auto;rewrite <- H2;eauto using isWorldProper
+  | [ H: isOLFormula (_ (_ ?FW ) ?w0) |- isOLFormula (_ (?FW ?w0) ?w0) ] => 
+        inversion H as [z1 z2 z3];subst;constructor;auto;
+        inversion z3;subst;solveOLFormula
+  | [ H: isOLFormula (_ (_ ?FW ) ?w0) |- Forall isOLFormula [_ (?FW ?w0) ?w0] ] => 
+        inversion H as [z1 z2 z3];subst;constructor;auto;
+        inversion z3;subst;solveOLFormula
+        
+             
+   | [ H1 : forall t,proper t -> isOLFormula' (?FX0 t),
+       H2 : lbind 0 ?FX0 = lbind 0 ?FX |- _ ] => 
+        apply lbindEq in H2;auto;rewrite <- H2;eauto using isWorldProper
+   | [ H: isOLFormula(_ (_ ?FX) ?w0) |- isOLFormula (_ (?FX ?x0) ?w0) ] => 
+        inversion H;subst; match goal with 
+                        | [ Hf: isOLFormula' (_ ?FX) |- _ ] => 
+                          inversion Hf;subst  
+                        end;solveOLFormula
+      | [ H: isOLFormula(_ (_ ?FX) ?w0) |- Forall isOLFormula [_ (?FX ?x0) ?w0] ] => 
+        inversion H;subst; match goal with 
+                        | [ Hf: isOLFormula' (_ ?FX) |- _ ] => 
+                          inversion Hf;subst  
+                        end;solveOLFormula   
+        
+        
+     | [ Hf: isOLFormula (_ (_ ?F) ?w) |- Forall isOLFormula [_ ?F ?w] ] => 
+            inversion Hf as [z1 z2 Z3];subst;inversion Z3;subst;solveF 
+     | [ Hf: isOLFormula (_ (_ ?F) ?w) |- isOLFormula (_ ?F ?w) ] => 
+            inversion Hf as [z1 z2 Z3];subst;inversion Z3;subst;solveF 
+                  
+     | [ Hf: isOLFormula (_ (_ ?F ?v) ?w) |- Forall isOLFormula [_ ?F ?v] ] => 
+            inversion Hf as [z1 z2 Z3];subst;inversion Z3;subst;solveF 
+     | [ Hf: isOLFormula (_ (_ ?F ?v) ?w) |- isOLFormula (_ ?F ?v) ] => 
+            inversion Hf as [z1 z2 Z3];subst;inversion Z3;subst;solveF 
+             
+     | [ Hf: isOLFormula (_ (_ ?F ?G) ?w) |- Forall isOLFormula [_ ?F ?w] ] => 
+            inversion Hf as [z1 z2 Z3];subst;inversion Z3;subst;solveF 
+     | [ Hf: isOLFormula (_ (_ ?F ?G) ?w) |- isOLFormula (_ ?F ?w) ] => 
+            inversion Hf as [z1 z2 Z3];subst;inversion Z3;subst;solveF              
 
+             
+     | [ Hf: isOLFormula (_ (_ ?F ?G) ?w) |- Forall isOLFormula [_ ?G ?w] ] => 
+            inversion Hf as [z1 z2 Z3];subst;inversion Z3;subst;solveF 
+     | [ Hf: isOLFormula (_ (_ ?F ?G) ?w) |- isOLFormula (_ ?G ?w) ] => 
+            inversion Hf as [z1 z2 Z3];subst;inversion Z3;subst;solveF  
+            
+     | [ Hf: isOLFormula (_ (_ ?F ?G) ?w) |- Forall isOLFormula [_ ?F ?w;_ ?G ?w] ] => 
+            inversion Hf as [z1 z2 Z3];subst;inversion Z3;subst;solveF 
+   
+     | [ Hf: isOLFormula (_ (_ ?F ?G) ?w) |- isOLFormula [_ ?G ?w;_ ?G ?w] ] => 
+            inversion Hf as [z1 z2 Z3];subst;inversion Z3;subst;solveF                                            
+     end.
+  
+Ltac easyOLFormula :=
+      match goal with  
+      | [ Hl: isOLFormulaL ?L |- isOLFormulaL (?L ++ ?N) ] => 
+            apply ForallApp;auto  
+     | [ H1: isOLFormulaL ?L,
+         Hp: Permutation ?L (?x0 ++ ?x1) |- isOLFormulaL (?x1 ++ ?N) ] => 
+            rewrite Hp in H1;apply ForallApp;[apply (ForallAppInv2 H1) | ] 
+     | [ H1: isOLFormulaL ?L,
+         Hp: Permutation ?L (?x0 ++ ?x1) |- isOLFormulaL (?x0 ++ ?N) ] => 
+            rewrite Hp in H1;apply ForallApp;[apply (ForallAppInv1 H1) | ]
+     | [ H1: isOLFormulaL ?L,
+         Hp: Permutation ?L (?x0 ++ ?x1) |- isOLFormulaL ?x1  ] => 
+            rewrite Hp in H1;apply (ForallAppInv2 H1) 
+     | [ H1: isOLFormulaL ?L,
+         Hp: Permutation ?L (?x0 ++ ?x1) |- isOLFormulaL ?x0 ] => 
+            rewrite Hp in H1;apply (ForallAppInv1 H1)  
+     | [ H1: isOLFormulaL ?L,
+         Hp: Permutation ?L (?F :: ?x0) |- isOLFormulaL ?x0 ] => 
+            rewrite Hp in H1;inversion H1;subst;auto  
+     | [ H1: isOLFormulaL ?L,
+         Hp: Permutation ?L (?F :: ?x0) |- Forall isOLFormula ?x0 ] => 
+            rewrite Hp in H1;inversion H1;subst;auto 
+     | [ H1: isOLFormulaL ?D,
+         Hp: Permutation ?D (?x0 ++ ?x1) |- _ ?x1 ] => 
+            rewrite Hp in H1;apply (ForallAppInv2 H1)
+     | [ H1: isOLFormulaL ?D,
+         Hp: Permutation ?D (?x0 ++ ?x1) |- _ ?x0 ] => 
+            rewrite Hp in H1;apply (ForallAppInv1 H1)
+     | [ H: _ (?x0 ++ ?x1) |- _ ?x0 ] => 
+          apply (ForallAppInv1 H) 
+     | [ H: _ (?x0 ++ ?x1) |- _ ?x1 ] => 
+          apply (ForallAppInv2 H) 
+     | [ H1: isOLFormulaL ?D,
+         Hp: Permutation ?D (?F :: ?x0 ++ ?x1) |- _ ?x1 ] => 
+            rewrite Hp in H1;inversion H1;subst;easyOLFormula
+     | [ H1: isOLFormulaL ?D,
+         Hp: Permutation ?D (?F :: ?x0 ++ ?x1) |- _ ?x0 ] => 
+            rewrite Hp in H1;inversion H1;subst;easyOLFormula
+    | [ H1: isOLFormulaL ?L, Hz: Permutation ?z (?y' ++ ?z'),
+         Hp: Permutation ?L (?y ++ ?z) |- isOLFormulaL (?z' ++ ?N) ] => 
+            rewrite Hp in H1;rewrite Hz in H1;apply ForallApp;[rewrite app_assoc in H1; apply (ForallAppInv2 H1) | ]                                            
+    end;auto;try solveOLFormula.
+    
+
+
+ Ltac easyF := try apply ForallApp;auto; try solveOLFormula;try easyOLFormula.
 
 
 Ltac IS :=
@@ -287,71 +389,103 @@ match goal with
   | [H: lbind _ _ = _ |- _ ] => apply lbindEq in H;auto;subst
 end.
 
+ Ltac permMap :=
+  match goal with
+  | |- Permutation _ _ => unfold REncode;unfold LEncode; unfold CLEncode;try rewrite !map_app;simpl;perm_simplify; fail "permMap failed"
+  | |- _ => fail "permMap can't solve this system."
+  end.
+  
+
+ Ltac  LLPermMap P :=
+  match goal with
+  | |- seq _ ?Gamma ?Delta _ =>
+        let HP := fresh "H" in
+        first
+        [ assert (HP : Permutation Gamma P) by permMap; rewrite HP;clear HP
+        | assert (HP : Permutation Delta P) by permMap; rewrite HP;clear HP]
+ | |- seqN _ _ ?Gamma ?Delta _ =>
+        let HP := fresh "H" in
+        first
+        [ assert (HP : Permutation Gamma P) by permMap; rewrite HP;clear HP
+        | assert (HP : Permutation Delta P) by permMap; rewrite HP;clear HP]        
+  end.
+
+  Ltac LLExactMap H :=
+   let G := type of H in
+  match G with
+  | seqN ?T _ ?Gamma ?Delta ?X =>
+      match goal with
+      | |- seqN T _ ?Gamma' ?Delta' X =>
+            apply exchangeCCN with (CC := Gamma); auto; try permMap;
+             apply exchangeLCN with (LC := Delta); auto; 
+             try permMap
+      end
+  end; auto.
+    
+
+ Ltac LLExactMap' H :=
+  let G := type of H in
+  match G with
+  | seq ?T ?Gamma ?Delta ?X =>
+      match goal with
+      | |- seq T ?Gamma' ?Delta' X =>
+            apply exchangeCC with (CC := Gamma); auto; try permMap;
+             apply exchangeLC with (LC := Delta); auto; 
+             try permMap
+      end
+  end; auto.
+
 Theorem Soundeness: forall Gamma L F w , HyLL Gamma L (F @ w) ->
                               isOLFormulaL Gamma ->
                               isOLFormulaL L ->
                               isOLFormula (F @ w) ->
                               seq OLTheory (CLEncode Gamma) (REncode (F @ w) :: (LEncode L)) (> []).
-Proof with solveF;IS;solveF.
-  intros.
-  induction H...
+Proof with IS;solveF;try easyF.
+ intros.
+  induction H... 
   + (* init *)
-    decide3' (RINIT F1 wexp).
-    tensor' [REncode (F1 @ wexp)] [d| F1 @ wexp |].
-  + decide3' (RTENSORL A B w0)...
-    tensor' [d| (A *** B) @ w0 |] (REncode (F0 @ wexp) :: LEncode L).
-    simpl in *.
-    LLPerm  (REncode (F0 @ wexp) :: d| A @ w0 | :: d| B @ w0 | :: LEncode L).
+    decide3 (RINIT F1 wexp).
+    tensor [REncode (F1 @ wexp)] [d| F1 @ wexp |].
+  + decide3 (RTENSORL A B w0)...
+    tensor [d| (A *** B) @ w0 |] (REncode (F0 @ wexp) :: LEncode L).
+    LLPermMap  (REncode (F0 @ wexp) :: d| A @ w0 | :: d| B @ w0 | :: LEncode L).
     apply  IHHyLL...
-
   + (* tensor right *)
-    decide3' (RTENSORR A B w0)...
-
-    tensor' [(REncode ((A *** B) @ w0))] (LEncode (L ++ L')) .
-
-    autounfold; rewrite map_app.
-    fold (LEncode L).
-    fold (LEncode L').
-    tensor'. 
-    LLPerm (REncode (A @ w0) :: LEncode L).
-    apply IHHyLL1... admit.
-    LLPerm (REncode (B @ w0) :: LEncode L').
-    apply IHHyLL2... admit.
-  + (* implication left *)
-    decide3' (RIMPLL A B w0 ((F0 @ wexp))).
-    unfold RIMPLL.
-    tensor'  [d| (A --o B) @ w0 |] (REncode (F0 @ wexp) :: LEncode (L ++ L')).
-    tensor' [ REncode (F0 @ wexp)] (LEncode (L ++ L')).
-
-    autounfold; rewrite map_app...
-    tensor'.
-    fold ( LEncode L).
-    LLPerm (REncode (A @ w0) :: LEncode L).
+    decide3 (RTENSORR A B w0)...
+    tensor [(REncode ((A *** B) @ w0))] (LEncode (L ++ L')) .
+    LLPermMap(LEncode L ++ LEncode L'). 
+    tensor. 
+    LLPermMap (REncode (A @ w0) :: LEncode L).
     apply IHHyLL1...
-    admit. (* by H7 *)
-    fold ( LEncode L').
-    LLPerm (u| F0 @ wexp | :: d| B @ w0 | :: LEncode L') .
+    LLPermMap (REncode (B @ w0) :: LEncode L').
+    apply IHHyLL2...
+  + (* implication left *)
+    decide3 (RIMPLL A B w0 ((F0 @ wexp))).
+    tensor  [d| (A --o B) @ w0 |] (REncode (F0 @ wexp) :: LEncode (L ++ L')).
+    tensor [ REncode (F0 @ wexp)] (LEncode (L ++ L')).
+    LLPermMap (LEncode L ++ LEncode L').
+    tensor.
+    LLPermMap (REncode (A @ w0) :: LEncode L).
+    apply IHHyLL1...
+    LLPermMap (u| F0 @ wexp | :: d| B @ w0 | :: LEncode L') .
     apply IHHyLL2...
     constructor ...
-    admit. (* by H7 *)
-  + (* implication right *)
-    decide3' (RIMPLR A B w0).
-    unfold RIMPLR.
-    tensor'  [REncode ((A --o B) @ w0)] (LEncode L).
-    LLPerm ([REncode (B @ w0)] ++ [d| A @ w0 |] ++ (LEncode L))...
-
+  +
+    decide3 (RIMPLR A B w0).
+    tensor  [REncode ((A --o B) @ w0)] (LEncode L).
+    LLPermMap ([REncode (B @ w0)] ++ [d| A @ w0 |] ++ (LEncode L))...
   + (* at  *)
-    decide3' (RATL A v w0).
-    tensor' [d| (A AT v) @ w0 |] (REncode (F0 @ wexp) :: LEncode L).
-    LLPerm (REncode (F0 @ wexp) :: d| A @ v | :: LEncode L).
+    decide3 (RATL A v w0).
+    tensor [d| (A AT v) @ w0 |] (REncode (F0 @ wexp) :: LEncode L).
+    LLPermMap (REncode (F0 @ wexp) :: d| A @ v | :: LEncode L).
     apply IHHyLL...
   + (* at *)
-    decide3' (RATR A v w0).
-    tensor' [u| (A AT v) @ w0 |] ( LEncode L).
-    LLPerm (REncode (A @ v) :: LEncode L).
+    decide3 (RATR A v w0)...
+    tensor [u| (A AT v) @ w0 |] ( LEncode L).
+    LLPermMap (REncode (A @ v) :: LEncode L).
     apply IHHyLL...
   + (* arrow *)
-    decide3' (RARROWL FW w0).
+    decide3 (RARROWL FW w0)...
     (* automatize here *)
     apply ll_arrowL...
     constructor...
@@ -359,15 +493,15 @@ Proof with solveF;IS;solveF.
     intros.
     rewrite <- H2...
     (* ***** *)
-    tensor' [d| (ARROW FW) @ w0 |] (REncode (F0 @ wexp) :: LEncode L).
+    tensor [d| (ARROW FW) @ w0 |] (REncode (F0 @ wexp) :: LEncode L).
 
-    LLPerm (REncode (F0 @ wexp) :: d| (FW w0) @ w0 | :: LEncode L).
+    LLPermMap (REncode (F0 @ wexp) :: d| (FW w0) @ w0 | :: LEncode L).
     apply IHHyLL...
-    constructor...
+    constructor...    
     constructor...
     rewrite <- H2...
   + (* arrow *)
-    decide3' (RARROWR FW w0).
+    decide3 (RARROWR FW w0)...
     (* automatize here *)
     apply ll_arrowR...
     constructor...
@@ -375,52 +509,52 @@ Proof with solveF;IS;solveF.
     intros.
     rewrite <- H2...
     (* ***** *)
-    tensor' [REncode ((ARROW FW) @ w0)] (LEncode L).
+    tensor [REncode ((ARROW FW) @ w0)] (LEncode L).
 
     LLPerm (REncode ((FW w0) @ w0) :: LEncode L).
     apply IHHyLL...
     constructor...
     rewrite <- H2...
   + (* bang *)
-    decide3' (RBANGL F0 w0).
-    tensor' [d| (!! F0) @ w0 |] (REncode (F1 @ wexp)  :: LEncode L).
-    LLPerm (dd| F0 @ w0 | :: CLEncode Gamma).
+    decide3 (RBANGL F0 w0)...
+    tensor [d| (!! F0) @ w0 |] (REncode (F1 @ wexp)  :: LEncode L).
+    LLPermMap (CLEncode (F0 @ w0 :: Gamma)).
     apply IHHyLL...
   + (* bang *)
-    decide3' (RBANGR F0 w0).
-    tensor' [REncode ((!! F0) @ w0)] (@nil oo).
+    decide3 (RBANGR F0 w0)...
+    tensor [REncode ((!! F0) @ w0)] (@nil oo).
   + (* copy *)
-    decide3' (RCOPY F0 w0).
+    decide3 (RCOPY F0 w0)...
     constructor...
-    admit. (* by H and H0*)
-    tensor' (@nil oo)(REncode (F1 @ wexp) :: LEncode L) .
-    admit. (* by H *)
-    simpl in IHHyLL.
-    LLPerm (REncode (F1 @ wexp) :: d| F0 @ w0 | :: LEncode L).
+   
+    apply (Utils.isFormulaIn H0 H).
+    tensor (@nil oo)(REncode (F1 @ wexp) :: LEncode L) .
+    eapply in_map in H. exact H.
+    LLPermMap (REncode (F1 @ wexp) :: d| F0 @ w0 | :: LEncode L).
     apply IHHyLL...
-    admit. (* byu H and H1 *)
+    constructor...
+    apply (Utils.isFormulaIn H0 H).   
   + (* quantifier *)
-    decide3' (RALLL FX w0).
+    decide3 (RALLL FX w0)...
     constructor...
     constructor...
     constructor...
     intros. rewrite <- H2...
-    tensor' [d| (ALL FX) @ w0| ] (REncode (F0 @ wexp)  :: LEncode L) .
-    existential' t.
-    simpl in IHHyLL.
-    LLPerm (REncode (F0 @ wexp) :: d| (FX t) @ w0 | :: LEncode L).
+    tensor [d| (ALL FX) @ w0| ] (REncode (F0 @ wexp)  :: LEncode L) .
+    existential t.
+    LLPermMap (REncode (F0 @ wexp) :: d| (FX t) @ w0 | :: LEncode L).
     apply IHHyLL...
     constructor...
     rewrite <- H2...
 
-  + decide3' (RALLR FX w0).
+  + decide3 (RALLR FX w0)...
     constructor...
     constructor...
     constructor...
     intros. rewrite <- H2...
-    tensor' [REncode ((ALL FX) @ w0) ]  (LEncode L).
+    tensor [REncode ((ALL FX) @ w0) ]  (LEncode L).
     specialize(H4 x properX).
-    LLPerm (REncode ((FX x) @ w0) :: LEncode L).
+    LLPermMap (REncode ((FX x) @ w0) :: LEncode L).
     apply H4...
     constructor...
     rewrite <- H2...
@@ -435,11 +569,11 @@ Proof with solveF;IS;solveF.
 
     rewrite H6...
 
-Admitted.
+Qed.
 
 (* For completeness, better to prove some "invertibility" lemmas *)
 
-Theorem NoUPInCLEncode: forall F w Gamma, ~ In (u| F @ w |) (CLEncode Gamma).
+Theorem NoUPInCLEncode: forall F Gamma, ~ In (u| F |) (CLEncode Gamma).
   intros.
   intro HNeg.
   induction Gamma;simpl in*;auto.
@@ -448,7 +582,7 @@ Theorem NoUPInCLEncode: forall F w Gamma, ~ In (u| F @ w |) (CLEncode Gamma).
   apply IHGamma;auto.
 Qed.
 
-Theorem NoDOWNInCLEncode: forall F w Gamma, ~ In (d| F @ w |) (CLEncode Gamma).
+Theorem NoDOWNInCLEncode: forall F  Gamma, ~ In (d| F |) (CLEncode Gamma).
   intros.
   intro HNeg.
   induction Gamma;simpl in*;auto.
@@ -457,7 +591,16 @@ Theorem NoDOWNInCLEncode: forall F w Gamma, ~ In (d| F @ w |) (CLEncode Gamma).
   apply IHGamma;auto.
 Qed.
 
-Theorem NoUPInLEncode: forall F w Gamma, ~ In (u| F @ w |) (LEncode Gamma).
+Theorem NoDOWNInLEncode: forall F L, ~ In (dd| F |) (LEncode L).
+  intros.
+  intro HNeg.
+  induction L;simpl in*;auto.
+  destruct HNeg.
+  inversion H.
+  apply IHL;auto.
+Qed.
+
+Theorem NoUPInLEncode: forall F Gamma, ~ In (u| F |) (LEncode Gamma).
   intros.
   intro HNeg.
   induction Gamma;simpl in*;auto.
@@ -481,13 +624,27 @@ F = F1 /\ w = w1 /\ Permutation  (map (fun x : uexp => d| x |) L) N.
   apply NoUPInLEncode in H0;contradiction.
 Qed.
 
+Theorem NoUPinDOwn': forall F L F1 N,
+Permutation (u| F | :: map (fun x : uexp => d| x |) L) ([u| F1 |] ++ N) ->
+F = F1  /\ Permutation  (map (fun x : uexp => d| x |) L) N.
+  intros.
+  simpl in H.
+  apply Permutation_sym in H.
+  apply PermutationInCons in H as H'.
+  inversion H'. inversion H0;subst.
+  Search(Permutation (_::_) (_::_) -> _).
+  apply Permutation_cons_inv in H.
+  split;auto. symmetry;trivial. 
+  apply NoUPInLEncode in H0;contradiction.
+Qed.
+
 Theorem FocusinRightAtom: forall n Gamma F w L F1 w0 G,
 seqN OLTheory n (CLEncode Gamma) (REncode (F @ w) :: LEncode L) (>> u^| F1 @ w0 | ** G) ->
 exists n', n = (S n') /\
 seqN OLTheory n' (CLEncode Gamma) (LEncode L) (>> G) /\
 F = F1 /\ w = w0.
   intros.
-  InvTriAll.
+  FLLInversionAll.
   apply NoUPinDOwn in H2.
   CleanContext.
   eexists;split;eauto.
@@ -503,7 +660,7 @@ seqN OLTheory n (CLEncode Gamma) (REncode (F @ w) :: LEncode L) (>> d^| F1 @ w0 
             seqN OLTheory n' (CLEncode Gamma) (REncode (F @ w) :: LEncode L') (>> G).
 
   intros.
-  InvTriAll.
+  FLLInversionAll.
 
   { simpl in H2.
   apply PermutationNeqIn in H2 as H2'.
@@ -537,7 +694,7 @@ Proof with solveF.
   unfold RINIT in H.
   apply FocusinRightAtom in H .
   CleanContext.
-  InvTriAll.
+  FLLInversionAll.
   {
   apply map_eq_cons in H1.
   CleanContext.
@@ -565,14 +722,13 @@ Proof with solveF.
   apply FocusinLeftAtom in H .
   CleanContext.
 
-  InvTriAll.
+  FLLInversionAll.
   eexists.
   eexists.
   split;eauto.
   split;eauto.
   simpl in *.
   LLExact H8.
-  autounfold;perm.
 Qed.
 
 Theorem RARROWRInv: forall n Gamma F w L FW w0,
@@ -586,335 +742,355 @@ Proof with solveF.
   unfold RARROWR in H.
   apply FocusinRightAtom in H .
   CleanContext.
-  InvTriAll.
+  FLLInversionAll.
   eexists;split; eauto.
   split; eauto.
   split; eauto.
-  unfold REncode.
-  LLPerm (map (fun x : uexp => d| x |) L ++ [u| (FW w0) @ w0 |])...
+  LLExactMap H7.
 Qed.
 
+Theorem RBANGLInv:  forall n Gamma G H w0 v L ,
+      seqN OLTheory n (CLEncode Gamma) (REncode (G @ v) :: LEncode L) (>> RBANGL H w0) ->
+      (exists n' X,
+          n = S (S (S n')) /\ Permutation L ((!! H) @ w0 :: X)
+          /\ seqN OLTheory n' ((CLEncode Gamma) ++ [dd| H @ w0 |]) (REncode (G @ v) :: LEncode X) (> [])).
+  Proof with solveF.
+    intros.
+    apply FocusinLeftAtom in H0;CleanContext.
+    FLLInversionAll.
+    eexists n0;
+    eexists x0;
+    split;auto.
+  Qed.
 
+
+ Theorem RBANGRInv:  forall n Gamma G H w0 v L ,
+      seqN OLTheory n (CLEncode Gamma) (REncode (G @ v) :: LEncode L) (>> RBANGR H w0) ->
+      exists n' ,
+          n = S (S (S n')) /\ L=[] /\ G = !! H /\ v = w0
+          /\ seqN OLTheory n' (CLEncode Gamma) ([u| H @ w0 |]) (> []) .
+  Proof with solveF.
+    intros.
+    apply FocusinRightAtom in H0;CleanContext.
+    FLLInversionAll.
+   
+    symmetry in H0.
+    apply map_eq_nil in H0.
+    eexists n0;split; auto.
+  Qed.
+ 
+Lemma AppEncode: forall x0 x1 x2, Permutation (x2 ++ x1) (LEncode x0) ->  exists x3 l1' l2',
+       Permutation x0 x3 /\ x3 = l1' ++ l2' /\
+       LEncode l1' = x2 /\ LEncode l2' = x1.
+ Proof.
+   intros.
+    apply Permutation_map_inv in H.     
+    do 2 destruct H.
+    symmetry in H.
+    apply map_eq_app in H.
+    do 3 destruct H.
+    destruct H1.
+    eexists;eexists;eexists;eauto.
+ Qed.  
+
+  Theorem RIMPLLInv:  forall n Gamma G F1 F2 R w0 v L ,
+      seqN OLTheory n (CLEncode Gamma) (REncode (G @ v) :: LEncode L) (>> RIMPLL F1 F2 w0 R) ->
+(exists n' X1 X2, n = S (S (S (S (S (S (S n')))))) /\ 
+              Permutation  L ((F1 --o F2) @ w0 ::  (X1 ++ X2)) /\ R = (G @ v) /\ 
+              (seqN OLTheory (S (S n')) (CLEncode Gamma) (LEncode X1 ++[u| F1 @ w0 |]) (> []))  /\
+              (seqN OLTheory n' (CLEncode Gamma) ((LEncode X2 ++ [u| G @ v |]) ++ [d| F2 @ w0 |]) (> [])) ).
+  Proof with solveF.
+  intros.
+  apply FocusinLeftAtom in H;CleanContext.
+  FLLInversionAll.
+  - CleanContext.
+    rewrite H2 in H3.
+    clear H. clear H2.
+    apply NoUPinDOwn' in H3.
+    destruct H3;subst.
+    symmetry in H1. apply AppEncode in H1.
+    CleanContext.
+    rewrite H in H0.
+    eexists n0;
+    eexists x1;
+    eexists x2;split;auto.
+  - CleanContext.
+    assert(~ In (u| R |) (CLEncode Gamma)) by apply NoUPInCLEncode.
+    contradiction.
+Qed.   
+
+
+ Theorem RIMPLRInv:  forall n Gamma G F1 F2 w0 v L ,
+      seqN OLTheory n (CLEncode Gamma) (REncode (G @ v) :: LEncode L) (>> RIMPLR F1 F2 w0) ->
+(exists n', n = S (S (S (S (S n')))) /\
+               G = F1 --o F2 /\ v = w0 /\ 
+              (seqN OLTheory n' (CLEncode Gamma) (LEncode L ++ [d| F1 @ w0 |; u| F2 @ w0 |]) (> []))) .
+  Proof with solveF. 
+    intros.
+    apply FocusinRightAtom in H;CleanContext.
+    FLLInversionAll.
+    eexists n0;
+    split;auto.
+    split;auto.
+    split;auto.
+    LLExactMap H8.
+  Qed. 
+
+  
+ Theorem RTENSORLInv:  forall n Gamma G F1 F2 w0 v L ,
+      seqN OLTheory n (CLEncode Gamma) (REncode (G @ v) :: LEncode L) (>> RTENSORL F1 F2 w0) ->
+(exists n' X, n = S (S (S (S (S n')))) /\ Permutation  L ((F1 *** F2) @ w0 :: X)  /\ 
+    (seqN OLTheory n' (CLEncode Gamma) (REncode (G @ v) :: LEncode (X ++ [F1 @ w0] ++ [F2 @ w0])) (> []))).
+  Proof with solveF.
+    intros.
+    apply FocusinLeftAtom in H;CleanContext.
+    FLLInversionAll.
+      eexists n0.
+      eexists x0;split;auto.
+      split;eauto.
+      LLExactMap H9.
+   Qed.
+   
+ Theorem RTENSORRInv:  forall n Gamma G F1 F2 v w0 L ,
+      seqN OLTheory n (CLEncode Gamma) (REncode (G @ v) :: LEncode L) (>> RTENSORR F1 F2 w0) ->
+      exists n' M N,
+          n = S (S (S (S n'))) /\ Permutation L (M ++ N) /\ G = F1 *** F2 /\ v = w0
+          /\ seqN OLTheory n' (CLEncode Gamma) (LEncode M ++ [u| F1 @ w0 |]) (> [])
+          /\ seqN OLTheory n' (CLEncode Gamma) (LEncode N ++ [u| F2 @ w0 |]) (> []) .
+  Proof with solveF.
+    intros.
+    apply FocusinRightAtom in H;CleanContext.
+    FLLInversionAll.
+    CleanContext.
+
+    symmetry in H2.
+    apply AppEncode in H2.
+    destruct H2...
+    do 2 destruct H.
+    CleanContext. 
+    do 3 eexists;
+    split;eauto;
+    split;eauto;
+    split;eauto;
+    split;eauto.
+  Qed.
+
+Theorem RCOPYInv: forall n Gamma G v L F w0,
+      seqN OLTheory n (CLEncode Gamma) (REncode (G @ v) :: LEncode L) (>>RCOPY F w0) ->
+      (exists n',
+        n = S ( S ( S n')) /\ In (dd| F @ w0 |) (CLEncode Gamma) /\
+        seqN OLTheory n' (CLEncode Gamma) ((REncode (G @ v) :: LEncode L) ++ [d| F @ w0 |]) (> [])).
+  Proof with solveF.
+      intros.
+      unfold RCOPY in H.
+      FLLInversionAll.
+      - 
+      apply Permutation_sym in H2.
+      apply PermutationInCons in H2 as H2'.
+      inversion H2'.
+      inversion H1... 
+      assert(~ In (dd| F @ w0 |) (LEncode L)) by apply  NoDOWNInLEncode.
+      contradiction.
+     - 
+       rewrite <- H2 in H10.
+       eexists n0;split;auto.
+Qed. 
+ 
+Theorem RALLLInv: forall n Gamma G v L FX w0,
+      seqN OLTheory n (CLEncode Gamma) (REncode (G @ v) :: LEncode L) (>> RALLL FX w0) ->
+      (exists n' X t,
+        n = S (S ( S ( S n'))) /\  Permutation L ((ALL FX) @ w0 :: X) /\
+         proper t /\ uniform_oo (fun x => d| (FX x) @ w0 |) /\
+        seqN OLTheory n' (CLEncode Gamma) (REncode (G @ v) :: LEncode (X ++
+        [(FX t) @ w0 ])) (> [])) .
+  Proof with solveF.
+    intros.
+    apply FocusinLeftAtom in H;CleanContext.
+    FLLInversionAll.
+    eexists n.
+    eexists x0. 
+    exists t; 
+    split; eauto.
+    split; eauto.
+    split; eauto.
+    split; eauto. 
+    LLExactMap H10.    
+  Qed.
+ 
+   
+ Theorem RALLRInv: forall n Gamma G v L FX w0,
+      seqN OLTheory n (CLEncode Gamma) (REncode (G @ v) :: LEncode L) (>> RALLR FX w0) ->
+      (exists n',
+        n = (S ( S ( S n'))) /\  G = ALL FX /\ v = w0 /\ uniform_oo
+        (fun x => u| (FX x) @ w0 |) /\
+        forall x,
+          proper x -> seqN OLTheory n' (CLEncode Gamma) (LEncode L) (> [u| (FX x) @ w0 |])).
+  Proof with solveF.
+    intros.
+    apply FocusinRightAtom in H;CleanContext.
+    FLLInversionAll.
+    eexists n0;split; eauto. 
+  Qed.
+ 
+               
+Theorem RARROWLInv: forall n Gamma G v L FW w0,
+      seqN OLTheory n (CLEncode Gamma) (REncode (G @ v) :: LEncode L) (>> RARROWL FW w0) ->
+      (exists n' X,
+        n = S ( S ( S n')) /\ Permutation L ((ARROW FW) @ w0 :: X) /\
+        seqN OLTheory n' (CLEncode Gamma) (REncode (G @ v) :: LEncode (X ++
+        [(FW w0) @ w0 ])) (> [])).
+  Proof with solveF.
+    intros.
+    apply FocusinLeftAtom in H;CleanContext.
+    FLLInversionAll.
+    eexists n0.
+    eexists x0;split; eauto.
+    split; eauto.
+    LLExactMap H8.
+  Qed.
+    
+
+   Theorem RATRInv:  forall n Gamma G F w0 w1 v L ,
+      seqN OLTheory n (CLEncode Gamma) (REncode (G @ v) :: LEncode L) (>> RATR F w1 w0) ->
+         ( (exists n', n = S (S (S n')) /\
+      G = F AT w1 /\ v = w0 /\ seqN OLTheory n' (CLEncode Gamma) (LEncode L ++ [u| F @ w1 |]) (> []))) .
+  Proof with solveF.
+    intros.
+    apply FocusinRightAtom in H;CleanContext. 
+    FLLInversionAll.
+    eexists n0;split;auto.
+  Qed.
+   
 
 Theorem Completeness: forall  n Gamma L F w , 
-                      isOLFormulaL Gamma ->
-                      isOLFormulaL L ->
-                      isOLFormula (F @ w) ->
                       seqN  OLTheory n (CLEncode Gamma) (REncode (F @ w) :: (LEncode L)) (> []) ->
                       HyLL Gamma L (F @ w).
 Proof with solveF.
   induction n using strongind;intros...
-  inversion H2.
+  inversion H.
 
-  inversion H3...
+  inversion H0...
   *
-    assert(In F0 (REncode (F @ w) :: LEncode L)).
-    apply Remove_In in H6...
-    apply in_inv in H4.
 
-    destruct H4...
+    apply Remove_In in H3...
+    apply in_inv in H3.
+
+    destruct H3...
     + 
       assert(IsPositiveAtom (REncode (F @ w))) by constructor.
       contradiction.
     +
-      apply in_map_iff in H4.
-      do 2 destruct H4...
+      apply in_map_iff in H1.
+      do 2 destruct H1...
   *
-    apply in_map_iff in H6.
-    destruct H6...
+    apply in_map_iff in H3.
+    destruct H3...
   * 
-    inversion H5...
+    inversion H2...
     + (* init *)
-      apply RINITInv in H7.
-      CleanContext...
+      apply RINITInv in H4;CleanContext...
     + (* tensor left *)
-      apply FocusinLeftAtom in H7.
-      CleanContext...
-      apply (hy_exange H7).
-
-      (* sendind F1 and G to Linear Context *)
-      inversion H8...
-      inversion H13...
-      inversion H14...
-      inversion H17...
-      (* Maybe it's needed in some, cuz we have > [] in induction hyp. *)
-
-      Undo. Undo. Undo. Undo. 
-      (* Or *)
-      assert(exists y,  seqN OLTheory y (CLEncode Gamma)
-      (((REncode (F @ w) :: LEncode x0) ++ [d| F1 @ w0 |]) ++
-      [d| G @ w0 |]) (> []) /\ y <= x).
-      eexists (minus x 4)...
-      split.
-      inversion H8...
-      inversion H13...
-      inversion H14...
-      inversion H17...
-      lia.
-      do 2 destruct H6.  
+      apply RTENSORLInv in H4;CleanContext. 
+      apply (hy_exange H4).
 
       apply hy_tenL...
-      eapply (H x1)...
-      admit.
-      LLPerm ((((REncode (F @ w) :: LEncode x0) ++ [d| F1 @ w0 |]) ++
-      [d| G @ w0 |]))...
+      eapply (H x)...
+      LLExactMap H5.
       + (* tensor right *)
-      apply FocusinRightAtom in H7.
-      CleanContext...
-      inversion H7... 
-      inversion H13...
-      inversion H14... 
-      inversion H15...
-      inversion H17...      
+      apply RTENSORRInv in H4;CleanContext...
+      apply (hy_exange H4).
 
-
-      symmetry in H9.
-      apply Permutation_map_inv in H9.
-      destruct H9.
-      destruct H6.
-      fold (LEncode x) in H6.
-      symmetry in H6.
-      apply map_eq_app in H6.
-      do 3 destruct H6.
-      destruct H10.
-      fold (LEncode x0) in H10.
-      fold (LEncode x1) in H12.
-      subst.
-      apply (hy_exange H9).
       apply hy_tenR...
-      apply (H n)...
-      admit.
-      admit.
-      LLPerm ((LEncode x0 ++ [REncode (F1 @ w0)]))...
-      apply (H n)...
-      admit.
-      admit.
-      LLPerm ((LEncode x1 ++ [REncode (G @ w0)]))...
+      
+      ** 
+        eapply (H x)...  
+        LLExactMap H7.
+     **
+        eapply (H x)...  
+        LLExactMap H8.
     + (*  implication left *)
+      apply RIMPLLInv in H4.
+      CleanContext.
+      apply (hy_exange H4).
 
-      apply FocusinLeftAtom in H7.
-      CleanContext...
-      inversion H9...
-      inversion H16...
-      inversion H18...
-      clear H10.
-      inversion H19...
-      clear H13.
-      inversion H20...
-      clear H22.
-      inversion H21...
-      inversion H17...
-      clear H24.
-
-      inversion H25...
-      clear H24.
-      clear H16. clear H17. clear H18. clear H19. clear H20. clear H21. clear H25.
-      inversion H15...
-
-      ** (* init1 in H15 *) 
-
-        symmetry in H11.
-        apply PProp_perm_select' in H11. (* from Permutations.v *)
-        destruct H11.
-        do 2 destruct H6.
-        apply Permutation_length_1_inv in H6.
-        replace (REncode (F @ w) :: x) with ([REncode (F @ w)] ++ x) in H6;auto.
-        apply app_eq_unit in H6. 
-        destruct H6...
-
-        apply Permutation_map_inv in H10.
-        destruct H10.
-        destruct H6.
-        fold (LEncode x) in H6...
-
-
-        symmetry in H12.
-
-        apply Permutation_map_inv in H12.
-        destruct H12.
-        destruct H6.
-        fold (LEncode x1) in H6...
-
-        symmetry in H6.
-        apply map_eq_app in H6.
-        destruct H6.
-        destruct H6.
-        destruct H6.
-        destruct H12.
-
-        fold (LEncode x2) in H12.
-        fold (LEncode x3) in H13.
-
-        subst.
-
-
-        assert(Permutation L (([(F1 --o G) @ w0] ++ x2)++x3)).
-        rewrite <- app_assoc.
-        rewrite <- H11...
-        rewrite <- H10...
-        apply (hy_exange H6).
-
-        apply hy_impL...
-
-
-        eapply (H (S (S n0)))...
-        admit.
-        admit. 
-        LLPerm (LEncode x2 ++ [REncode (F1 @ w0)])...
-        eapply (H n0)...
-        admit.
-        simpl.
-        LLPerm ((LEncode x3 ++ [REncode (F @ w)]) ++ [d| G @ w0 |])...
-
-        destruct H6... 
-        simpl in H10.
-
-        apply Permutation_image in H10.
-        destruct H10...
-      ** (* init2 in H15 *) 
-        apply in_map_iff in H16.
-        destruct H16...
+      apply hy_impL...
+      
+      ** 
+        eapply (H (S (S x)))...  
+        LLExactMap H7.
+     **
+        eapply (H x)...  
+        LLExactMap H8.
     + (* implication right *)
-      apply FocusinRightAtom in H7.
-      CleanContext...
-      inversion H7...
-      inversion H12...
-      inversion H13...
-      clear H15.
-      inversion H16...
-      clear H15. clear H7. clear H8. clear H12. clear H13. clear H16.
+      apply RIMPLRInv  in H4.
+      CleanContext.
       apply hy_impR.
-      apply (H n0)...
-      admit. 
-      admit.
-      LLPerm((LEncode L ++ [d| F1 @ w0 |]) ++ [REncode (G @ w0)])...  
-
+      apply (H x)...
+      LLExactMap H6.
     + (* at left *)
-      apply RATLInv in H7.
+      apply RATLInv in H4.
       CleanContext.
-      apply hy_exange with (L':=  ((F1 AT v) @ w0 :: x0))...
+      apply (hy_exange H4).
       apply hy_atL.
-      apply H in H8...
-      admit.
+      apply (H x)...
     + (* at right *)
-    apply FocusinRightAtom in H7.
+      apply RATRInv in H4.
       CleanContext...
-
-      inversion H7...
-      inversion H12...
-      clear H8. clear H14.
       apply hy_atR.
-      apply (H n0)...
-      admit.
-      LLPerm(LEncode L++[REncode (F1 @ v)])...
+      apply (H x)...
+      LLExactMap H6.
     + (* arrow Left *)
-      apply FocusinLeftAtom in H7.
+      apply RARROWLInv in H4.
       CleanContext...
-
-      inversion H9...
-      inversion H14...
-      clear H16. clear H14. clear H10.
-      apply (hy_exange H7).
-      apply hy_arrowL...
-      Search(_ -> isWorldExp _).
-      inversion H8...
-      apply (H n0)...
-      admit.
-      LLPerm((REncode (F @ w) :: LEncode x0) ++ [d| (FW w0) @ w0 |])... 
+      apply (hy_exange H4).
+      apply hy_arrowL.
+      inversion H5...
+      inversion H5...
+      apply (H x)...
+      LLExactMap H6.
     + (* arrow right *)
-      apply RARROWRInv in H7.
+      apply RARROWRInv in H4.
       CleanContext.
-      inversion H8...
-      inversion H9...
-      apply lbindEq in H6...
-
-      apply hy_arrowR;auto.
-      apply H in H10...
-      rewrite <- H6...
-    + (* bang left *)
-      apply FocusinLeftAtom in H7.
+      apply hy_arrowR.
+      inversion H5...
+      inversion H5...
+      apply (H x)...
+     + (* bang left *)
+      apply RBANGLInv in H4.
       CleanContext...
-
-      inversion H8...
-      inversion H13...
-      clear H9. clear H13. 
-      apply (hy_exange H7).
+      apply (hy_exange H4).
       apply hy_bangL...
-      apply (H n0)...
-      admit.
-      admit.
-
-      LLPerm(CLEncode Gamma ++ [dd| F1 @ w0 |])... 
+      apply (H x)...
+      LLExactMap H5.
     +  (* bang right *)
-      apply FocusinRightAtom in H7.
+      apply RBANGRInv in H4.
       CleanContext...
-
-      inversion H7...
-      inversion H11...
-
-      symmetry in H6.
-      apply map_eq_nil in H6...
-
       apply hy_bangR...
-      apply (H n0)...
-      admit.
+      apply (H x)...
     + (* copy *)
-      inversion H7...
-      2:{ inversion H9. }
-      inversion H14...
-      ** (* init1 in H14 *) 
-        inversion H15...
-        inversion H16...
-        clear H18. clear H9.
-
-        symmetry in H10.
-        apply PProp_perm_select' in H10. (* from Permutations.v *)
-        destruct H10.
-        do 2 destruct H8.
-        apply Permutation_length_1_inv in H8.
-        replace (REncode (F @ w) :: x) with ([REncode (F @ w)] ++ x) in H8;auto.
-        apply app_eq_unit in H8. 
-        destruct H8...
-        destruct H8...
-
-
-        apply Permutation_map_inv in H9.
-        destruct H9...
-
-
-        symmetry in H9.
-
-        apply map_eq_app in H9.
-        destruct H9...
-        destruct H9...
-
-
-        fold (LEncode x1) in H9.
-        fold (LEncode x2) in H8.
-
-        destruct x1. (* contradiction in H9 *)
-        inversion H9.
-        inversion H9.
-      ** (* init2 in H14 *) 
-        inversion H15...
-        inversion H17...
-        clear H19. clear H9. 
-
-        apply in_map_iff in H13.
-        destruct H13...
-        subst.
-        apply (hy_copy H9).
-
-
-        apply (H n0)...
-        LLPerm((REncode (F @ w):: LEncode L) ++ [d| F1 @ w0 | ])...
-        rewrite <- H10 in H20... 
-    +  (* forall *)
-      apply FocusinLeftAtom in H7.
+      apply RCOPYInv in H4.
       CleanContext...
-      inversion H9...
-      inversion H15...
-      inversion H17...
-      clear H19. clear H15. clear H12. clear H17. 
+      apply in_map_iff in H4.
+      inversion H4...
+      subst.
+      apply (hy_copy H6). 
+      apply (H x)...
+      LLExactMap H5.
+    +  (* forall *)
+      apply RALLLInv in H4.
+      CleanContext...
+      apply (hy_exange H4).
+      apply hy_allL with (t:=x1)...
+      apply (H x)...
+      LLExactMap H8.        
+    +  (* forall *)
+      apply RALLRInv in H4.
+      CleanContext...
+      apply hy_allR...  
+      intros.
+      assert(Hyp: seqN OLTheory x (CLEncode Gamma) (LEncode L) (> [u| (FX t) @ w0 |]))...
+      inversion  Hyp...     
+      apply (H n)...
+      LLExactMap H13.        
 
-Admitted.
+Qed.
