@@ -459,7 +459,7 @@ Ltac invTriStep H :=
   | seqN _ _  _ _ (>>  (MOr _ _)) => inversion H;subst 
   | seqN _ _  _ _ (>>  (AAnd _ _)) => inversion H;subst (* with /release *)
   | seqN _ _  _ _ (>>  (All _) ) => inversion H;subst (* forall /release *)
-  | seqN _ _  _ _ (>> (Some _) ) => inversion H;subst; [solveF | idtac] (* exists *)
+  | seqN _ _  _ _ (>> (Some _) ) => inversion H;subst; [solveF | ] (* exists *)
   | seqN _ _  _ _ (>> (Zero) ) => inversion H;solveF 
   end.
 
@@ -498,7 +498,7 @@ Ltac invTri' H :=
   | seq _  _ _ (>>  (MOr _ _)) => inversion H;subst 
   | seq _  _ _ (>>  (AAnd _ _)) => inversion H;subst (* with /release *)
   | seq _  _ _ (>>  (All _) ) => inversion H;subst (* forall /release *)
-  | seq _  _ _ (>> (Some _) ) => inversion H;subst; [solveF | idtac] (* exists *)
+  | seq _  _ _ (>> (Some _) ) => inversion H;subst; [solveF | ] (* exists *)
   | seq _  _ _ (>> (Zero ) ) => inversion H;solveF
   end;
   clear H.
@@ -589,6 +589,16 @@ Ltac LLPerm LI :=
                | apply exchangeCC with (CC := LI);[perm|]]
 end.
 
+(** This version of [LLPerm] first simplifies the parameter LI *)
+Ltac sLLPermH H LI :=
+  let LI' := (eval cbn in LI ) in
+  let LI'' := constr:(LI') in
+  LLPermH H LI''.
+
+Ltac sLLPerm LI :=
+  let LI' := (eval cbn in LI ) in
+  let LI'' := constr:(LI') in
+  LLPerm LI''.
 (** "rewrite perm_swap in H" would be enough for exchanging the first 2
 elements of a list. However, such rewrite is quite slow (probably for
 Coq's search mechanism in Class Instances). This tactic implement the

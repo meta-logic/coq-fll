@@ -74,10 +74,6 @@ Instance SimpleOORUles : OORules :=
 
 (** ** Well-formedness conditions *)
 
-Definition down' : uexp -> atm := down.
-Definition up' : uexp -> atm := up.
-Hint Unfold down' up' : core .
-
 
 
 (** *** Constants *)
@@ -115,8 +111,8 @@ Proof with WFSolver.
     ++ (* linear case *)
     exists M0.
        exists N0.
-       exists [atom (down' Fo1)].
-       exists [atom (down' Go1)].
+       exists [atom (down Fo1)].
+       exists [atom (down Go1)].
        exists (@nil oo). exists (@nil oo).
        eexists. exists 4...
        left...
@@ -128,8 +124,8 @@ Proof with WFSolver.
     ++ (* classical case *)
       exists M0.
        exists N0.
-       exists [atom (down' Fo1)].
-       exists [atom (down' Go1)].
+       exists [atom (down Fo1)].
+       exists [atom (down Go1)].
        exists (@nil oo). exists (@nil oo).
        eexists. exists 4...
        right...
@@ -144,7 +140,7 @@ Proof with WFSolver.
     intros n HSeq HIs...
     FLLInversionAll.
 
-    exists   ([atom (up' Fo1)] ++ [atom (up' Go1)]). exists (@nil oo).
+    exists   ([atom (up Fo1)] ++ [atom (up Go1)]). exists (@nil oo).
     eexists. exists 5...
     rewrite H1.
     left.
@@ -153,7 +149,7 @@ Proof with WFSolver.
     tensor [ (atom (up (t_bin PAR Fo1 Go1)))] Delta1.
     solveLL...
 
-    exists   ([atom (up' Fo1)] ++ [atom (up' Go1)]). exists (@nil oo).
+    exists   ([atom (up Fo1)] ++ [atom (up Go1)]). exists (@nil oo).
     eexists. exists 5...
     rewrite H1.
     right...
@@ -166,7 +162,7 @@ Proof with WFSolver.
     intros n HSeq HIs...
     FLLInversionAll.
 
-    exists  [atom (down' Fo1)]. exists (@nil oo).
+    exists  [atom (down Fo1)]. exists (@nil oo).
     eexists. exists 4...
     rewrite H1.
     left.
@@ -175,7 +171,7 @@ Proof with WFSolver.
     decide3  (perp (down (t_bin WITH Fo1 Go1)) ** (atom (down Fo1) op atom (down Go1))).
     tensor [ (atom (down (t_bin WITH Fo1 Go1)))] Delta1.
 
-    exists  [atom (down' Fo1)]. exists (@nil oo).
+    exists  [atom (down Fo1)]. exists (@nil oo).
     eexists. exists 4...
     rewrite H1.
     right...
@@ -183,7 +179,7 @@ Proof with WFSolver.
     decide3  (perp (down (t_bin WITH Fo1 Go1)) ** (atom (down Fo1) op atom (down Go1))).
     tensor (@nil oo) Delta1.
 
-    exists  [atom (down' Go1)]. exists (@nil oo).
+    exists  [atom (down Go1)]. exists (@nil oo).
     eexists. exists 4...
     rewrite H1.
     left.
@@ -192,7 +188,7 @@ Proof with WFSolver.
     decide3  (perp (down (t_bin WITH Fo1 Go1)) ** (atom (down Fo1) op atom (down Go1))).
     tensor [ (atom (down (t_bin WITH Fo1 Go1)))] Delta1.
 
-    exists  [atom (down' Go1)]. exists (@nil oo).
+    exists  [atom (down Go1)]. exists (@nil oo).
     eexists. exists 4...
     rewrite H1.
     right...
@@ -204,8 +200,8 @@ Proof with WFSolver.
     intros n HSeq HIs...
     FLLInversionAll...
     ++ exists N.
-       exists [atom (up' Fo1)]. 
-       exists [atom (up' Go1)].
+       exists [atom (up Fo1)]. 
+       exists [atom (up Go1)].
        exists (@nil oo). exists (@nil oo).
        eexists. exists 4...
        rewrite H1.
@@ -214,8 +210,8 @@ Proof with WFSolver.
        tensor [(atom (up (t_bin WITH Fo1 Go1)))] Delta12.
 
     ++ exists N.
-       exists [atom (up' Fo1)].
-       exists [atom (up' Go1)].
+       exists [atom (up Fo1)].
+       exists [atom (up Go1)].
        exists (@nil oo). exists (@nil oo).
        eexists. exists 4...
        rewrite H1.
@@ -337,6 +333,158 @@ Proof with SolveIsFormulas.
   split;autounfold...
   intro;destruct lab...
 Qed.
+
+(** ** Adequacy 
+
+Now we prove that the encoding is sound and complete. For that, we
+define the provability relation of MALL as an inductive definition *)
+
+Notation "F *** G" := (t_bin TENSOR F G) (at level 10) .
+Notation "F $$$ G" := (t_bin PAR F G) (at level 10) .
+Notation "F 'ooo' G" := (t_bin OPLUS F G) (at level 10) .
+Notation "F &* G" := (t_bin WITH F G) (at level 10) .
+
+
+
+Inductive MALLSeq : list uexp -> list uexp -> Prop :=
+| MALLInit : forall F , MALLSeq [F] [F]
+| MALLTensorR : forall L1 L2 L1' L2' F G, MALLSeq L1 (F :: L2) -> MALLSeq L1' (G :: L2') -> MALLSeq  (L1 ++ L1') (F *** G :: (L2 ++ L2'))
+| MALLTensorL : forall L1 L2 F G, MALLSeq (F :: G :: L1) L2 -> MALLSeq (F *** G :: L1) L2
+| MALLParR : forall L1 L2 F G, MALLSeq L1 (F :: G :: L2) -> MALLSeq L1 (F $$$ G :: L2)
+| MALLParL :forall L1 L2 L1' L2' F G, MALLSeq (F :: L1) L2 -> MALLSeq (G :: L1') L2' -> MALLSeq (F $$$ G :: L1 ++ L1') (L2 ++ L2')
+| MALLOpRE1 : forall L1 L2 F G, MALLSeq L1 (F :: L2) -> MALLSeq L1 (F ooo G :: L2)
+| MALLOpRE2 : forall L1 L2 F G, MALLSeq L1 (G :: L2) -> MALLSeq L1 (F ooo G :: L2)
+| MALLOpL : forall L1 L2 F G, MALLSeq (F :: L1) L2 -> MALLSeq (G :: L1) L2 -> MALLSeq (F ooo G :: L1) L2
+| MALLWithR : forall L1 L2 F G, MALLSeq L1 (F :: L2) -> MALLSeq L1 (G :: L2) -> MALLSeq L1 (F &* G :: L2)
+| MALLWithL1 : forall L1 L2 F G, MALLSeq (F :: L1) L2 ->  MALLSeq (F &* G :: L1) L2
+| MALLWithL2 : forall L1 L2 F G, MALLSeq (G :: L1) L2 ->  MALLSeq (F &* G :: L1) L2
+| MALLExR : forall  L1 L2 L2', Permutation L2 L2' -> MALLSeq L1 L2' -> MALLSeq L1 L2
+| MALLExL : forall  L1 L2 L1', Permutation L1 L1' -> MALLSeq L1' L2 -> MALLSeq L1 L2
+.
+
+Global Instance MALLL_morph : 
+  Proper ((@Permutation uexp) ==> (@Permutation uexp) ==> iff) (MALLSeq).
+Proof.
+  unfold Proper; unfold respectful. 
+  intros.
+  split;intros;subst.
+  eapply MALLExR with (L2':=x0);auto. apply Permutation_sym;auto.
+  eapply MALLExL with (L1':=x);auto. apply Permutation_sym;auto.
+  eapply MALLExR with (L2':=y0);auto.
+  eapply MALLExL with (L1':=y);auto. 
+Qed.
+
+Ltac solveOLTheory :=
+  try
+    match goal with
+    | [|- OLTheory _] =>
+      first [ apply ooth_init ; auto ; SolveIS
+            | do 2 constructor;auto ; SolveIS ]
+    end.
+
+
+Hint Unfold LEncode REncode : core .
+Theorem Soundeness: forall L1 L2, MALLSeq L1 L2 ->
+                                isOLFormulaL L1 ->
+                                isOLFormulaL L2 ->
+                                seq OLTheory []  ( (LEncode L1) ++  (REncode L2)) (> []).
+Proof with solveF;solveLL;solveOLTheory;SolveIS;solveOLTheory. 
+  intros.
+  induction H. 
+  + (* init *)
+    decide3 (RINIT F)...
+    tensor (REncode [F]) (LEncode [F]).
+  + (* TensorR *)
+    decide3 (makeRRuleBin TENSOR  F G)...      
+    tensor [u| F *** G |] ( LEncode (L1 ++ L1') ++  REncode (L2 ++ L2')).
+    
+    assert (Permutation (LEncode (L1 ++ L1') ++ REncode (L2 ++ L2')) ((LEncode L1 ++ REncode L2 ) ++ (LEncode L1' ++ REncode L2' ))).
+    autounfold; repeat rewrite map_app...
+    rewrite H3.
+    tensor (LEncode L1 ++ REncode L2)(LEncode L1' ++ REncode L2').
+    sLLPerm ((LEncode L1 ++ (REncode (F ::L2)))).
+    apply IHMALLSeq1...
+    apply ForallAppInv1 in H0...
+    apply ForallAppInv1 in H7...
+    sLLPerm ((LEncode L1' ++ (REncode (G ::L2')))).
+    apply IHMALLSeq2...
+    apply ForallAppInv2 in H0...
+    apply ForallAppInv2 in H7...
+  + (* TensorL *)
+    decide3 (makeLRuleBin TENSOR  F G)...
+    tensor  [d| F *** G |]  (LEncode L1 ++ REncode L2).
+    sLLPerm ( LEncode( F :: G :: L1) ++ REncode L2).
+    apply IHMALLSeq...
+  + (* Par Right *)
+    decide3 (makeRRuleBin PAR  F G)...
+    tensor  [u| F $$$ G |] (LEncode L1 ++ REncode L2).
+    sLLPerm ( (LEncode L1) ++ REncode (F :: G :: L2)).
+    apply IHMALLSeq...
+  + (* Par Left *)
+    decide3 (makeLRuleBin PAR  F G)...
+    tensor [d| F $$$ G|]  (LEncode (L1 ++ L1') ++ REncode (L2 ++ L2')).
+    assert (Permutation (LEncode (L1 ++ L1') ++ REncode (L2 ++ L2')) ((LEncode L1 ++ REncode L2 ) ++ (LEncode L1' ++ REncode L2' ))).
+    autounfold; repeat rewrite map_app...
+    rewrite H3.
+    tensor (LEncode L1 ++ REncode L2)(LEncode L1' ++ REncode L2').
+    sLLPerm (LEncode (F::L1) ++ REncode L2).
+    apply  IHMALLSeq1...
+    apply ForallAppInv1 in H7...
+    apply ForallAppInv1 in H1...
+    sLLPerm (LEncode (G::L1') ++ REncode L2').
+    apply  IHMALLSeq2...
+    apply ForallAppInv2 in H7...
+    apply ForallAppInv2 in H1...
+  + (* Oplus1 *)
+    decide3 (makeRRuleBin OPLUS  F G)...
+    tensor [u| F ooo G |] (LEncode L1 ++ REncode L2).
+    oplus1.
+    sLLPerm ( (LEncode L1) ++ (REncode (F :: L2))).
+    apply IHMALLSeq...
+  + (* Oplus2 *)
+    decide3 (makeRRuleBin OPLUS  F G)...
+    tensor [u| F ooo G |] (LEncode L1 ++ REncode L2).
+    oplus2.
+    sLLPerm ( (LEncode L1) ++ (REncode (G :: L2))).
+    apply IHMALLSeq...
+  + (* Oplus Left *)
+    decide3 (makeLRuleBin OPLUS  F G)...
+    tensor [d| F ooo G |] (LEncode L1 ++ REncode L2).
+    sLLPerm ( LEncode ( F:: L1) ++ REncode L2).
+    apply IHMALLSeq1...
+    sLLPerm ( LEncode ( G:: L1) ++ REncode L2).
+    apply IHMALLSeq2...
+  + (* With R *)
+    decide3 (makeRRuleBin WITH  F G)...
+    tensor [u| F &* G |] (LEncode L1 ++ REncode L2).
+    sLLPerm ( LEncode L1  ++ REncode (F::L2)).
+    apply IHMALLSeq1...
+    sLLPerm ( LEncode L1  ++ REncode (G::L2)).
+    apply IHMALLSeq2...
+  + (*WithL 1 *)
+    decide3 (makeLRuleBin WITH  F G)...
+    tensor [d| F &* G |] (LEncode L1 ++ REncode L2).
+    oplus1.
+    sLLPerm ( LEncode (F ::L1)  ++  REncode L2).
+    apply IHMALLSeq...
+  + (*WithL 2 *)
+    decide3 (makeLRuleBin WITH  F G)...
+    tensor [d| F &* G |] (LEncode L1 ++ REncode L2).
+    oplus2.
+    sLLPerm ( LEncode (G ::L1)  ++  REncode L2).
+    apply IHMALLSeq...
+  + (* Exchange *)
+    eapply Permutation_map in  H as H'.
+    unfold REncode; rewrite H'...
+    apply IHMALLSeq...
+    rewrite <- H...
+  + (* Exchange *)
+    eapply Permutation_map in  H as H'.
+    unfold LEncode; rewrite H'...
+    apply IHMALLSeq...
+    rewrite <- H...
+Qed.
+
   
 (** The cut-elimination theorem instantiated for LK *)
 Check OLCutElimination wellTheory_p OLTheoryIsFormula_p OLTheoryIsFormulaD_p.
