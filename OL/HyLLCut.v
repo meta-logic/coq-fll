@@ -23,7 +23,7 @@ Hint Constructors seq seqN : core .
 Hint Constructors uniform_oo : core.
 Hint Constructors isFormula : core.
 
-Section Syntax.
+Section HyLL.
   Variable W : Set. (* Set of Worlds *)
   Variable ID : W.
   Variable T : Set. (* Terms of the object logic *)
@@ -161,6 +161,7 @@ Section Syntax.
   | hy_tenL : forall Gamma A B w L G, HyLL Gamma ( A @ w :: B @ w :: L) G -> HyLL Gamma ( (A *** B) @ w :: L) G
   | hy_tenR : forall Gamma A B w L L' , HyLL Gamma L (A @ w) ->  HyLL Gamma L' (B @ w) -> HyLL Gamma (L ++ L') ( (A *** B)  @ w)
   | hy_impL : forall Gamma A B w L L' G, HyLL Gamma L (A @ w) -> HyLL Gamma ( B @ w :: L') G -> HyLL Gamma ( (A --o B) @ w :: (L ++ L')) G
+  | hy_impR : forall Gamma A B w L,  HyLL Gamma ((A @ w)::L) (B @ w) -> HyLL Gamma L ( (A --o B)  @ w)
   | hy_atL   : forall Gamma A v w L G , HyLL Gamma ( A @ v :: L)  G -> HyLL Gamma ( (A AT v) @ w :: L) G
   | hy_atR   : forall Gamma A v w L , HyLL Gamma L (A @ v) -> HyLL Gamma L ( (A AT v) @ w)
   | hy_arrowL : forall Gamma FW w L G, uniform FW -> isWorldExp w ->   HyLL Gamma (( ( FW w) @ w) :: L) G -> HyLL Gamma ( ( (ARROW FW) @ w) :: L) G
@@ -352,7 +353,7 @@ Section Syntax.
        
   Hint Constructors OLTheory: core.
   Hint Constructors isOLFormula : core.
-  Hint Unfold LEncode REncode .
+  Hint Unfold LEncode REncode : core.
 
 
   (*********************************)
@@ -4752,7 +4753,7 @@ Proof with autounfold with enc;IS;solveF;try easyF.
     (* ***** *)
     tensor [REncode ((ARROW FW) @ w0)] (LEncode L).
 
-    LLPerm (REncode ((FW w0) @ w0) :: LEncode L).
+    LLPerm (u| (FW w0) @ w0 | :: LEncode L).
     apply IHHyLL...
     constructor...
     rewrite <- H2...
@@ -4980,5 +4981,4 @@ Proof with solveF; try easyF.
       apply (H n)...
       LLExactMap H16.        
 Qed.
-
-
+End HyLL.
