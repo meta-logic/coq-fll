@@ -291,7 +291,6 @@ Section Syntax.
   .
 
   Definition LEncode L := map (fun x => d| x|) L.
-  (* Definition CLEncode L := map (fun x => dd| x|) L. (* classical encoding *) *)
   Definition REncode F := u| F|.
   
   Ltac solveOLFormula :=
@@ -1235,7 +1234,7 @@ Theorem NORightNotProvable : forall n Gamma  L ,
   Theorem RIMPLLInv1:  forall n Gamma G F1 F2 w0 v L ,
   isOLFormulaL Gamma -> isOLFormulaL L ->
       seqN OLTheory n (LEncode Gamma) (REncode (G @ v) :: LEncode L) (>> RIMPLL F1 F2 w0) ->
-         ( False \/
+  ( 
 (exists n' X1 X2, n = S (S (S (S n'))) /\ 
               Permutation  L ((F1 --o F2) @ w0 ::  (X1 ++ X2)) /\
               (seqN OLTheory n' (LEncode Gamma) (LEncode X1 ++[u| F1 @ w0 |]) (> []))  /\
@@ -1281,7 +1280,7 @@ Theorem NORightNotProvable : forall n Gamma  L ,
       solveForall. 
       contradiction.
       +
-      right. left.
+      left.
       apply AppEncode in H3.
       do 3 destruct H3.
       decompose [and] H3;subst;clear H3.
@@ -1300,7 +1299,6 @@ Theorem NORightNotProvable : forall n Gamma  L ,
       apply PProp_perm_select' in H5.
       destruct H5;CleanContext.
       +
-       left.
        apply AppEncode in H3.
        do 3 destruct H3.
        decompose [and] H3;subst;clear H3.
@@ -1328,7 +1326,7 @@ Theorem NORightNotProvable : forall n Gamma  L ,
       apply (Forall_app _ x1 x2);auto.
       contradiction.
       +
-       right. right. 
+       right.
        apply AppEncode in H3.
        do 3 destruct H3.
        decompose [and] H3;subst;clear H3.
@@ -1343,7 +1341,7 @@ Theorem RIMPLLInv2:  forall n Gamma F G F1 F2 w w0 v L ,
 isOLFormula (F @ w) ->
   isOLFormulaL Gamma -> isOLFormulaL L -> 
       seqN OLTheory n (LEncode Gamma) (REncode (G @ v) :: LEncode (F @ w :: L)) (>> RIMPLL F1 F2 w0) ->
-         ( False \/
+         ( 
 (exists n' X1 X2, n = S (S (S (S n'))) /\ 
               F = (F1 --o F2)  /\  w = w0  /\ Permutation L (X1 ++ X2)  /\
               (seqN OLTheory n' (LEncode Gamma) (LEncode X1 ++ [u| F1 @ w0 |]) (> []))  /\
@@ -1378,7 +1376,6 @@ isOLFormula (F @ w) ->
       apply PProp_perm_select' in H6.
       destruct H6;CleanContext.
       ++
-        left.
         apply AppEncode in H5.
         do 3 destruct H5;CleanContext.
         
@@ -1399,7 +1396,7 @@ isOLFormula (F @ w) ->
       inversion H9;subst.
       eauto.
       contradiction.
-      ++ right. left. 
+      ++ left. 
         apply AppEncode in H5.
         do 3 destruct H5;CleanContext.
         rewrite H4 in H15.
@@ -1443,7 +1440,7 @@ isOLFormula (F @ w) ->
       inversion H12;subst.
       eauto.
       contradiction.
-      ++ right. right. 
+      ++ right. 
         apply AppEncode in H5.
         do 3 destruct H5;CleanContext.
         rewrite H4 in H15.
@@ -1467,7 +1464,6 @@ isOLFormula (F @ w) ->
         eexists n;
         eexists x3; 
         eexists x1;split;auto.
-                
    -
    FLLInversionAll.
    CleanContext.
@@ -1475,7 +1471,6 @@ isOLFormula (F @ w) ->
    apply PProp_perm_select' in H6.
    destruct H6;CleanContext.
       +
-       left.
        assert(Permutation (x ++ N)
        (LEncode ([ F @ w ] ++ L))) by auto.
        
@@ -1507,7 +1502,7 @@ isOLFormula (F @ w) ->
      eauto.
       contradiction.
       +
-       right. right. right.  right.
+       right. right. right.  
        
        assert(Permutation (M ++ x)
        (LEncode ([ F @ w ] ++ L))) by auto.
@@ -1927,8 +1922,7 @@ split; eauto.
       eapply Permutation_map in H1. exact H1.
       rewrite <- H0 in H11. 
       eexists n;
-      exists t; 
-      split; eauto.
+      exists t; split; eauto.
       split; eauto.
       split; eauto.
       split; eauto.
@@ -2019,7 +2013,8 @@ Theorem RARROWLInv1: forall n Gamma G v L FW w0,
     LLExactMap H8.
     -
     CleanContext.
-    FLLInversionAll.
+    
+FLLInversionAll.
     right.
     eexists n0;split; eauto.
      unfold LEncode.
@@ -2646,7 +2641,7 @@ Ltac solveRIMPLL2 :=
    match goal with  
     | [ H: seqN OLTheory ?m ?G (REncode ?FC :: LEncode ?D) (>> RIMPLL ?F ?G1 ?w1) |- _ ] => 
       apply RIMPLLInv1 in H;auto;
-      decompose [or] H;clear H;CleanContext;[contradiction | solveRIMPLL1;try easyF | solveRIMPLL2;try easyF ]   
+      decompose [or] H;clear H;CleanContext;[ solveRIMPLL1;try easyF | solveRIMPLL2;try easyF ]   
     end.
 
 
@@ -3480,7 +3475,7 @@ Qed.
 
     *
      apply RIMPLLInv2 in H1;auto. 
-     decompose [or] H1;clear H1;[contradiction | | | | | ];CleanContext.
+     decompose [or] H1;clear H1;CleanContext.
 
      -
       apply (rewL1 _ _ H4).
@@ -3557,7 +3552,7 @@ Qed.
      CleanContext.
 
      apply RIMPLLInv2 in H1;auto. 
-         decompose [or] H1;clear H1;[contradiction | | | | | ];CleanContext.
+         decompose [or] H1;clear H1;CleanContext.
      - discriminate H1.    
      -
       apply (rewL1 _ _ H1).
@@ -3625,7 +3620,7 @@ Qed.
     CleanContext.
     
     apply RIMPLLInv2 in H1;auto. 
-    decompose [or] H1;clear H1;[contradiction | | | | | ];CleanContext.
+    decompose [or] H1;clear H1;CleanContext.
      - 
       (* IMPL IS PRINCIPAL *)
 
@@ -3704,7 +3699,7 @@ Qed.
      CleanContext.
 
      apply RIMPLLInv2 in H1;auto. 
-         decompose [or] H1;clear H1;[contradiction | | | | | ];CleanContext.
+         decompose [or] H1;clear H1;CleanContext.
      - inversion H1.    
      -
       apply (rewL1 _ _ H1).
@@ -3771,7 +3766,7 @@ Qed.
      CleanContext.
 
      apply RIMPLLInv2 in H1;auto. 
-         decompose [or] H1;clear H1;[contradiction | | | | | ];CleanContext.
+         decompose [or] H1;clear H1;CleanContext.
      - inversion H1.    
      -
       apply (rewL1 _ _ H1).
@@ -3838,7 +3833,7 @@ Qed.
      CleanContext.
 
      apply RIMPLLInv2 in H1;auto. 
-         decompose [or] H1;clear H1;[contradiction | | | | | ];CleanContext.
+         decompose [or] H1;clear H1;CleanContext.
      - inversion H1.    
      -
       apply (rewL1 _ _ H1).
@@ -3902,7 +3897,7 @@ Qed.
      CleanContext.
 
      apply RIMPLLInv2 in H1;auto. 
-         decompose [or] H1;clear H1;[contradiction | | | | | ];CleanContext.
+         decompose [or] H1;clear H1;CleanContext.
      - inversion H1.    
      -
       apply (rewL1 _ _ H1).
@@ -4672,459 +4667,3 @@ Qed.
 
  Qed.
 
-Ltac IS :=
-try
-match goal with
-  |  [H : isOLFormulaL (_ :: _) |- _] =>  inversion H; clear H;subst;try IS
-  |  [H : isOLFormula _ |- _ ] => inversion H; clear H;subst;try IS
-  | [H: isOLFormula' (_ _ _) |- _] => inversion H;clear H;subst;try IS
-  | [H: isOLFormula' (_ _) |- _]=> inversion H;clear H;subst;try IS
-  | [H: lbind _ _ = _ |- _ ] => apply lbindEq in H;auto;subst
-end.
-
-Theorem Soundeness: forall Gamma L F w , HyLL Gamma L (F @ w) ->
-                              isOLFormulaL Gamma ->
-                              isOLFormulaL L ->
-                              isOLFormula (F @ w) ->
-                              seq OLTheory (LEncode Gamma) (REncode (F @ w) :: (LEncode L)) (> []).
-Proof with IS;autounfold with enc;solveF;try easyF.
-  intros.
-  induction H... 
-  + (* init *)
-    decide3 (RINIT F1 wexp).
-    tensor [REncode (F1 @ wexp)] [d| F1 @ wexp |].
-  + decide3 (RTENSORL A B w0)...
-    tensor [d| (A *** B) @ w0 |] (REncode (F0 @ wexp) :: LEncode L).
-    LLPermMap  (REncode (F0 @ wexp) :: d| A @ w0 | :: d| B @ w0 | :: LEncode L).
-    apply  IHHyLL...
-  + (* tensor right *)
-    decide3 (RTENSORR A B w0)...
-    tensor [(REncode ((A *** B) @ w0))] (LEncode (L ++ L')) .
-    LLPermMap(LEncode L ++ LEncode L'). 
-    tensor. 
-    LLPermMap (REncode (A @ w0) :: LEncode L).
-    apply IHHyLL1...
-    LLPermMap (REncode (B @ w0) :: LEncode L').
-    apply IHHyLL2...
-  + (* implication left *)
-    decide3 (RIMPLL A B w0)...
-    tensor  [d| (A --o B) @ w0 |] (REncode (F0 @ wexp) :: LEncode (L ++ L')).
-    tensor (LEncode L) ( REncode (F0 @ wexp)::LEncode L').
-    permMap.
-    LLPermMap (REncode (A @ w0) :: LEncode L).
-    apply IHHyLL1...
-    LLPermMap (u| F0 @ wexp | :: d| B @ w0 | :: LEncode L') .
-    apply IHHyLL2...
-    constructor ...
-  + (* at  *)
-    decide3 (RATL A v w0)...
-    tensor [d| (A AT v) @ w0 |] (REncode (F0 @ wexp) :: LEncode L).
-    LLPermMap (REncode (F0 @ wexp) :: d| A @ v | :: LEncode L).
-    apply IHHyLL...
-  + (* at *)
-    decide3 (RATR A v w0)...
-    tensor [u| (A AT v) @ w0 |] ( LEncode L).
-    LLPermMap (REncode (A @ v) :: LEncode L).
-    apply IHHyLL...
-  + (* arrow *)
-    decide3 (RARROWL FW w0)...
-    (* automatize here *)
-    apply ll_arrowL...
-    constructor...
-    apply isFArrow...
-    intros.
-    rewrite <- H2...
-    (* ***** *)
-    tensor [d| (ARROW FW) @ w0 |] (REncode (F0 @ wexp) :: LEncode L).
-
-    LLPermMap (REncode (F0 @ wexp) :: d| (FW w0) @ w0 | :: LEncode L).
-    apply IHHyLL...
-    constructor...    
-    constructor...
-    rewrite <- H2...
-  + (* arrow *)
-    decide3 (RARROWR FW w0)...
-    (* automatize here *)
-    apply ll_arrowR...
-    constructor...
-    apply isFArrow...
-    intros.
-    rewrite <- H2...
-    (* ***** *)
-    tensor [REncode ((ARROW FW) @ w0)] (LEncode L).
-    rewrite Permutation_app_comm...
-    apply IHHyLL...
-    constructor...
-    rewrite <- H2...
-  + (* bang *)
-    decide3 (RBANGL F0 w0)...
-    tensor [d| (!! F0) @ w0 |] (REncode (F1 @ wexp)  :: LEncode L).
-    LLPermMap (d| F0 @ w0 | :: LEncode Gamma).
-    apply IHHyLL...
-  + (* bang *)
-    decide3 (RBANGR F0 w0)...
-    tensor [REncode ((!! F0) @ w0)] (@nil oo).
-  + (* copy *)
-    decide3 (RCOPY F0 w0)...
-    constructor...
-   
-    apply (Utils.isFormulaIn H0 H).
-    tensor (@nil oo)(REncode (F1 @ wexp) :: LEncode L) .
-    eapply in_map in H. exact H.
-    LLPermMap (REncode (F1 @ wexp) :: d| F0 @ w0 | :: LEncode L).
-    apply IHHyLL...
-    constructor...
-    apply (Utils.isFormulaIn H0 H).   
-  + (* quantifier *)
-    decide3 (RALLL FX w0)...
-    constructor...
-    constructor...
-    constructor...
-    intros. rewrite <- H2...
-    tensor [d| (ALL FX) @ w0| ] (REncode (F0 @ wexp)  :: LEncode L) .
-    existential t.
-    LLPermMap (REncode (F0 @ wexp) :: d| (FX t) @ w0 | :: LEncode L).
-    apply IHHyLL...
-    constructor...
-    rewrite <- H2...
-
-  + decide3 (RALLR FX w0)...
-    constructor...
-    constructor...
-    constructor...
-    intros. rewrite <- H2...
-    tensor [REncode ((ALL FX) @ w0) ]  (LEncode L).
-    specialize(H4 x properX).
-    LLPermMap (REncode ((FX x) @ w0) :: LEncode L).
-    apply H4...
-    constructor...
-    rewrite <- H2...
-
-  + (* permutation *)
-
-    assert(isOLFormulaL L'). 
-
-    apply (PermuteMap H1);auto. 
-    assert(Permutation (LEncode L) (LEncode L')).
-    apply Permutation_map; auto. 
-
-    rewrite H6...
-
-Qed.
-
-Lemma in_LEncode : forall F L, In (d| F |) (LEncode L) -> In F L .
-Proof with subst;auto.
-   intros.
-   apply in_map_iff in H.
-   inversion H as [x Hx].
-   inversion Hx. 
-   inversion H0...
-Qed.
-
-Theorem Completeness: forall  n Gamma L F w , 
-                      isOLFormulaL Gamma ->
-                      isOLFormulaL L ->
-                      isOLFormula (F @ w) ->
-                      seqN  OLTheory n (LEncode Gamma) (REncode (F @ w) :: (LEncode L)) (> []) ->
-                      HyLL Gamma L (F @ w).
-Proof with autounfold with enc;solveF;try easyF.
-  induction n using strongind;intros...
-  inversion H2.
-
-  inversion H3...
-  *
-    apply Remove_In in H6...
-    apply in_inv in H6.
-
-    destruct H6...
-    + 
-      assert(IsPositiveAtom (REncode (F @ w))) by constructor.
-      contradiction.
-    +
-      apply in_map_iff in H4.
-      do 2 destruct H4...
-  *
-    apply in_map_iff in H6.
-    destruct H6...
-  * 
-    inversion H5...
-    + (* init *)
-      apply RINITInv1 in H7... 
-      decompose [or] H8;clear H8;CleanContext...
-      apply in_map_iff in H7.
-      inversion H7... subst...
-      eauto.
-    + (* tensor left *)
-      apply RTENSORLInv1 in H7... 
-      decompose [or] H7;clear H7; CleanContext...
-      apply (hy_exange H7).
-      FLLInversionAll.
-      apply hy_tenL...
-      eapply (H x)...
-      constructor...
-      constructor...
-      LLExactMap H8.
-      apply in_LEncode in H7.
-      Abort. (* We must have CLEncode (map (fun x => dd| x|) Gamma) in Gamma *)
-
-     
-    (*  + (* tensor right *)
-      apply FocusinRightAtom in H7.
-      CleanContext...
-      inversion H7... 
-      inversion H13...
-      inversion H14... 
-      inversion H15...
-      inversion H17...      
-
-
-      symmetry in H9.
-      apply Permutation_map_inv in H9.
-      destruct H9.
-      destruct H6.
-      fold (LEncode x) in H6.
-      symmetry in H6.
-      apply map_eq_app in H6.
-      do 3 destruct H6.
-      destruct H10.
-      fold (LEncode x0) in H10.
-      fold (LEncode x1) in H12.
-      subst.
-      apply (hy_exange H9).
-      apply hy_tenR...
-      apply (H n)...
-      admit.
-      admit.
-      LLPerm ((LEncode x0 ++ [REncode (F1 @ w0)]))...
-      apply (H n)...
-      admit.
-      admit.
-      LLPerm ((LEncode x1 ++ [REncode (G @ w0)]))...
-    + (*  implication left *)
-
-      apply FocusinLeftAtom in H7.
-      CleanContext...
-      inversion H9...
-      inversion H16...
-      inversion H18...
-      clear H10.
-      inversion H19...
-      clear H13.
-      inversion H20...
-      clear H22.
-      inversion H21...
-      inversion H17...
-      clear H24.
-
-      inversion H25...
-      clear H24.
-      clear H16. clear H17. clear H18. clear H19. clear H20. clear H21. clear H25.
-      inversion H15...
-
-      ** (* init1 in H15 *) 
-
-        symmetry in H11.
-        apply PProp_perm_select' in H11. (* from Permutations.v *)
-        destruct H11.
-        do 2 destruct H6.
-        apply Permutation_length_1_inv in H6.
-        replace (REncode (F @ w) :: x) with ([REncode (F @ w)] ++ x) in H6;auto.
-        apply app_eq_unit in H6. 
-        destruct H6...
-
-        apply Permutation_map_inv in H10.
-        destruct H10.
-        destruct H6.
-        fold (LEncode x) in H6...
-
-
-        symmetry in H12.
-
-        apply Permutation_map_inv in H12.
-        destruct H12.
-        destruct H6.
-        fold (LEncode x1) in H6...
-
-        symmetry in H6.
-        apply map_eq_app in H6.
-        destruct H6.
-        destruct H6.
-        destruct H6.
-        destruct H12.
-
-        fold (LEncode x2) in H12.
-        fold (LEncode x3) in H13.
-
-        subst.
-
-
-        assert(Permutation L (([(F1 --o G) @ w0] ++ x2)++x3)).
-        rewrite <- app_assoc.
-        rewrite <- H11...
-        rewrite <- H10...
-        apply (hy_exange H6).
-
-        apply hy_impL...
-
-
-        eapply (H (S (S n0)))...
-        admit.
-        admit. 
-        LLPerm (LEncode x2 ++ [REncode (F1 @ w0)])...
-        eapply (H n0)...
-        admit.
-        simpl.
-        LLPerm ((LEncode x3 ++ [REncode (F @ w)]) ++ [d| G @ w0 |])...
-
-        destruct H6... 
-        simpl in H10.
-
-        apply Permutation_image in H10.
-        destruct H10...
-      ** (* init2 in H15 *) 
-        apply in_map_iff in H16.
-        destruct H16...
-    + (* implication right *)
-      apply FocusinRightAtom in H7.
-      CleanContext...
-      inversion H7...
-      inversion H12...
-      inversion H13...
-      clear H15.
-      inversion H16...
-      clear H15. clear H7. clear H8. clear H12. clear H13. clear H16.
-      apply hy_impR.
-      apply (H n0)...
-      admit. 
-      admit.
-      LLPerm((LEncode L ++ [d| F1 @ w0 |]) ++ [REncode (G @ w0)])...  
-
-    + (* at left *)
-      apply RATLInv in H7.
-      CleanContext.
-      apply hy_exange with (L':=  ((F1 AT v) @ w0 :: x0))...
-      apply hy_atL.
-      apply H in H8...
-      admit.
-    + (* at right *)
-    apply FocusinRightAtom in H7.
-      CleanContext...
-
-      inversion H7...
-      inversion H12...
-      clear H8. clear H14.
-      apply hy_atR.
-      apply (H n0)...
-      admit.
-      LLPerm(LEncode L++[REncode (F1 @ v)])...
-    + (* arrow Left *)
-      apply FocusinLeftAtom in H7.
-      CleanContext...
-
-      inversion H9...
-      inversion H14...
-      clear H16. clear H14. clear H10.
-      apply (hy_exange H7).
-      apply hy_arrowL...
-      Search(_ -> isWorldExp _).
-      inversion H8...
-      apply (H n0)...
-      admit.
-      LLPerm((REncode (F @ w) :: LEncode x0) ++ [d| (FW w0) @ w0 |])... 
-    + (* arrow right *)
-      apply RARROWRInv in H7.
-      CleanContext.
-      inversion H8...
-      inversion H9...
-      apply lbindEq in H6...
-
-      apply hy_arrowR;auto.
-      apply H in H10...
-      rewrite <- H6...
-    + (* bang left *)
-      apply FocusinLeftAtom in H7.
-      CleanContext...
-
-      inversion H8...
-      inversion H13...
-      clear H9. clear H13. 
-      apply (hy_exange H7).
-      apply hy_bangL...
-      apply (H n0)...
-      admit.
-      admit.
-
-      LLPerm(CLEncode Gamma ++ [dd| F1 @ w0 |])... 
-    +  (* bang right *)
-      apply FocusinRightAtom in H7.
-      CleanContext...
-
-      inversion H7...
-      inversion H11...
-
-      symmetry in H6.
-      apply map_eq_nil in H6...
-
-      apply hy_bangR...
-      apply (H n0)...
-      admit.
-    + (* copy *)
-      inversion H7...
-      2:{ inversion H9. }
-      inversion H14...
-      ** (* init1 in H14 *) 
-        inversion H15...
-        inversion H16...
-        clear H18. clear H9.
-
-        symmetry in H10.
-        apply PProp_perm_select' in H10. (* from Permutations.v *)
-        destruct H10.
-        do 2 destruct H8.
-        apply Permutation_length_1_inv in H8.
-        replace (REncode (F @ w) :: x) with ([REncode (F @ w)] ++ x) in H8;auto.
-        apply app_eq_unit in H8. 
-        destruct H8...
-        destruct H8...
-
-
-        apply Permutation_map_inv in H9.
-        destruct H9...
-
-
-        symmetry in H9.
-
-        apply map_eq_app in H9.
-        destruct H9...
-        destruct H9...
-
-
-        fold (LEncode x1) in H9.
-        fold (LEncode x2) in H8.
-
-        destruct x1. (* contradiction in H9 *)
-        inversion H9.
-        inversion H9.
-      ** (* init2 in H14 *) 
-        inversion H15...
-        inversion H17...
-        clear H19. clear H9. 
-
-        apply in_map_iff in H13.
-        destruct H13...
-        subst.
-        apply (hy_copy H9).
-
-
-        apply (H n0)...
-        LLPerm((REncode (F @ w):: LEncode L) ++ [d| F1 @ w0 | ])...
-        rewrite <- H10 in H20... 
-    +  (* forall *)
-      apply FocusinLeftAtom in H7.
-      CleanContext...
-      inversion H9...
-      inversion H15...
-      inversion H17...
-      clear H19. clear H15. clear H12. clear H17. 
-
-Admitted. *)
