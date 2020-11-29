@@ -31,6 +31,7 @@ OL/CutCoherence/LMm.v
 OL/CutCoherence/LK.v
 OL/CutCoherence/MALL.v
 OL/CutCoherence/NDSeq.v
+OL/CutCoherence/HyLLBase.v
 OL/CutCoherence/HyLL.v
 OL/CutCoherence/HyLLCut.v
 # Transition systems

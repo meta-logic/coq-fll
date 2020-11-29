@@ -15,18 +15,18 @@ prove cut-elimination of the encoded system. All the principal cases are
 uniformly proved by using the cut rule at the meta-level (i.e., the LL's
 cut-rule). 
 
-#### OLSyntax 
+### OLSyntax 
 
 General definitions to encode the syntax of the OL, encoding constants/units,
 connectives and quantifiers.
 
 
-#### OLDefinitions
+### OLDefinitions
 
 Useful definitions and tactics for the proof of the cut-elimination theorem of
 Object Logics.
 
-#### OLCutl
+### OLCutl
 
 In this file we show how the cut-elimination procedure for FLL can be used to
 prove cut-elimination for object logics that are cut-coherent in the sense [1].
@@ -36,7 +36,7 @@ contraction do not apply).
 The file MALL shows that Multiplicative Additive Linear Logic is an instance of
 this definitions, thus obtaining the cut-elimination theorem for it. 
 
-#### OLCuti
+### OLCuti
 
 The file OLCuti proves the  cut-coherence theorem for logics featuring
 structural rules only on the left side of the sequent. As an example, two
@@ -54,19 +54,19 @@ left (resp.  right) introduction rules in sequent calculus and elimination
 cut-elimination theorem of LL we prove the relative completeness of these
 systems.
 
-#### OLCutc
+### OLCutc
 
 The file OLCutc proves the cut-coherence theorem for logics featuring
 structural rules on both the right and left side of the sequents. As an
 example, LK.v encodes the inference rules of first-order classical logic.  The
 encoding is shown to be adequate and the result in OLCutc applies for it. 
 
-#### HyLL
+### HyLL
 
 This file proves the result in [2]: the inference rules of HyLL can be
 adequately encoded as an LL theory. 
 
-#### HyLLCut
+### HyLLCut
 
 The encoding in [2] is not cut-coherent and then, we cannot use it to prove
 cut-elimination of HyLL. In HyLLCut.v we propose a second encoding of HyLL

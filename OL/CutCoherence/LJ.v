@@ -7,7 +7,6 @@ Gamma , Fi |-- G
 ----------------------
 Gamma , F1/\ F2 |-- G
 >>
-
 and hence encoded with the formula [PLUSWITH] (that uses [OPLUS] to choose one of the formulas Fi *)
 
 Require Export FLL.OL.CutCoherence.OLCuti.

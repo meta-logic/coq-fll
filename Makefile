@@ -191,7 +191,8 @@ endif
 # these variables are meant to be overridden if you want to add *extra* flags
 COQEXTRAFLAGS?=
 COQCHKEXTRAFLAGS?=
-COQDOCEXTRAFLAGS?=
+COQDOCEXTRAFLAGS?=-g -s -l -t "First-Order Focused Linear Logic in Coq" --toc
+
 
 # these flags do NOT contain the libraries, to make them easier to overwrite
 COQFLAGS?=-q $(OTHERFLAGS) $(COQEXTRAFLAGS)

@@ -11,7 +11,9 @@ formalize the necessary conditions for those logics to have the cut-elimination
 property. We then obtain cut-elimination for first-order classical, minimal and
 intuitionistic logics. We also use the LL meta-theory to formalize the relative
 completeness of natural deduction and sequent calculus in first-order minimal
-logic. We have also formalized the result in [5]: Hybrid Linear Logic can be
+logic. 
+
+We have also formalized the result in [5]: Hybrid Linear Logic can be
 adequately encoded as an LL theory. Moreover, we propose an alternative
 encoding which is cut-coherent and we obtain cut-elimination for HyLL. 
 
@@ -55,12 +57,11 @@ and OL plus an additional one (Misc) for some miscellaneous definitions and
 results. 
 
 
-### Misc/
+### Misc
 In Hybrid.v there is an adaptation of the Hybrid library for our purposes.
 There are also additional results about lists and permutations needed in the
 development. The results in Permutation.v are based on the ones in
-[MyPermutations.v](<a
-href="https://github.com/PrincetonUniversity/certicoq/blob/master/libraries/MyPermutations.v"). 
+[MyPermutations.v](<a href="https://github.com/PrincetonUniversity/certicoq/blob/master/libraries/MyPermutations.v"). 
 
 ### SL
 This directory contains the formalization of the specification logic (i.e.,
@@ -120,7 +121,7 @@ The general initial rule is admissible.
 ### Object Logics
 This directory contains a simple example showing how to use the library to
 prove sequents in FLL. It also contains two applications of the framework: 
- 1. Formalize the necessary conditions for an object logic to have the
+ 1. Formalizing the necessary conditions for an object logic to have the
     cut-elimination property following the approach in [3]. 
  2. Encoding a transition system and proving some properties of it. 
 
