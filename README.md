@@ -1,13 +1,22 @@
 
 # First-Order Focused Linear Logic in Coq
 
-We formalize in Coq a focused system [2] for first-order linear logic (FLL) [1]. We prove cut-elimination directly in this system using five cut-rules dealing with the two different kind of sequents in this system (focused and unfocused sequents). 
+We formalize in Coq a focused system [2] for first-order linear logic (FLL)
+[1]. We prove cut-elimination directly in this system using five cut-rules
+dealing with the two different kind of sequents in this system (focused and
+unfocused sequents). 
 
-Following [3], we encode the inference rules of other logics as LL theories and formalize the necessary conditions for those logics to have the cut-elimination property. We then obtain, for free, cut-elimination for propositional classical, minimal and intuitionistic logics. We also use the LL meta-theory to formalize the relative completeness of natural deduction and sequent calculus in first-order minimal logic.
+Following [3], we encode the inference rules of other logics as LL theories and
+formalize the necessary conditions for those logics to have the cut-elimination
+property. We then obtain cut-elimination for first-order classical, minimal and
+intuitionistic logics. We also use the LL meta-theory to formalize the relative
+completeness of natural deduction and sequent calculus in first-order minimal
+logic. We have also formalized the result in [5]: Hybrid Linear Logic can be
+adequately encoded as an LL theory. Moreover, we propose an alternative
+encoding which is cut-coherent and we obtain cut-elimination for HyLL. 
 
-This package is free software; you can redistribute it and/or modify it under the terms of GNU Lesser General Public License (see the COPYING file). 
-
-
+This package is free software; you can redistribute it and/or modify it under
+the terms of GNU Lesser General Public License (see the COPYING file). 
 
 
 ## Getting Started
@@ -16,7 +25,7 @@ The project was tested in Coq 8.12.0 No extra library is needed for compilation.
 
 ### Building 
 
-Typing "make" should suffice to compile the project:
+Typing "make" should suffice to compile the project (time ~7min):
 
 ```
 make
@@ -31,28 +40,42 @@ make html
 
 ## Structure of the project / proofs
 
-We briefly describe the content (theorems and definitions) of the .v files. The documentation of the library offers more detailed explanations. 
+We briefly describe the content (theorems and definitions) of the .v files. The
+documentation of the library offers more detailed explanations. 
 
-We use the Hybrid library [4]  to support reasoning about object logics (OLs) expressed using higher-order abstract syntax (HOAS). Hybrid is implemented as a two-level system and then, we have:
+We use the Hybrid library [4]  to support reasoning about object logics (OLs)
+expressed using higher-order abstract syntax (HOAS). Hybrid is implemented as a
+two-level system and then, we have:
 
  - Focused first-order linear logic as  specification logic (SL); and
  - Different OLs encoded as LL theories. 
 
-For this reason, the project is divided in two main subdirectories, namely,  SL and OL plus an additional one (Misc) for some miscellaneous definitions and results. 
+For this reason, the project is divided in two main subdirectories, namely,  SL
+and OL plus an additional one (Misc) for some miscellaneous definitions and
+results. 
 
 
 ### Misc/
-In Hybrid.v there is an adaptation of the Hybrid library for our purposes. There are also additional results about lists and permutations needed in the development. The results in Permutation.v are based on the ones in [MyPermutations.v](<a href="https://github.com/PrincetonUniversity/certicoq/blob/master/libraries/MyPermutations.v"). 
+In Hybrid.v there is an adaptation of the Hybrid library for our purposes.
+There are also additional results about lists and permutations needed in the
+development. The results in Permutation.v are based on the ones in
+[MyPermutations.v](<a
+href="https://github.com/PrincetonUniversity/certicoq/blob/master/libraries/MyPermutations.v"). 
 
 ### SL
-This directory contains the formalization of the specification logic (i.e., focused first-order linear logic) and the cut-elimination theorem. 
+This directory contains the formalization of the specification logic (i.e.,
+focused first-order linear logic) and the cut-elimination theorem. 
 
 #### SL/Syntax
-This file defines the syntax of linear logic and its notation.  We also define several notions needed for the focused system (e.g., negative and positive formulas, polarity of atoms, etc)
+This file defines the syntax of linear logic and its notation.  We also define
+several notions needed for the focused system (e.g., negative and positive
+formulas, polarity of atoms, etc)
 
 
 #### LL/Sequent
-This file formalizes Andreoli's triadic (focused) system for linear logic. Sequents are of the shape
+This file formalizes Andreoli's triadic (focused) system for linear logic.
+Sequents are of the shape 
+
 ```
 |-- B ; M ; X
 ```
@@ -68,19 +91,22 @@ where
 
 
 #### SL/StructuralRules
-We prove that,  multiset-equivalent contexts (i.e., lists up to permutation) prove the same theorems (exchange rule). We also prove that the classical context admits the usual weakening and contraction rules (preserving the height of the derivation). 
+We prove that,  multiset-equivalent contexts (i.e., lists up to permutation)
+prove the same theorems (exchange rule). We also prove that the classical
+context admits the usual weakening and contraction rules (preserving the height
+of the derivation). 
 
 #### SL/FLLTactics
 Here we define several tactics useful for dealing with FLL sequents. 
 
 #### SL/InvNegativePhase
-This file proves some invertibility lemmas for the negative (unfocus) phase. In the end, ```EquivUpArrow``` shows that exchange is admissible in the list ```L``` of the negative phase. 
+This file proves some invertibility lemmas for the negative (unfocus) phase. In
+the end, `EquivUpArrow` shows that exchange is admissible in the list
+`L` of the negative phase. 
 
 #### SL/InvPositivePhase
 This file proves some invertibility lemmas showing that positive rules
 can be switched.
-
-
 
 #### SL/CutElimination
 The proof of the cut-elimination theorem for the focused system.
@@ -90,29 +116,16 @@ The proof of the cut-elimination theorem for the focused system.
 The general initial rule is admissible. 
 
 
-#### SL/Examples
-Some simples proofs in the framework. 
 
 ### Object Logics
-The files in this directory formalize the necessary conditions for an object logic to have the cut-elimination property following the approach in [3]. 
+This directory contains a simple example showing how to use the library to
+prove sequents in FLL. It also contains two applications of the framework: 
+ 1. Formalize the necessary conditions for an object logic to have the
+    cut-elimination property following the approach in [3]. 
+ 2. Encoding a transition system and proving some properties of it. 
 
-#### OL/OLSyntax
-General requirements imposed on the syntax of OLs to prove cut-elimination.
-
-#### OL/OLDefinitions
-Useful definitions and tactics for the proof of the cut-elimination theorem of Object Logics
-
-#### OL/OLCutElimTheorem
-In this file we show how the cut-elimination procedure for FLL can be used to prove cut-elimination for object logics that are cut-coherent in the sense [3]
-
-#### OL/OLExampleLJ, LK, LM, MALL
-
-Examples of the following object logics: propositional intuitionistic (LJ), classical (LK)  and minimal (LM) logic. We also encode the two-sided sequent calculus for multiplicative-additive linear logic (MALL). In all these files, we prove the necessary conditions to use the ```OLCutElimination```theorem in OL/OLCutElimTheorem.v
-
-#### OL/OLExampleNDSeq
-In this file we encode the logical rules of natural deduction and
-sequent calculus for minimal logic. Then, using the cut-elimination theorem of LL we prove the relative completeness of these systems.
-
+The README.md file in each directory contains further details on the formalized
+theorems.  
 
 ## References
 [1] _Linear Logic_ by Jean-Yves Girard. Theoretical Computer Science (50), pp. 1-102 (1987)
@@ -122,3 +135,6 @@ sequent calculus for minimal logic. Then, using the cut-elimination theorem of L
 [3] _A formal framework for specifying sequent calculus proof systems_ by 	Dale Miller and Elaine Pimentel. Theor. Comput. Sci. 474: 98-116 (2013)
 
 [4] _Hybrid - A Definitional Two-Level Approach to Reasoning with Higher-Order Abstract Syntax_ by Amy P. Felty and Alberto Momigliano. J. Autom. Reasoning 48(1): 43-105 (2012)
+
+[5] _Hybrid linear logic, revisited_ by Kaustuv Chaudhuri, Joëlle Despeyroux, Carlos Olarte, Elaine Pimentel. Math. Struct. Comput. Sci. 29(8): 1151-1176 (2019)
+

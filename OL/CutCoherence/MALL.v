@@ -4,8 +4,7 @@ This file encodes the inference rules of the system MALL (two sided)
 of propositional multiplicative additive linear logic.
  *)
 
-Require Export FLL.OL.OLCutElimTheorem.
-Require Import Coq.Init.Nat.
+Require Export FLL.OL.CutCoherence.OLCutl.
 Require Import FLL.Misc.Permutations.
 
 Export ListNotations.
@@ -502,79 +501,6 @@ Ltac toMALL H :=
   | seqN _ _ (d| ?F | :: ?T :: LEncode ?L ++ REncode ?R) [] (> []) =>
     apply exchangeCCN with (CC' := T :: LEncode (F::L) ++ REncode R) in H ;[| simpl; perm]
   end.
-
-
-(* Theorem Permutation_app_map:forall {T:Type} (A B: list T),
-    Permutation A B ->
-    exists A1 A2 B1 B2,
-      Permutation A  (A1 ++ A2) /\
-      Permutation B  (B1 ++ B2) /\
-      Permutation A1 B1 /\
-      Permutation A2 B2.
-      
-Proof.
-  Search Permutation.
-  induction A;simpl;intros.
-  apply Permutation_nil in H;subst.
-  do 4 exists [].
-              firstorder.
-              destruct B.
-              apply Permutation_nil' in H;inversion H.
-              apply PProp_perm_select in H.
-              destruct H;CleanContext.
-              { apply IHA in H0;CleanContext.
-                rewrite H.
-                rewrite H0.
-
-   *)
-  
-
-Theorem ListPartition: forall {A:Type} (L: list A),
-    exists L1 L2, Permutation L (L1 ++ L2).
-  induction L;intros.
-  exists [].
-  exists [];perm.
-  CleanContext.
-  exists (a::x).
-  exists x0.
-  simpl.
-  constructor.
-  rewrite H;auto.
-Qed.
-  
-
-
-Theorem Completeness: forall n L1 L2,
-    seqN OLTheory n []  ( (LEncode L1) ++  (REncode L2)) (> []) ->
-    MALLSeq L1 L2.
-Proof with solveF;solveLL;solveOLTheory;SolveIS;solveOLTheory.
-  induction n using strongind;intros L1 L2 Hseq  ; inversion Hseq;subst...
-  apply Remove_In in H2...
-  apply InIsPositive in H2 ;contradiction. 
-  
-  inversion H1...
-  + (* from the theory *)
-    inversion H0;subst;destruct C.
-    ++ (* tensor right *)
-      FLLInversionAll;CleanContext.
-      apply Permutation_sym in H7;simpl in H7.
-      apply PermutationInCons in H7 as H7'.
-      apply upRight in H7'.
-      apply OLInPermutation in H7';CleanContext.
-      rewrite H2 in H7;rewrite H2.
-      simpl in H7.
-      rewrite <- perm_takeit_2 in H7.
-      apply Permutation_cons_inv in H7.
-      rewrite H6 in H7.
-      generalize( ListPartition x);intro;CleanContext.
-      generalize( ListPartition L1);intro;CleanContext.
-      rewrite H3 in H7;rewrite H3.
-      rewrite H5 in H7; rewrite H5.
-      apply MALLTensorR.
-Abort.
-      
-
-
   
 (** The cut-elimination theorem instantiated for LK *)
 Check OLCutElimination wellTheory_p OLTheoryIsFormula_p OLTheoryIsFormulaD_p.

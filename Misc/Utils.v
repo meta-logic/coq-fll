@@ -56,6 +56,16 @@ Section List.
     simpl in H;inversion H.
   Qed.
 
+  Lemma AppUnq : forall {T:Type} (L L' : list T) A, [A] = L ++ L' ->  (L = [A] /\ L' = []) \/ ( L = [] /\ L' = [A]).
+    intros.
+    remember (L ++ L').
+    destruct l;inversion H;subst.
+    destruct L.
+    simpl in Heql;subst;firstorder.
+    inversion Heql.
+    apply AppNilNil in H2;destruct H2;subst;firstorder.
+  Qed.
+
 End List.
 
 (** ** Additional results about permutations *)

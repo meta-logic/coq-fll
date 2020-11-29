@@ -5,7 +5,7 @@ proof of the cut-elimination theorem of Object Logics *)
 
 
 Require Export FLL.Misc.Hybrid.
-Require Export FLL.OL.OLSyntax.
+Require Export FLL.OL.CutCoherence.OLSyntax.
 Require Import Coq.Init.Nat.
 Require Import FLL.SL.CutElimination.
 Import FLL.Misc.Permutations.
@@ -1584,6 +1584,12 @@ Section OLEncodings.
   induction L;inversion H;subst;auto.
   induction L';inversion H;subst;auto.
   Qed.
+
+  Theorem InIsPositiveL: forall F L,  In F (LEncode L) -> IsPositiveAtom F.
+    intros.
+    induction L;inversion H;subst;auto.
+  Qed.
+  
 
   Lemma IsOLPositiveLREnc : forall L L',
       isOLFormulaL L -> isOLFormulaL L' -> 

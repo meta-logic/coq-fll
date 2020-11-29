@@ -1,4 +1,5 @@
 -R . "FLL"
+
 # Miscellaneous and Utilitities
 Misc/Utils.v
 Misc/Hybrid.v
@@ -14,26 +15,26 @@ SL/InvNegativePhase.v
 SL/InvPositivePhase.v
 SL/CutElimination.v
 SL/IdElimination.v
-SL/Examples.v
 
-## Object Logics and cut-elimination theorem for them
-OL/OLSyntax.v
-OL/OLDefinitions.v
-OL/OLCutElimTheorem.v
-OL/OLCutc.v
-OL/OLCuti.v
-OL/LJ.v
-OL/LJm.v
-OL/LM.v
-OL/LMm.v
-OL/LK.v
-OL/MALL.v
-OL/NDSeq.v
-OL/HyLL.v
-OL/HyLLCut.v
-
-## Example of Transition System
-TSystem/Syntax.v
-TSystem/Rules.v
-TSystem/Properties.v
+## Object Logics: Applications
+OL/Examples.v
+# Encoding inference systems and cut-coherent conditions
+OL/CutCoherence/OLSyntax.v
+OL/CutCoherence/OLDefinitions.v
+OL/CutCoherence/OLCutl.v
+OL/CutCoherence/OLCutc.v
+OL/CutCoherence/OLCuti.v
+OL/CutCoherence/LJ.v
+OL/CutCoherence/LJm.v
+OL/CutCoherence/LM.v
+OL/CutCoherence/LMm.v
+OL/CutCoherence/LK.v
+OL/CutCoherence/MALL.v
+OL/CutCoherence/NDSeq.v
+OL/CutCoherence/HyLL.v
+OL/CutCoherence/HyLLCut.v
+# Transition systems
+OL/TSystem/Syntax.v
+OL/TSystem/Rules.v
+OL/TSystem/Properties.v
 

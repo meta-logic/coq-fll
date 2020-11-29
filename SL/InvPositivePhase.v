@@ -6,16 +6,59 @@ can be switched.
 
 Require Export FLL.Misc.Hybrid.
 Require Export FLL.SL.FLLTactics.
-Require Import Lia.
 Require Import FLL.Misc.Permutations.
 Require Import FunInd.
 Require Import Coq.Program.Equality.
-Require Import Lia.
 Require Export FLL.SL.InvNegativePhase.
 
 Export ListNotations.
 Export LLNotations.
 Set Implicit Arguments.
+
+Section Absoroption.
+  Context `{OLS: OLSig}.
+  Lemma AbsoroptionAtom : forall th n Gamma Delta A X,
+      seqN th n Gamma ( atom A::Delta)  X ->
+      seqN th n (atom A :: Gamma) Delta  X.
+  Proof with solveF.
+    induction n using strongind ;intros.
+    inversion H;solveF;solveLL...
+    inversion H0;solveF;solveLL...
+    + apply PermutationInCons in H2 as H2'.
+      apply in_app_or in H2'.
+      destruct H2'.
+      { apply InPermutation in H1.
+        destruct H1.
+        rewrite H1 in H2;simpl in H2.
+        apply Permutation_cons_inv in H2.
+        rewrite H1 in H3.
+        apply H in H3...
+        tensor x N.
+        apply weakeningN...
+      }
+      {
+        apply InPermutation in H1.
+        destruct H1.
+        rewrite H1 in H2;simpl in H2.
+        rewrite <- perm_takeit_2 in H2.
+        apply Permutation_cons_inv in H2.
+        rewrite H1 in H4.
+        apply H in H4...
+        tensor M x.
+        apply weakeningN...
+      }
+    + inversion H3...
+      apply H in H4...
+      decide1 F;eauto.
+    + apply H in H4...
+      decide2 F...
+    + apply H in H4...
+      decide3 F.
+    + apply H in H4...
+      existential t.
+  Qed.
+End Absoroption.
+
 
 Section InvPosPhase.
   Context `{OLS: OLSig}.

@@ -7,7 +7,7 @@ cut-coherent if the encoding of the right and left rules of each
 connective are dual. *)
 
 Require Export FLL.Misc.Hybrid.
-Require Export FLL.OL.OLDefinitions.
+Require Export FLL.OL.CutCoherence.OLDefinitions.
 Require Import Coq.Init.Nat.
 Require Import FLL.SL.CutElimination.
 Import FLL.Misc.Permutations.
@@ -15,14 +15,6 @@ Export ListNotations.
 Export LLNotations.
 Set Implicit Arguments.
 
-Hint Resolve level_CON level_VAR level_BND level_APP level_ABS : hybrid.
-Hint Resolve proper_APP uniform_proper : hybrid.
-Hint Unfold proper: hybrid.
-Hint Rewrite ext_eq_eta : hybrid.
-Hint Resolve uniform_id uniform_con uniform_app : hybrid.
-Hint Resolve proper_VAR : hybrid.
-Hint Resolve lbindEq exprInhabited : hybrid.
-Hint Constructors uniform_oo : hybrid.
 Hint Constructors seq seqN : core .
 Hint Constructors uniform_oo : core.
 Hint Constructors isFormula : core.
@@ -64,6 +56,7 @@ Section CutElimination .
         object formulas [F] and [G]), such a difference is verified
         and a new premise is added: 
         [Permutation N (G + :: M') for some [M'] *)
+
   Ltac UpDownMismatch :=
     match goal with
       [ H : Permutation  ( ( atom (?pred1 ?F )) :: _ ) (( atom (?pred2 ?G )) :: _) |- _ ] =>

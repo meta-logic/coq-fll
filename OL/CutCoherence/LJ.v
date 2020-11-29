@@ -1,16 +1,16 @@
-(** * System LJ for propositional intuitionistic logic encoded as an LL theory *)
+(** * System LJ for first-order intuitionistic logic encoded as an LL theory *)
 
 (** The rule for conjunction in this system is
 
-Gamma , F1, F2 |-- G
+<<
+Gamma , Fi |-- G
 ----------------------
 Gamma , F1/\ F2 |-- G
+>>
 
-and hence encoded with the formula PARTENSOR (that uses PAR to store
-the two atoms into the classical context *)
+and hence encoded with the formula [PLUSWITH] (that uses [OPLUS] to choose one of the formulas Fi *)
 
-Require Export FLL.OL.OLCuti.
-Require Import Coq.Init.Nat.
+Require Export FLL.OL.CutCoherence.OLCuti.
 Require Import FLL.Misc.Permutations.
 
 Export ListNotations.
@@ -19,11 +19,11 @@ Set Implicit Arguments.
 
 
 (** ** Syntax *)
-(* units: true and false *)
+(** units: true and false *)
 Inductive Constants := TT | FF  .
-(* conjunction, disjunction and implication *)
+(** conjunction, disjunction and implication *)
 Inductive Connectives := AND | OR | IMP  .
-(* no quantifiers *)
+(** universal and existential quantifiers *)
 Inductive Quantifiers := ALL|SOME .
 (* No unary connectives *)
 Inductive UConnectives := .
@@ -39,23 +39,23 @@ Instance SimpleOLSig : OLSyntax:=
 
 
 (** ** Inference rules *)
-
-(** *** Constants *)
+(** The following definitions chooses the  LL connectives to encode the LJ rules *)
+(** Constants *)
 Definition rulesCTE (c:constants) :=
   match c with
   | TT => ZEROTOP
   | FF => TOPZERO
   end.
 
-(** *** Binary connectives *)
+(** Binary connectives *)
 Definition rulesBC (c :connectives) :=
   match c with
-  | AND => PARTENSOR
+  | AND => PLUSWITH
   | OR =>  WITHPLUS
   | IMP => TENSORPAR
   end.
 
-(** *** Quantifiers *)
+(** Quantifiers *)
 Definition rulesQD (q :quantifiers) :=
   match q with
   | ALL => ALLSOME
@@ -71,13 +71,15 @@ Instance SimpleOORUles : OORules :=
   |}.
 
 
-(** Soundness and Completeness *)
+(** An inductive definition for LJ. This will be used to prove that
+the LL encoding is sound and complete *)
 
 Inductive LJSeq : list uexp -> uexp -> Prop :=
 | LJTRUE : forall L, LJSeq L (t_cons TT)
 | LJFALSE : forall L G, LJSeq (t_cons FF :: L) G
 | LJinit : forall L F,  LJSeq (F:: L) F
-| LJAndL : forall L F G R, LJSeq (F :: G :: L) R -> LJSeq ( (t_bin AND F G) :: L) R
+| LJAndL1 : forall L F G R, LJSeq (F :: L) R -> LJSeq ( (t_bin AND F G) :: L) R
+| LJAndL2 : forall L F G R, LJSeq (G :: L) R -> LJSeq ( (t_bin AND F G) :: L) R
 | LJAndR : forall L F G , LJSeq L F -> LJSeq L G -> LJSeq L (t_bin AND F G)
 | LJOrL : forall L F G R,  LJSeq (F :: L) R ->  LJSeq (G :: L) R -> LJSeq ( (t_bin OR F G) :: L) R
 | LJOrR1 : forall L F G , LJSeq L F -> LJSeq L (t_bin OR F G)
@@ -93,12 +95,13 @@ LJContr : forall L F G, (LJSeq (F :: F:: L)) G -> (LJSeq (F :: L)) G
 | (* Explicit exchange *)
 LJEx : forall L L' G, Permutation L L' -> LJSeq L G -> LJSeq L' G 
 . 
-
+Hint Constructors LJSeq : core .
 Hint Constructors LJSeq : core .
 Hint Constructors OLTheory buildTheory : core.
 Hint Constructors  isOLFormula : core. 
 Hint Unfold IsPositiveLAtomFormulaL : core. 
 Hint Constructors IsPositiveRAtomFormula : core .
+
 
 Global Instance LJL_morph : 
   Proper ((@Permutation uexp) ==> eq ==> iff) (LJSeq).
@@ -119,6 +122,8 @@ Ltac solveOLTheory :=
             | do 2 constructor;auto ; SolveIS ]
     end.
 
+
+(** Soundness theorem *)
 Theorem Soundeness: forall L F, LJSeq L F ->
                                 isOLFormulaL L ->
                                 isOLFormula F ->
@@ -135,10 +140,18 @@ Proof with solveF;solveLL;solveOLTheory;SolveIS;solveOLTheory.
   + (* init *)
     decide3 (RINIT F)...
     tensor (REncode [F]) (@nil oo)...
-  + (* AND *)
+  + (* ANDL1 *)
     decide3 (makeRuleBin AND Left F G)...      
     tensor (@nil oo) (REncode [R])...
-    LLPerm ( d| t_bin AND F G | :: d| F | :: d| G|  :: LEncode L).
+    oplus1.
+    LLPerm ( d| t_bin AND F G | :: d| F |  :: LEncode L).
+    apply weakening.
+    apply IHLJSeq... 
+  +  (* ANDL2 *)
+    decide3 (makeRuleBin AND Left F G)...
+    tensor (@nil oo) (REncode [R])...
+    oplus2.
+    LLPerm ( d| t_bin AND F G | :: d| G |  :: LEncode L).
     apply weakening.
     apply IHLJSeq... 
   + (* And R *)
@@ -229,11 +242,7 @@ Ltac toLJ H :=
     apply exchangeCCN with (CC' := T :: LEncode (F::L) ++ REncode R) in H ;[| simpl; perm]
   end.
 
-Theorem InIsPositiveL: forall F L,  In F (LEncode L) -> IsPositiveAtom F.
-  intros.
-  induction L;inversion H;subst;auto.
-Qed.
-
+(** Completeness theorem *)
 Theorem Completeness: forall n L F , 
     isOLFormulaL L ->
     isOLFormula F ->
@@ -265,7 +274,7 @@ Proof with solveF;solveLL;SolveIS;CleanContext.
       (* by cases on C *)
       destruct C;simpl in H8...
       { (* case AND *)
-        apply AppPARTENSORRight in H8...
+        apply AppPLUSWITHRight in H8...
         apply LJAndR; apply (H x0)...
       }
       { (*  OR *)
@@ -286,11 +295,16 @@ Proof with solveF;solveLL;SolveIS;CleanContext.
       (* by cases on C *)
       destruct C;simpl in H8...
       { (* case AND *)
-        apply AppPARTENSORLeft in H8...
-        toLJ H7.
-        apply LJContr. 
-        apply LJAndL; rewrite <- H6.
-        eapply (H x0)...
+        apply AppPLUSWITHLeft in H8...
+        destruct H8.
+        + toLJ H7.
+          apply LJContr. 
+          apply LJAndL1; rewrite <- H7.
+          eapply (H x0)...
+        + toLJ H7.
+          apply LJContr. 
+          apply LJAndL2; rewrite <- H7.
+          eapply (H x0)...
       }
       { (*  OR *)
         apply AppWITHPLUSLeft in H8...

@@ -1,4 +1,14 @@
-(* Proving adequate the encoding of HyLL as an LL theory *)
+(*  ** HyLL as an LL theory 
+
+This file encodes the inference rules of Hybrid Liner logic (HyLL) as
+an LL theory. The encoding was originally proposed in
+
+Hybrid linear logic, revisited by Kaustuv Chaudhuri, Joëlle
+Despeyroux, Carlos Olarte, Elaine
+Pimentel. Math. Struct. Comput. Sci. 29(8): 1151-1176 (2019)
+
+and it is adequate at the level of derivations *)
+
 
 
 Require Export FLL.Misc.Hybrid.
@@ -9,14 +19,6 @@ Export ListNotations.
 Export LLNotations.
 Set Implicit Arguments.
 
-Hint Resolve level_CON level_VAR level_BND level_APP level_ABS : hybrid.
-Hint Resolve proper_APP uniform_proper : hybrid.
-Hint Unfold proper: hybrid.
-Hint Rewrite ext_eq_eta : hybrid.
-Hint Resolve uniform_id uniform_con uniform_app : hybrid.
-Hint Resolve proper_VAR : hybrid.
-Hint Resolve lbindEq exprInhabited : hybrid.
-Hint Constructors uniform_oo : hybrid.
 Hint Constructors seq seqN : core .
 Hint Constructors uniform_oo : core.
 Hint Constructors isFormula : core.
@@ -26,6 +28,9 @@ Section HyLL.
   Variable ID : W.
   Variable T : Set. (* Terms of the object logic *)
 
+  (** *** Syntax *)
+
+  (** Constants of the syntactic elements *)
   Inductive Econ: Set :=
   | oo_term : T -> Econ (* term at the object level *)
   | oo_atom : nat  -> Econ (* Nat is the id of the predicate *)
@@ -40,10 +45,11 @@ Section HyLL.
   | oo_wop (* monoidal operator on worlds: w wop w' *)
   .
 
-  (** Notation for Syntax *)
   Definition uexp : Set := expr Econ.
   Definition Var : var -> uexp := (VAR Econ).
   Definition Bnd : bnd -> uexp := (BND Econ).
+
+  (** More suitable constructors to work with *)
 
   (** Terms *)
   Definition t_term (t:T) : uexp := (CON (oo_term  t)) .   
@@ -51,8 +57,6 @@ Section HyLL.
   Definition t_atom (id:nat) (t: uexp)  := APP (CON (oo_atom  id)) t.
   (* Words *)
   Definition t_world (w : W)  :uexp :=  CON (oo_world  w) .
-  
-
   (** Tensor *)
   Definition t_tensor (A B :uexp) :uexp  :=  (APP (APP (CON oo_tensor) A) B).
 
@@ -77,8 +81,6 @@ Section HyLL.
   (* F @ w *)
   Definition t_atW  (F: uexp) (wexp  :uexp) : uexp  :=  (APP (APP (CON oo_atW) F) wexp).
 
-  (* Hint Unfold  t_term t_atom t_world t_tensor t_impl t_all t_arrow t_bang t_wop t_at  t_atW : core. *)
-
   Notation "F @ w" := (t_atW F w) (at level 10) .
   Notation "F *** G" := (t_tensor F G) (at level 10) .
   Notation "F --o G" := (t_impl F G) (at level 10) .
@@ -89,17 +91,22 @@ Section HyLL.
   Notation "w 'wop' v" := (t_wop w v) (at level 10) .
 
   (** *** Well-formedness conditions *)
+
+  (** For terms *)
   Inductive isOLTerm : uexp -> Prop :=
   | isOLTermT  : forall t, isOLTerm (t_term  t).
 
+  (** For atoms *)
   Inductive isOLAtom : uexp -> Prop :=
   | isOLAtom' : forall id t ,  isOLTerm t -> isOLAtom (t_atom id t).
 
+  (** For world expression *)
   Inductive isWorldExp : uexp -> Prop :=
   | isWorldExp' : forall w, isWorldExp (t_world w)
   | isWorldExp'' : forall wexp wexp', isWorldExp wexp -> isWorldExp wexp' -> isWorldExp (t_wop wexp wexp')
   .
-  
+
+  (** Formulas *)
   Inductive isOLFormula' : uexp -> Prop :=
   | isFAtom : forall t id , isOLTerm t -> isOLFormula' (t_atom id t)
   | isFTensor : forall A B , isOLFormula' A -> isOLFormula' B -> isOLFormula' (A *** B)
@@ -113,8 +120,8 @@ Section HyLL.
       isOLFormula' (ALL FX)
   .
 
-  
-
+  (** Well-formed judgments [F @ w] where [F] is a well-formed formula
+  and [w] a well-formed world expression *)
   Inductive isOLFormula : uexp -> Prop :=
   | isOL : forall F wexp , isOLFormula' F -> isWorldExp wexp -> isOLFormula (F @ wexp)
   .
@@ -124,18 +131,19 @@ Section HyLL.
 
   Hint Constructors isOLTerm isOLAtom isWorldExp isOLFormula' isOLFormula : core.
   Hint Unfold isOLFormulaL : core.
-  
+
+  (** the predicate [ddown] is used to store the classical formulas of HyLL *)
   Inductive atm' : Set :=
-  | up : uexp -> atm'    (* formulas on the right *)
-  | down : uexp -> atm'  (* formulas on the left *)
-  | ddown : uexp -> atm'  (* formulas on the classical context (left) *)
+  | up' : uexp -> atm'    (* formulas on the right *)
+  | down' : uexp -> atm'  (* formulas on the left *)
+  | ddown' : uexp -> atm'  (* formulas on the classical context (left) *)
   .
 
   (** Uniform Predicate for atoms *)
   Inductive uniform_atm' : (uexp -> atm') -> Prop :=
-  | uniform_up: forall FX, uniform FX -> uniform_atm' (fun x:uexp => up (FX x))
-  | uniform_down: forall FX, uniform FX -> uniform_atm' (fun x:uexp => down (FX x))
-  | uniform_ddown: forall FX, uniform FX -> uniform_atm' (fun x:uexp => ddown (FX x))
+  | uniform_up: forall FX, uniform FX -> uniform_atm' (fun x:uexp => up' (FX x))
+  | uniform_down: forall FX, uniform FX -> uniform_atm' (fun x:uexp => down' (FX x))
+  | uniform_ddown: forall FX, uniform FX -> uniform_atm' (fun x:uexp => ddown' (FX x))
   .
   
   Hint Constructors uniform_atm' : core.
@@ -147,12 +155,19 @@ Section HyLL.
       uniform_atm := uniform_atm'
     |}.
 
+  Definition up : uexp -> atm := up'.
+  Definition down : uexp -> atm := down'.
+  Definition ddown : uexp -> atm := ddown'.
+
   Notation "'u|' A '|'" := (atom (up A)) (at level 10) .
   Notation "'d|' A '|'" := (atom (down A)) (at level 10) .
   Notation "'dd|' A '|'" := (atom (ddown A)) (at level 10) .
   Notation "'u^|' A '|'" := (perp (up A)) (at level 10) .
   Notation "'d^|' A '|'" := (perp (down A)) (at level 10) .
   Notation "'dd^|' A '|'" := (perp (ddown A)) (at level 10) .
+
+  (** Inductive definition of HyLL sequents. This definition will be
+  used to prove that the encoding is sound and complete *)
 
   Inductive HyLL : (list uexp) -> (list uexp) -> uexp -> Prop :=
   | hy_init : forall Gamma F, HyLL Gamma [ F]  F
@@ -202,37 +217,9 @@ Section HyLL.
 
   Hint Resolve isWorldProper isOLFormulaProper' isOLFormulaProper:core.
 
-  Example HyLL1: forall (a:T) (w:uexp) (t:T) id ,
-      isWorldExp w ->
-      HyLL [] [(ALL (fun x => t_atom id x)) @ w] ( (t_atom id (t_term t)) @ w).
-  Proof with solveF.
-    intros.
-    apply hy_allL with (t:= t_term t)...
-    constructor.
-  Qed.
+  (** *** The encoding *)
 
-  Example HyLL2: forall (a:T) (w:uexp)  id , isWorldExp w -> HyLL [] [(ALL (fun x => t_atom id x)) @ w] ((ALL (fun x => t_atom id x)) @ w).
-  Proof with solveF.
-    intros.
-    eapply  hy_allR...
-    intros.
-    apply hy_allL with (t:= t)...
-  Qed.
-
-  Example HyLL3: forall (F:uexp) (wexp:uexp)  , isWorldExp wexp -> isOLFormula' F ->  HyLL[] [ (ARROW (fun x => (F AT x))) @ wexp ] ((ARROW (fun x => (F AT x))) @ wexp) .
-  Proof with solveF.
-    intros.
-    eapply hy_arrowR...
-    eapply hy_atR...
-    eapply hy_arrowL...
-  Qed.
-
-  Example HyLL4: forall (F:uexp) (w:uexp)  , isWorldExp w -> isOLFormula' F ->  HyLL [] [ (ARROW (fun x => (F AT (x wop w)))) @ w ] (F @ (w wop w)) .
-  Proof with solveF.
-    intros.
-    eapply hy_arrowL...
-  Qed.
-  
+  (** The following definition encode the inference rules of HyLL *)
   Definition RINIT (F:uexp) (w:uexp) : oo := u^|F @ w|  ** ( d^|F @ w| ) .
   Definition RTENSORL (F G w :uexp) :oo := d^| (F *** G) @ w| ** (d|F @ w| $ d|G @ w|).
   Definition RTENSORR (F G w :uexp) :oo := u^| (F *** G) @ w| ** (u|F @ w| ** u|G @ w|).
@@ -374,11 +361,7 @@ Section HyLL.
       rewrite Hp in H1;rewrite Hz in H1;apply ForallApp;[rewrite app_assoc in H1; apply (ForallAppInv2 H1) | ]                                            
     end;auto;try solveOLFormula.
   
-
-
   Ltac easyF := try apply ForallApp;auto; try solveOLFormula;try easyOLFormula.
-
-
   Ltac IS :=
     try
       match goal with
@@ -435,6 +418,7 @@ Section HyLL.
       end
     end; auto.
 
+  (** Soundness theorem *)
   Theorem Soundeness: forall Gamma L F w , HyLL Gamma L (F @ w) ->
                                            isOLFormulaL Gamma ->
                                            isOLFormulaL L ->

@@ -1,24 +1,23 @@
-(** * System LM for propositional minimal logic encoded as an LL theory
+(** * System LM for minimal logic encoded as an LL theory
 
-This file encodes the inference rules of the system LM (propositional
-minimal logic). The cut-coherence and well-formedness properties are
-proved and then, using [OLCutElimination] we prove the cut-elimination
-theorem for this system .
+This file encodes the inference rules of the system LM (minimal logic). 
+
  *)
 
-Require Export FLL.OL.OLCuti.
+Require Export FLL.OL.CutCoherence.OLCuti.
 Require Import Coq.Init.Nat.
 Require Import FLL.Misc.Permutations.
 
 Export ListNotations.
 Export LLNotations.
 Set Implicit Arguments.
+
 (** ** Syntax *)
-(* No constants *)
+(** No constants *)
 Inductive Constants := .
-(* conjunction, disjunction and implication *)
+(**  conjunction, disjunction and implication *)
 Inductive Connectives := AND | IMP  .
-(* no quantifiers *)
+(** universal quantifier *)
 Inductive Quantifiers := ALL .
 (* No unary connectives  *) 
 Inductive UConnectives := .
@@ -34,24 +33,24 @@ Instance SimpleOLSig : OLSyntax:=
 
 (** ** Inference rules *)
 
-(** *** Constants *)
+(**  Constants *)
 Definition rulesCTE (c:constants) : ContantEnc:=
   match c with
   end.
 
-(** *** Binary connectives *)
+(**  Binary connectives *)
 Definition rulesBC (c :connectives) :=
   match c with
-  | AND => PARTENSOR
+  | AND => PLUSWITH
   | IMP => TENSORPAR
   end.
 
+(*** Quantifiers *)
 Definition rulesQD (q :quantifiers) :=
   match q with
   | ALL => ALLSOME
   end
 .
-
 
 Instance SimpleOORUles : OORules :=
   {|
@@ -61,12 +60,13 @@ Instance SimpleOORUles : OORules :=
   |}.
 
 
-
-(** Soundness and Completeness *)
+(** An inductive definition for LM. This will be used to prove that
+the LL encoding is sound and complete *)
 
 Inductive LMSeq : list uexp -> uexp -> Prop :=
 | LMinit : forall L F,  LMSeq (F:: L) F
-| LMAndL : forall L F G R, LMSeq (F :: G :: L) R -> LMSeq ( (t_bin AND F G) :: L) R
+| LMAndL1 : forall L F G R, LMSeq (F :: L) R -> LMSeq ( (t_bin AND F G) :: L) R
+| LMAndL2 : forall L F G R, LMSeq (G :: L) R -> LMSeq ( (t_bin AND F G) :: L) R
 | LMAndR : forall L F G , LMSeq L F -> LMSeq L G -> LMSeq L (t_bin AND F G)
 | LMImpL : forall L A B G , LMSeq L A -> LMSeq (B:: L) G -> LMSeq (t_bin IMP A B ::L) G
 | LMImpR : forall L A B  , LMSeq (A:: L) B ->  LMSeq L (t_bin IMP A B)
@@ -77,12 +77,13 @@ LMContr : forall L F G, (LMSeq (F :: F:: L)) G -> (LMSeq (F :: L)) G
 | (* Explicit exchange *)
 LMEx : forall L L' G, Permutation L L' -> LMSeq L G -> LMSeq L' G 
 . 
-
+Hint Constructors LMSeq : core .
 Hint Constructors LMSeq : core .
 Hint Constructors OLTheory buildTheory : core.
 Hint Constructors  isOLFormula : core. 
 Hint Unfold IsPositiveLAtomFormulaL : core. 
 Hint Constructors IsPositiveRAtomFormula : core .
+
 
 Global Instance LML_morph : 
   Proper ((@Permutation uexp) ==> eq ==> iff) (LMSeq).
@@ -103,6 +104,8 @@ Ltac solveOLTheory :=
             | do 2 constructor;auto ; SolveIS ]
     end.
 
+
+(** Soundness *)
 Theorem Soundeness: forall L F, LMSeq L F ->
                                 isOLFormulaL L ->
                                 isOLFormula F ->
@@ -113,10 +116,18 @@ Proof with solveF;solveLL;solveOLTheory;SolveIS;solveOLTheory.
   + (* init *)
     decide3 (RINIT F)...
     tensor (REncode [F]) (@nil oo)...
-  + (* AND *)
+  + (* ANDL1 *)
     decide3 (makeRuleBin AND Left F G)...      
     tensor (@nil oo) (REncode [R])...
-    LLPerm ( d| t_bin AND F G | :: d| F | :: d| G|  :: LEncode L).
+    oplus1.
+    LLPerm ( d| t_bin AND F G | :: d| F |  :: LEncode L).
+    apply weakening.
+    apply IHLMSeq... 
+  +  (* ANDL2 *)
+    decide3 (makeRuleBin AND Left F G)...
+    tensor (@nil oo) (REncode [R])...
+    oplus2.
+    LLPerm ( d| t_bin AND F G | :: d| G |  :: LEncode L).
     apply weakening.
     apply IHLMSeq... 
   + (* And R *)
@@ -177,11 +188,7 @@ Ltac toLM H :=
     apply exchangeCCN with (CC' := T :: LEncode (F::L) ++ REncode R) in H ;[| simpl; perm]
   end.
 
-Theorem InIsPositiveL: forall F L,  In F (LEncode L) -> IsPositiveAtom F.
-  intros.
-  induction L;inversion H;subst;auto.
-Qed.
-
+(** Completeness *)
 Theorem Completeness: forall n L F , 
     isOLFormulaL L ->
     isOLFormula F ->
@@ -200,17 +207,17 @@ Proof with solveF;solveLL;SolveIS;CleanContext.
     inversion H3...
     ++ (* Constants *)
       destruct C.
-    ++  (* constants *)
+    ++ (* Constants *)
       destruct C.
     ++ (* binary connective right *)
       apply FocusingRightRule in H6...
       (* by cases on C *)
       destruct C;simpl in H8...
       { (* case AND *)
-        apply AppPARTENSORRight in H8...
+        apply AppPLUSWITHRight in H8...
         apply LMAndR; apply (H x0)...
       }
-      { (* impl *)
+    { (* impl *)
         apply AppTENSORPARRight in H8...
         apply LMImpR.
         apply (H x0)...
@@ -220,11 +227,16 @@ Proof with solveF;solveLL;SolveIS;CleanContext.
       (* by cases on C *)
       destruct C;simpl in H8...
       { (* case AND *)
-        apply AppPARTENSORLeft in H8...
-        toLM H7.
-        apply LMContr. 
-        apply LMAndL; rewrite <- H6.
-        eapply (H x0)...
+        apply AppPLUSWITHLeft in H8...
+        destruct H8.
+        + toLM H7.
+          apply LMContr. 
+          apply LMAndL1; rewrite <- H7.
+          eapply (H x0)...
+        + toLM H7.
+          apply LMContr. 
+          apply LMAndL2; rewrite <- H7.
+          eapply (H x0)...
       }
       { (* impl *)
         apply AppTENSORPARLeft in H8...
@@ -273,6 +285,7 @@ Proof with solveF;solveLL.
     apply  Completeness in H1...
   +  apply Soundeness in H1...
 Qed.
+
 (** The cut-elimination theorem instantiated for LM *)
 Check Adequacy .
 Check CutElimination.

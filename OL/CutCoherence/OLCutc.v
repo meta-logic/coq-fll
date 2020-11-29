@@ -6,7 +6,7 @@ of the sequent can be weakened and contacted. Then, we assume that all
 of them are stored into the classical context of LL. *)
 
 Require Export FLL.Misc.Hybrid.
-Require Export FLL.OL.OLDefinitions.
+Require Export FLL.OL.CutCoherence.OLDefinitions.
 Require Import FLL.SL.CutElimination.
 Import FLL.Misc.Permutations.
 Export ListNotations.
@@ -16,7 +16,6 @@ Set Implicit Arguments.
 
 
 Hint Constructors seq seqN : core .
-Hint Constructors uniform_oo : core.
 Hint Constructors isOLFormula isFormula : core.
 Hint Constructors IsPositiveAtomFormula : core .
 Hint Unfold IsPositiveAtomFormulaL : core.
@@ -30,7 +29,7 @@ Section OLInferenceRules.
   Inductive Side := Left | Right .
 
   (** Constants in this kind of systems can be obly TOP/ZERO or
-  ZERO/TOP (in order to be cut-coherent *)
+  ZERO/TOP (in order to be cut-coherent) *)
 
   Inductive ContantEnc := TOPZERO | ZEROTOP .
 

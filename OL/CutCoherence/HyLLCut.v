@@ -1,4 +1,7 @@
-(* An alternative encoding of HyLL. Here we do not have adequacy at the level of derivations but we can prove a meta-theorem showing that non-legal application are "useless" *)
+(*  ** HyLL as an LL theory 
+
+This file defines an alternative encoding for HyLL rules. Such
+encoding is adequate at the level of proofs but it is cut-coherent *)
 
 Require Export FLL.Misc.Hybrid.
 Require Import Coq.Init.Nat.
@@ -11,14 +14,6 @@ Set Implicit Arguments.
 Optimize Proof.
 Optimize Heap.
  
-Hint Resolve level_CON level_VAR level_BND level_APP level_ABS : hybrid.
-Hint Resolve proper_APP uniform_proper : hybrid.
-Hint Unfold proper: hybrid.
-Hint Rewrite ext_eq_eta : hybrid.
-Hint Resolve uniform_id uniform_con uniform_app : hybrid.
-Hint Resolve proper_VAR : hybrid.
-Hint Resolve lbindEq exprInhabited : hybrid.
-Hint Constructors uniform_oo : hybrid.
 Hint Constructors seq seqN : core .
 Hint Constructors uniform_oo : core.
 Hint Constructors isFormula : core.
@@ -204,37 +199,6 @@ Section HyLL.
 
   Hint Resolve isWorldProper isOLFormulaProper' isOLFormulaProper:core.
 
-  Example HyLL1: forall (a:T) (w:uexp) (t:T) id ,
-      isWorldExp w ->
-      HyLL [] [(ALL (fun x => t_atom id x)) @ w] ( (t_atom id (t_term t)) @ w).
-  Proof with solveF.
-    intros.
-    apply hy_allL with (t:= t_term t)...
-    constructor.
-  Qed.
-
-  Example HyLL2: forall (a:T) (w:uexp)  id , isWorldExp w -> HyLL [] [(ALL (fun x => t_atom id x)) @ w] ((ALL (fun x => t_atom id x)) @ w).
-  Proof with solveF.
-    intros.
-    eapply  hy_allR...
-    intros.
-    apply hy_allL with (t:= t)...
-  Qed.
-
-  Example HyLL3: forall (F:uexp) (wexp:uexp)  , isWorldExp wexp -> isOLFormula' F ->  HyLL[] [ (ARROW (fun x => (F AT x))) @ wexp ] ((ARROW (fun x => (F AT x))) @ wexp) .
-  Proof with solveF.
-    intros.
-    eapply hy_arrowR...
-    eapply hy_atR...
-    eapply hy_arrowL...
-  Qed.
-
-  Example HyLL4: forall (F:uexp) (w:uexp)  , isWorldExp w -> isOLFormula' F ->  HyLL [] [ (ARROW (fun x => (F AT (x wop w)))) @ w ] (F @ (w wop w)) .
-  Proof with solveF.
-    intros.
-    eapply hy_arrowL...
-  Qed.
-  
   Definition BODY_RTENSORL (F G w :uexp) :oo := (d|F @ w| $ d|G @ w|).
   Definition BODY_RTENSORR (F G w :uexp) :oo := (u|F @ w| ** u|G @ w|).
   Definition BODY_RIMPLL (F G w : uexp) : oo := (u|F @ w| ** d|G @ w|).

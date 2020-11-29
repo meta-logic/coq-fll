@@ -1,12 +1,11 @@
-(** * System LK for propositional classical logic encoded as an LL theory
+(** * System LK for classical logic encoded as an LL theory
 
-This file encodes the inference rules of the system LK (propositional
-classical logic). The cut-coherence and well-formedness properties are
-proved and then, using [OLCutElimination] we prove the cut-elimination
-theorem for this system .
+This file encodes the inference rules of the system LK. Since the
+rules used are cut-coherent, the cut-elimination theorem applies for
+this system.
  *)
 
-Require Export FLL.OL.OLCutc.
+Require Export FLL.OL.CutCoherence.OLCutc.
 Require Import Coq.Init.Nat.
 Require Import FLL.Misc.Permutations.
 
@@ -16,11 +15,11 @@ Set Implicit Arguments.
 
 
 (** ** Syntax *)
-(* units: true and false *)
+(** units: true and false *)
 Inductive Constants := TT | FF  .
-(* conjunction, disjunction and implication *)
+(** conjunction, disjunction and implication *)
 Inductive Connectives := AND | OR | IMP  .
-(* no quantifiers *)
+(** universal and existential quantifiers *)
 Inductive Quantifiers := ALL|SOME .
 
 Inductive UConnectives := .
@@ -37,14 +36,14 @@ Instance SimpleOLSig : OLSyntax:=
 
 (** ** Inference rules *)
 
-(** *** Constants *)
+(**  Constants *)
 Definition rulesCTE (c:constants) :=
   match c with
   | TT => ZEROTOP
   | FF => TOPZERO
   end.
 
-(** *** Binary connectives *)
+(**  Binary connectives *)
 Definition rulesBC (c :connectives) :=
   match c with
   | AND => PARTENSOR
@@ -52,7 +51,7 @@ Definition rulesBC (c :connectives) :=
   | IMP => TENSORPAREXCH
   end.
 
-(** *** Quantifiers *)
+(**  Quantifiers *)
 Definition rulesQD (q :quantifiers) :=
   match q with
   | ALL => ALLSOME
@@ -67,6 +66,8 @@ Instance SimpleOORUles : OORules :=
     rulesQ := rulesQD
   |}.
 
+(** An inductive definition for LK. This will be used to prove that
+the LL encoding is sound and complete *)
 
 Inductive LKSeq : list uexp -> list uexp -> Prop :=
 | LKTRUE : forall L L', LKSeq L ((t_cons TT)::L')
@@ -147,6 +148,7 @@ Ltac toLK H :=
     apply exchangeCCN with (CC' := T :: LEncode (F::L) ++ REncode R) in H ;[| simpl; perm]
   end.
 
+(** Soundness theorem *)
 Theorem Soundeness: forall L L', LKSeq L L' ->
                                  isOLFormulaL L ->
                                  isOLFormulaL L' ->
@@ -253,7 +255,7 @@ Proof with solveF;solveLL;SolveIS;solveOLTheory.
     eapply contraction in H2... LLExact H2.
 Qed.
 
-
+(** Completeness theorem *)
 Theorem Completeness: forall n L L' , 
     isOLFormulaL L ->
     isOLFormulaL L' ->
@@ -399,6 +401,7 @@ Proof with solveF;solveLL.
     apply  Completeness in H1...
   +  apply Soundeness in H1...
 Qed.
+
 (** The cut-elimination theorem instantiated for LK *)
 Check Adequacy .
 Check CutElimination.
