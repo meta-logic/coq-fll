@@ -61,7 +61,7 @@ results.
 In Hybrid.v there is an adaptation of the Hybrid library for our purposes.
 There are also additional results about lists and permutations needed in the
 development. The results in Permutation.v are based on the ones in
-[MyPermutations.v](<a href="https://github.com/PrincetonUniversity/certicoq/blob/master/libraries/MyPermutations.v"). 
+[MyPermutations.v](https://github.com/PrincetonUniversity/certicoq/blob/master/libraries/MyPermutations.v). 
 
 ### SL
 This directory contains the formalization of the specification logic (i.e.,
