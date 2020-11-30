@@ -1,0 +1,2126 @@
+
+\documentclass[12pt]{article}
+ 
+\usepackage[margin=0.8in]{geometry} 
+\usepackage{ amsmath,amsthm,amssymb, hyperref, bussproofs}
+ \usepackage{stmaryrd}
+ \usepackage{proof}
+ \usepackage{multicol, multirow}
+ \usepackage{cmll}
+ \usepackage{hyperref}
+ \usepackage{tcolorbox}
+ 
+
+
+\newenvironment{lemma}[2][Lemma]{\begin{trivlist}
+		\item[\hskip \labelsep {\bfseries #1}\hskip \labelsep {\bfseries #2.}]}{\end{trivlist}}
+
+\newenvironment{misc}[1]{\begin{trivlist}
+\item[\hskip \labelsep {\bfseries #1.}]}{\end{trivlist}}
+
+
+\newcommand{\powerset}{\raisebox{.15\baselineskip}{\Large\ensuremath{\wp}}}
+\def\fCenter{\mbox{\ $\vdash$\ }}
+
+ 
+\begin{document}
+ 
+
+
+\title{
+    {\large \textbf{Cut Elimination in Focusing FOLL}}}\author{Bruno Xavier \& Carlos Olarte}
+ 
+\maketitle
+ 
+ 
+ \begin{abstract}
+This document presents the cut-elimination procedure for first-order focused linear logic. The gray boxes highlight the dependencies between rules
+
+ \end{abstract}
+\section{The cut-rules}
+ 
+ {\footnotesize
+ 	
+ 	\begin{multicols}{2}[]
+ 		{	
+ 			\begin{prooftree}
+ 				\AxiomC{}
+ 				\noLine
+ 				\UnaryInfC{$\vdash\Theta : H,\Gamma\Downarrow F$}
+ 				\AxiomC{}
+ 				\noLine
+ 				\UnaryInfC{$\vdash\Theta : \Delta \Downarrow H^{\bot}$}
+ 				\RightLabel{[$\Downarrow$LC]}
+ 				\BinaryInfC{$\vdash\Theta : \Gamma,\Delta\Downarrow F$}
+ 			\end{prooftree}
+ 			
+ 			\begin{prooftree}
+ 				\AxiomC{}
+ 				\noLine
+ 				\UnaryInfC{$\vdash\Theta : H,\Gamma\Uparrow S$}
+ 				\AxiomC{}
+ 				\noLine
+ 				\UnaryInfC{$\vdash\Theta : \Delta \Downarrow H^{\bot}$}
+ 				\RightLabel{[$\Uparrow$LC]}
+ 				\BinaryInfC{$\vdash\Theta : \Gamma,\Delta\Uparrow S$}
+ 			\end{prooftree}
+ 			
+ 		}
+ \end{multicols}	
+ 			\begin{tcolorbox}
+ 				
+ 			\begin{prooftree}
+ 				\AxiomC{}
+ 				\noLine
+ 				\UnaryInfC{$\vdash\Theta : \Gamma\Uparrow H,S$}
+ 				\AxiomC{}
+ 				\noLine
+ 				\UnaryInfC{$\vdash\Theta : \Delta \Downarrow H^{\bot}$}
+ 				\RightLabel{[$\Uparrow$C]}
+ 				\BinaryInfC{$\vdash\Theta : \Gamma,\Delta\Uparrow S$}
+ 			\end{prooftree}
+ 		
+ 	\end{tcolorbox}
+ 	\begin{multicols}{2}[]
+ 		{		
+ 			
+				\begin{prooftree}	
+				\AxiomC{}
+				\noLine
+				\UnaryInfC{$\vdash\Theta,H: \Gamma\Downarrow F$}
+				\AxiomC{}
+				\noLine
+				\UnaryInfC{$\vdash\Theta : \cdot \Downarrow\oc H^{\bot}$}				
+				\RightLabel{[$\Downarrow$CC]}
+				\BinaryInfC{$\vdash\Theta : \Gamma\Downarrow F$}
+			\end{prooftree}
+		
+			\begin{prooftree}
+				\AxiomC{}
+				\noLine
+				\UnaryInfC{$\vdash\Theta,H : \Gamma\Uparrow S$}
+				\AxiomC{}
+				\noLine
+				\UnaryInfC{$\vdash\Theta : \cdot\Downarrow\oc H^{\bot}$}
+				\RightLabel{[$\Uparrow$CC]}
+				\BinaryInfC{$\vdash\Theta : \Gamma\Uparrow S$}
+			\end{prooftree}
+		}
+\end{multicols}
+}
+\vspace{0.3cm}	
+\begin{itemize}
+	\item $\Uparrow$($\Downarrow$)LC : the conclusion sequent is $\Uparrow$($\Downarrow$) and the cut formula goes to the linear context.
+	\item$\Uparrow$($\Downarrow$)CC : the conclusion sequent is $\Uparrow$($\Downarrow$) and the cut formula goes to the classic context.
+	\item$\Uparrow$C : the conclusion sequent is $\Uparrow$ and the cut formula goes to the arrow context.
+	\item$H$ cannot be a positive atom in $\Downarrow$CC
+\end{itemize}
+
+
+
+\vspace{0.3cm}
+ 
+\begin{lemma}{[AbsorptionC]}
+If $F\in \Theta$ and
+$\vdash\Theta : \Gamma\Uparrow F,L$  then $\vdash\Theta : \Gamma\Uparrow L$.
+\end{lemma}
+\begin{lemma}{[AbsorptionL]}
+	 If $A^-\in Th$ and
+	$\vdash\Theta : A^-,\Gamma\Updownarrow L$  then $\vdash\Theta : \Gamma\Updownarrow L$.
+\end{lemma}
+\begin{lemma}{[AbsorptionT]} If $F\in Th$ is not an atom and
+    $\vdash\Theta : \Gamma\Uparrow F,L$  then $\vdash\Theta : \Gamma\Uparrow L$.
+\end{lemma}
+\begin{lemma}{[Atomic Permutation]} If $\vdash\Theta,A^+ : \Gamma\Downarrow Q$ and
+	$\vdash\Theta : \cdot\Downarrow \oc A^-$  then $\vdash\Theta : \Gamma\Uparrow Q$.
+\end{lemma}
+
+
+
+\newpage
+\section{$\Downarrow$-Linear Cut Elimination}
+{\footnotesize	
+	\vspace{0.3cm}	
+	\begin{prooftree}
+		\AxiomC{$[\Pi_1]$}
+		\noLine
+		\UnaryInf$\fCenter H,\Gamma\Downarrow F$
+		\AxiomC{$[\Pi_2]$}
+		\noLine
+		\UnaryInfC{$\vdash \Delta \Downarrow H^{\bot}$}
+		\RightLabel{[$\Downarrow$LC]}
+		\BinaryInfC{$\vdash \Gamma,\Delta\Downarrow F $}
+	\end{prooftree}
+	\vspace{0.3cm}	
+}
+
+{\footnotesize
+	
+
+	\vspace{0.3cm}
+	\begin{minipage}{0.4\textwidth}
+		\begin{prooftree}
+			\AxiomC{}
+			\UnaryInfC{$\vdash\Theta : X^{+}\Downarrow X^{-}$}
+			\AxiomC{}
+			\noLine
+			\UnaryInfC{$\vdash\Theta : \Delta \Downarrow X^{-}$}
+			\RightLabel{[$\Downarrow$LC]}
+			\BinaryInfC{$\vdash\Theta : \Delta\Downarrow X^{-}$}
+		\end{prooftree}
+	\end{minipage}
+	\begin{minipage}{0.1\textwidth}
+		\begin{center}
+			$\rightsquigarrow$
+		\end{center}
+	\end{minipage}
+	\begin{minipage}{0.3\textwidth}
+		\begin{prooftree}
+			\AxiomC{}
+			\noLine
+			\UnaryInfC{$\vdash\Theta : \Delta\Downarrow X^{-}$}
+		\end{prooftree}
+	\end{minipage}
+	\vspace{0.3cm}	
+
+
+
+	
+	\vspace{0.3cm}
+	\begin{minipage}{0.4\textwidth}
+		\begin{prooftree}
+			\AxiomC{}
+			\noLine
+			\UnaryInfC{$\vdash\Theta : H,\Gamma_P\Downarrow P$}
+			\AxiomC{}
+			\noLine
+			\UnaryInfC{$\vdash\Theta : \Gamma_Q\Downarrow Q$}
+			\BinaryInfC{$\vdash\Theta : H,\Gamma\Downarrow P\otimes Q$}
+			\AxiomC{}
+			\noLine
+			\UnaryInfC{$\Pi_2$}
+			\RightLabel{[$\Downarrow$LC]}
+			\BinaryInfC{$\vdash\Theta: \Gamma,\Delta\Downarrow P\otimes Q$}
+		\end{prooftree}
+	\end{minipage}
+	\begin{minipage}{0.1\textwidth}
+		\begin{center}
+			$\rightsquigarrow$
+		\end{center}
+	\end{minipage}
+	\begin{minipage}{0.3\textwidth}
+		\begin{prooftree}
+			\AxiomC{}
+			\noLine
+			\UnaryInfC{$\vdash\Theta : H,\Gamma_P\Downarrow P$}
+			\AxiomC{}
+			\noLine
+			\UnaryInfC{$\Pi_2$}
+			\RightLabel{[$\Downarrow$LC]}
+			\BinaryInfC{$\vdash\Theta : \Gamma_P,\Delta\Downarrow P$}
+			
+			\AxiomC{}
+			\noLine
+			\UnaryInfC{$\vdash\Theta : \Gamma_Q\Downarrow Q$}
+			\BinaryInfC{$\vdash\Theta : \Gamma,\Delta\Downarrow P\otimes Q$}
+		\end{prooftree}
+	\end{minipage}
+	\vspace{0.3cm}
+	
+	
+	\vspace{0.3cm}
+	\begin{minipage}{0.4\textwidth}
+		\begin{prooftree}
+			\AxiomC{}
+			\noLine
+			\UnaryInfC{$\vdash\Theta : \Gamma_P\Downarrow P$}
+			\AxiomC{}
+			\noLine
+			\UnaryInfC{$\vdash\Theta : H,\Gamma_Q\Downarrow Q$}
+			\BinaryInfC{$\vdash\Theta : H,\Gamma\Downarrow P\otimes Q$}
+			\AxiomC{}
+			\noLine
+			\UnaryInfC{$\Pi_2$}
+			\RightLabel{[$\Downarrow$LC]}
+			\BinaryInfC{$\vdash\Theta : \Gamma,\Delta\Downarrow P\otimes Q$}
+		\end{prooftree}
+	\end{minipage}
+	\begin{minipage}{0.1\textwidth}
+		\begin{center}
+			$\rightsquigarrow$
+		\end{center}
+	\end{minipage}
+	\begin{minipage}{0.3\textwidth}
+		\begin{prooftree}
+			\AxiomC{}
+			\noLine
+			\UnaryInfC{$\vdash\Theta : H,\Gamma_Q\Downarrow Q$}
+			\AxiomC{}
+			\noLine
+			\UnaryInfC{$\Pi_2$}
+			\RightLabel{[$\Downarrow$LC]}
+			\BinaryInfC{$\vdash\Theta : \Gamma_Q,\Delta\Downarrow Q$}
+			
+			\AxiomC{}
+			\noLine
+			\UnaryInfC{$\vdash\Theta : \Gamma_P\Downarrow P$}
+			
+			\BinaryInfC{$\vdash\Theta : \Gamma,\Delta\Downarrow P\otimes Q$}
+		\end{prooftree}
+	\end{minipage}
+	\vspace{0.3cm}
+	
+	\vspace{0.3cm}
+	\begin{minipage}{0.4\textwidth}
+		\begin{prooftree}
+			\AxiomC{}
+			\noLine
+			\UnaryInf$\fCenter\Theta : H,\Gamma\Downarrow P$
+			\UnaryInf$\fCenter\Theta : H,\Gamma\Downarrow P\oplus Q$
+			\AxiomC{}
+			\noLine
+			\UnaryInfC{$\Pi_2$}
+			\RightLabel{[$\Downarrow$LC]}
+			\BinaryInfC{$\vdash\Theta : \Gamma,\Delta\Downarrow P\oplus Q$}
+		\end{prooftree}
+	\end{minipage}
+	\begin{minipage}{0.1\textwidth}
+		\begin{center}
+			$\rightsquigarrow$
+		\end{center}
+	\end{minipage}
+	\begin{minipage}{0.3\textwidth}
+		\begin{prooftree}
+			
+			\AxiomC{}
+			\noLine
+			\UnaryInfC{$\vdash\Theta : H,\Gamma\Downarrow P$}
+			
+			\AxiomC{}
+			\noLine
+			\UnaryInfC{$\Pi_2$}		
+			
+			\RightLabel{[$\Downarrow$LC]}
+			\BinaryInf$\fCenter\Theta : \Gamma,\Delta\Downarrow P$
+			\UnaryInf$\fCenter\Theta : \Gamma,\Delta\Downarrow P\oplus Q$
+		\end{prooftree}
+	\end{minipage}
+	\vspace{0.3cm}
+	
+	\vspace{0.3cm}
+	\begin{minipage}{0.4\textwidth}
+		\begin{prooftree}
+			\AxiomC{}
+			\noLine
+			\UnaryInf$\fCenter\Theta : H,\Gamma\Downarrow Q$
+			\UnaryInf$\fCenter\Theta : H,\Gamma\Downarrow P\oplus Q$
+			\AxiomC{}
+			\noLine
+			\UnaryInfC{$\Pi_2$}
+			\RightLabel{[$\Downarrow$LC]}
+			\BinaryInfC{$\vdash\Theta : \Gamma,\Delta\Downarrow P\oplus Q$}
+		\end{prooftree}
+	\end{minipage}
+	\begin{minipage}{0.1\textwidth}
+		\begin{center}
+			$\rightsquigarrow$
+		\end{center}
+	\end{minipage}
+	\begin{minipage}{0.3\textwidth}
+		\begin{prooftree}
+			
+			\AxiomC{}
+			\noLine
+			\UnaryInfC{$\vdash\Theta : H,\Gamma\Downarrow Q$}
+			
+			\AxiomC{}
+			\noLine
+			\UnaryInfC{$\Pi_2$}		
+			
+			\RightLabel{[$\Downarrow$LC]}
+			\BinaryInf$\fCenter\Theta : \Gamma,\Delta\Downarrow Q$
+			\UnaryInf$\fCenter\Theta : \Gamma,\Delta\Downarrow P\oplus Q$
+		\end{prooftree}
+	\end{minipage}
+	\vspace{0.3cm}
+	
+	\vspace{0.3cm}
+	\begin{minipage}{0.4\textwidth}
+		\begin{prooftree}
+			\AxiomC{}
+			\noLine
+			\UnaryInf$\fCenter\Theta : H,\Gamma\Downarrow P[c/x]$
+			\UnaryInf$\fCenter\Theta : H,\Gamma\Downarrow \exists x.P$
+			\AxiomC{}
+			\noLine
+			\UnaryInfC{$\Pi_2$}
+			\RightLabel{[$\Downarrow$LC]}
+			\BinaryInfC{$\vdash\Theta : \Gamma,\Delta\Downarrow \exists x.P $}
+		\end{prooftree}
+	\end{minipage}
+	\begin{minipage}{0.1\textwidth}
+		\begin{center}
+			$\rightsquigarrow$
+		\end{center}
+	\end{minipage}
+	\begin{minipage}{0.3\textwidth}
+		\begin{prooftree}
+			
+			\AxiomC{}
+			\noLine
+			\UnaryInfC{$\vdash\Theta : H,\Gamma\Downarrow P[c/x]$}
+			
+			\AxiomC{}
+			\noLine
+			\UnaryInfC{$\Pi_2$}		
+			
+			\RightLabel{[$\Downarrow$LC]}
+			\BinaryInf$\fCenter\Theta : \Gamma,\Delta\Downarrow P[c/x]$
+			\UnaryInf$\fCenter\Theta : \Gamma,\Delta\Downarrow \exists x.P$
+		\end{prooftree}
+	\end{minipage}
+	\vspace{0.3cm}
+	
+	\vspace{0.3cm}
+\begin{tcolorbox}
+\begin{minipage}{0.4\textwidth}
+	\begin{prooftree}
+		\AxiomC{}
+		\noLine
+		\UnaryInf$\fCenter\Theta : H,\Gamma\Uparrow P$
+		\UnaryInf$\fCenter\Theta : H,\Gamma\Downarrow P$
+		\AxiomC{}
+		\noLine
+		\UnaryInfC{$\Pi_2$}
+		\RightLabel{[$\Downarrow$LC]}
+		\BinaryInfC{$\vdash\Theta : \Gamma,\Delta\Downarrow P $}
+	\end{prooftree}
+\end{minipage}
+\begin{minipage}{0.1\textwidth}
+	\begin{center}
+		$\rightsquigarrow$
+	\end{center}
+\end{minipage}
+\begin{minipage}{0.3\textwidth}
+	\begin{prooftree}
+		
+		\AxiomC{}
+		\noLine
+		\UnaryInfC{$\vdash\Theta : H,\Gamma\Uparrow P$}
+		
+		\AxiomC{}
+		\noLine
+		\UnaryInfC{$\Pi_2$}		
+		
+		\RightLabel{[$\Uparrow$LC]}
+		\BinaryInf$\fCenter\Theta : \Gamma,\Delta\Uparrow P$
+		\UnaryInf$\fCenter\Theta : \Gamma,\Delta\Downarrow P$
+	\end{prooftree}
+\end{minipage}
+\end{tcolorbox}
+	
+\vspace{0.3cm}}
+ \newpage
+\section{$\Uparrow$-Linear Cut Elimination}
+{\footnotesize	
+	\vspace{0.3cm}	
+	\begin{prooftree}
+		\AxiomC{$[\Pi_1]$}
+		\noLine
+		\UnaryInf$\fCenter H,\Gamma\Uparrow S$
+		\AxiomC{$[\Pi_2]$}
+		\noLine
+		\UnaryInfC{$\vdash \Delta \Downarrow H^{\bot}$}
+		\RightLabel{[$\Uparrow$LC]}
+		\BinaryInfC{$\vdash \Gamma,\Delta\Uparrow S$}
+	\end{prooftree}
+	\vspace{0.3cm}	
+}
+
+
+
+{\footnotesize
+
+	
+		\vspace{0.3cm}
+	\begin{minipage}{0.4\textwidth}
+		\begin{prooftree}
+			\AxiomC{}
+			\noLine
+			\UnaryInf$\fCenter H,\Gamma \Uparrow  L$
+			\UnaryInf$\fCenter H,\Gamma \Uparrow  \bot, L$
+			\AxiomC{}
+			\noLine
+			\UnaryInfC{$\Pi_2$}
+			\RightLabel{[$\Uparrow$LC]}
+			\BinaryInfC{$\vdash \Gamma,\Delta\Uparrow \bot, L$}
+		\end{prooftree}
+	\end{minipage}
+	\begin{minipage}{0.1\textwidth}
+		\begin{center}
+			$\rightsquigarrow$
+		\end{center}
+	\end{minipage}
+	\begin{minipage}{0.3\textwidth}
+		\begin{prooftree}
+			\AxiomC{}
+			\noLine
+			\UnaryInfC{$\vdash H,\Gamma \Uparrow  L$}
+			\AxiomC{}
+			\noLine
+			\UnaryInfC{$\Pi_2$}
+			\RightLabel{[$\Uparrow$LC]}
+			\BinaryInf$\fCenter \Gamma,\Delta\Uparrow L$
+			\UnaryInf$\fCenter \Gamma,\Delta\Uparrow \bot, L$
+		\end{prooftree}
+	\end{minipage}
+	\vspace{0.3cm}
+	
+	\vspace{0.3cm}
+	\begin{minipage}{0.4\textwidth}
+		\begin{prooftree}
+			\AxiomC{}
+			\UnaryInfC{$\vdash H,\Gamma \Uparrow  \top, L$}
+			\AxiomC{}
+			\noLine
+			\UnaryInfC{$\Pi_2$}
+			\RightLabel{[$\Uparrow$LC]}
+			\BinaryInfC{$\vdash \Gamma,\Delta\Uparrow \top, L$}
+		\end{prooftree}
+	\end{minipage}
+	\begin{minipage}{0.1\textwidth}
+		\begin{center}
+			$\rightsquigarrow$
+		\end{center}
+	\end{minipage}
+	\begin{minipage}{0.3\textwidth}
+		\begin{prooftree}
+			\AxiomC{}
+			\UnaryInfC{$\vdash \Gamma,\Delta\Uparrow \top, L$}
+		\end{prooftree}
+	\end{minipage}
+	\vspace{0.3cm}
+	
+	\vspace{0.3cm}
+	\begin{minipage}{0.4\textwidth}
+		\begin{prooftree}
+			\AxiomC{}
+			\noLine
+			\UnaryInf$\fCenter H,\Gamma \Uparrow  P, Q, L$
+			\UnaryInf$\fCenter H,\Gamma \Uparrow  P\parr Q, L$
+			\AxiomC{}
+			\noLine
+			\UnaryInfC{$\Pi_2$}
+			\RightLabel{[$\Uparrow$LC]}
+			\BinaryInfC{$\vdash \Gamma,\Delta\Uparrow P\parr Q, L$}
+		\end{prooftree}
+	\end{minipage}
+	\begin{minipage}{0.1\textwidth}
+		\begin{center}
+			$\rightsquigarrow$
+		\end{center}
+	\end{minipage}
+	\begin{minipage}{0.3\textwidth}
+		\begin{prooftree}
+			\AxiomC{}
+			\noLine
+			\UnaryInf$\fCenter H, \Gamma \Uparrow  P, Q, L$
+			\AxiomC{}
+			\noLine
+			\UnaryInfC{$\Pi_2$}
+			\RightLabel{[$\Uparrow$LC]}
+			\BinaryInf$\fCenter \Gamma,\Delta\Uparrow P, Q, L$
+			\UnaryInf$\fCenter \Gamma,\Delta\Uparrow P\parr Q, L  $
+		\end{prooftree}
+	\end{minipage}
+	\vspace{0.3cm}
+	
+	\vspace{0.3cm}	
+	\begin{minipage}{0.4\textwidth}
+		\begin{prooftree}
+			\AxiomC{}
+			\noLine
+			\UnaryInfC{$\vdash H,\Gamma \Uparrow  P, L$}
+			\AxiomC{}
+			\noLine
+			\UnaryInfC{$\vdash H,\Gamma \Uparrow  Q, L$}
+			\BinaryInf$\fCenter H,\Gamma \Uparrow  P\with Q, L$
+			\AxiomC{}
+			\noLine
+			\UnaryInfC{$\Pi_2$}
+			\RightLabel{[$\Uparrow$LC]}
+			\BinaryInfC{$\vdash \Gamma,\Delta\Uparrow P\with Q, L$}
+		\end{prooftree}
+	\end{minipage}
+	\begin{minipage}{0.1\textwidth}
+		\begin{center}
+			$\rightsquigarrow$
+		\end{center}
+	\end{minipage}
+	\begin{minipage}{0.3\textwidth}
+		\begin{prooftree}
+			\AxiomC{}
+			\noLine
+			\UnaryInf$\fCenter H,\Gamma \Uparrow  P, L$
+			\AxiomC{}
+			\noLine
+			\UnaryInfC{$\Pi_2$}
+			\RightLabel{[$\Uparrow$LC]}
+			\BinaryInfC{$\vdash \Gamma,\Delta \Uparrow  P, L$}
+			\AxiomC{}
+			\noLine
+			\UnaryInf$\fCenter H,\Gamma \Uparrow  Q, L$
+			\AxiomC{}
+			\noLine
+			\UnaryInfC{$\Pi_2$}
+			\RightLabel{[$\Uparrow$LC]}
+			\BinaryInfC{$\vdash \Gamma,\Delta \Uparrow  Q, L$}
+			\BinaryInfC{$\vdash \Gamma,\Delta\Uparrow P\with Q, L$}
+		\end{prooftree}
+	\end{minipage} 
+	\vspace{0.3cm}
+	
+	\vspace{0.3cm}
+	\begin{minipage}{0.4\textwidth}
+		\begin{prooftree}
+			\AxiomC{}
+			\noLine
+			\UnaryInf$\fCenter H,\Gamma \Uparrow  P[c/x], L$
+			\UnaryInf$\fCenter H,\Gamma \Uparrow  \forall xP,L$
+			\AxiomC{}
+			\noLine
+			\UnaryInfC{$\Pi_2$}
+			\RightLabel{[$\Uparrow$LC]}
+			\BinaryInfC{$\vdash \Gamma,\Delta\Uparrow \forall xP,L$}
+		\end{prooftree}
+	\end{minipage}
+	\begin{minipage}{0.1\textwidth}
+		\begin{center}
+			$\rightsquigarrow$
+		\end{center}
+	\end{minipage}
+	\begin{minipage}{0.3\textwidth}
+		\begin{prooftree}
+			\AxiomC{}
+			\noLine
+			\UnaryInfC{$\vdash H,\Gamma \Uparrow P[c/x], L$}
+			\AxiomC{}
+			\noLine
+			\UnaryInfC{$\Pi_2$}
+			\RightLabel{[$\Uparrow$LC]}
+			\BinaryInfC{$\vdash \Gamma,\Delta\Uparrow  P[c/x], L$}
+			\UnaryInfC{$\vdash \Gamma,\Delta\Uparrow \forall xP, L$}
+		\end{prooftree}
+	\end{minipage} 
+	\vspace{0.3cm}
+
+	\vspace{0.3cm}	
+\begin{minipage}{0.4\textwidth}
+	\begin{prooftree}
+		\AxiomC{}
+		\noLine
+		\UnaryInf$\fCenter\Theta,P: H, \Gamma \Uparrow L$
+		\UnaryInf$\fCenter\Theta: H, \Gamma \Uparrow \wn P, L$
+		\AxiomC{}
+		\noLine
+		\UnaryInfC{$\Pi_2$}
+		\RightLabel{[$\Uparrow$LC]}
+		\BinaryInfC{$\vdash\Theta: \Gamma,\Delta\Uparrow \wn P, L$}
+	\end{prooftree}
+\end{minipage}
+\begin{minipage}{0.1\textwidth}
+	\begin{center}
+		$\rightsquigarrow$
+	\end{center}
+\end{minipage}
+\begin{minipage}{0.3\textwidth}
+	\begin{prooftree}
+		\AxiomC{}
+		\noLine
+		\UnaryInf$\fCenter\Theta,P: H, \Gamma \Uparrow L$
+		\AxiomC{}
+		\noLine
+		\UnaryInfC{$\Pi_2$}
+		\RightLabel{[$W$]}
+		\UnaryInfC{$\fCenter\Theta,P: \Delta \Downarrow  H^{\bot}$}
+		\RightLabel{[$\Uparrow$LC]}
+		\BinaryInf$\fCenter\Theta,P: \Gamma,\Delta \Uparrow  L$
+		\UnaryInf$\fCenter\Theta: \Gamma,\Delta\Uparrow\wn P, L$
+	\end{prooftree}
+\end{minipage}
+\vspace{0.3cm}
+	
+	\vspace{0.3cm}	
+	\begin{minipage}{0.4\textwidth}
+		\begin{prooftree}
+			\AxiomC{}
+			\noLine
+			\UnaryInf$\fCenter P, H, \Gamma \Uparrow L$
+			\UnaryInf$\fCenter H, \Gamma \Uparrow P, L$
+			\AxiomC{}
+			\noLine
+			\UnaryInfC{$\Pi_2$}
+			\RightLabel{[$\Uparrow$LC]}
+			\BinaryInfC{$\vdash \Gamma,\Delta\Uparrow P, L$}
+		\end{prooftree}
+	\end{minipage}
+	\begin{minipage}{0.1\textwidth}
+		\begin{center}
+			$\rightsquigarrow$
+		\end{center}
+	\end{minipage}
+	\begin{minipage}{0.3\textwidth}
+		\begin{prooftree}
+			\AxiomC{}
+			\noLine
+			\UnaryInf$\fCenter H, P, \Gamma \Uparrow L$
+			\AxiomC{}
+			\noLine
+			\UnaryInfC{$\Pi_2$}
+			\RightLabel{[$\Uparrow$LC]}
+			\BinaryInf$\fCenter P, \Gamma,\Delta \Uparrow  L$
+			\UnaryInf$\fCenter \Gamma,\Delta\Uparrow P, L$
+		\end{prooftree}
+\end{minipage}
+	\vspace{0.3cm}
+	
+
+		\vspace{0.3cm}
+\begin{tcolorbox}
+	\begin{minipage}{0.4\textwidth}
+	\begin{prooftree}
+			\AxiomC{}
+			\noLine
+			\UnaryInf$\fCenter H,\Gamma\Downarrow P$
+			\RightLabel{[$D_1$]}
+			\UnaryInf$\fCenter H,P,\Gamma\Uparrow \cdot$
+			\AxiomC{}
+			\noLine
+			\UnaryInfC{$\vdash \Delta \Downarrow H^{\bot}$}
+			\RightLabel{[$\Uparrow$LC]}
+			\BinaryInfC{$\vdash P,\Gamma,\Delta\Uparrow \cdot$}
+	\end{prooftree}
+	\end{minipage}
+	\begin{minipage}{0.1\textwidth}
+		\begin{center}
+			$\rightsquigarrow$
+		\end{center}
+	\end{minipage}
+	\begin{minipage}{0.3\textwidth}
+	\begin{prooftree}
+	\AxiomC{}
+	\noLine
+	\UnaryInf$\fCenter H,\Gamma\Downarrow P$
+	\AxiomC{}
+	\noLine
+	\UnaryInfC{$\vdash \Delta \Downarrow H^{\bot}$}
+	\RightLabel{[$\Downarrow$LC]}
+	\BinaryInf$\fCenter \Gamma,\Delta\Downarrow P$
+		\RightLabel{[$D_1$]}
+	\UnaryInf$\fCenter P,\Gamma,\Delta\Uparrow \cdot$
+	\end{prooftree}
+	\end{minipage}
+	\vspace{0.3cm}	
+
+	\vspace{0.3cm}
+\begin{minipage}{0.4\textwidth}
+	\begin{prooftree}
+		\AxiomC{}
+		\noLine
+		\UnaryInf$\fCenter H,\Gamma\Downarrow Q$
+			\RightLabel{[$D_2$]}
+		\UnaryInf$\fCenter H,\Gamma\Uparrow \cdot$
+		\AxiomC{}
+		\noLine
+		\UnaryInfC{$\vdash \Delta \Downarrow H^{\bot}$}
+		\RightLabel{[$\Uparrow$LC]}
+		\BinaryInfC{$\vdash \Gamma,\Delta\Uparrow \cdot$}
+	\end{prooftree}
+\end{minipage}
+\begin{minipage}{0.1\textwidth}
+	\begin{center}
+		$\rightsquigarrow$
+	\end{center}
+\end{minipage}
+\begin{minipage}{0.3\textwidth}
+	\begin{prooftree}
+		\AxiomC{}
+		\noLine
+		\UnaryInf$\fCenter H,\Gamma\Downarrow Q$
+		\AxiomC{}
+		\noLine
+		\UnaryInfC{$\vdash \Delta \Downarrow H^{\bot}$}
+		\RightLabel{[$\Downarrow$LC]}
+		\BinaryInf$\fCenter \Gamma,\Delta\Downarrow Q$
+			\RightLabel{[$D_2$]}
+		\UnaryInf$\fCenter \Gamma,\Delta\Uparrow \cdot$
+	\end{prooftree}
+\end{minipage}
+\vspace{0.3cm}	
+
+	\vspace{0.3cm}
+\begin{minipage}{0.4\textwidth}
+	\begin{prooftree}
+		\AxiomC{}
+		\noLine
+		\UnaryInf$\fCenter H,\Gamma\Downarrow Q$
+			\RightLabel{[$D_3$]}
+		\UnaryInf$\fCenter H,\Gamma\Uparrow \cdot$
+		\AxiomC{}
+		\noLine
+		\UnaryInfC{$\vdash \Delta \Downarrow H^{\bot}$}
+		\RightLabel{[$\Uparrow$LC]}
+		\BinaryInfC{$\vdash \Gamma,\Delta\Uparrow \cdot$}
+	\end{prooftree}
+\end{minipage}
+\begin{minipage}{0.1\textwidth}
+	\begin{center}
+		$\rightsquigarrow$
+	\end{center}
+\end{minipage}
+\begin{minipage}{0.3\textwidth}
+	\begin{prooftree}
+		\AxiomC{}
+		\noLine
+		\UnaryInf$\fCenter H,\Gamma\Downarrow Q$
+		\AxiomC{}
+		\noLine
+		\UnaryInfC{$\vdash \Delta \Downarrow H^{\bot}$}
+		\RightLabel{[$\Downarrow$LC]}
+		\BinaryInf$\fCenter \Gamma,\Delta\Downarrow Q$
+			\RightLabel{[$D_3$]}
+		\UnaryInf$\fCenter \Gamma,\Delta\Uparrow \cdot$
+	\end{prooftree}
+\end{minipage}
+\vspace{0.3cm}
+
+	\vspace{0.3cm}
+\begin{minipage}{0.4\textwidth}
+	\begin{prooftree}
+		\AxiomC{}
+		\noLine
+		\UnaryInf$\fCenter \Gamma\Uparrow H$
+		\UnaryInf$\fCenter \Gamma\Downarrow H$
+		\UnaryInf$\fCenter H,\Gamma\Uparrow \cdot$
+		\AxiomC{}
+		\noLine
+		\UnaryInfC{$\vdash \Delta \Downarrow H^{\bot}$}
+		\RightLabel{[$\Uparrow$LC]}
+		\BinaryInfC{$\vdash \Gamma,\Delta\Uparrow \cdot$}
+	\end{prooftree}
+\end{minipage}
+\begin{minipage}{0.1\textwidth}
+	\begin{center}
+		$\rightsquigarrow$
+	\end{center}
+\end{minipage}
+\begin{minipage}{0.3\textwidth}
+	\begin{prooftree}
+		\AxiomC{}
+		\noLine
+		\UnaryInf$\fCenter \Gamma\Uparrow H$
+		\AxiomC{}
+		\noLine
+		\UnaryInfC{$\vdash \Delta \Downarrow H^{\bot}$}
+		\RightLabel{[$\Uparrow$C]}
+		\BinaryInf$\fCenter \Gamma,\Delta\Uparrow \cdot$
+	\end{prooftree}
+\end{minipage}
+\vspace{0.3cm}	
+
+	\vspace{0.3cm}
+\begin{minipage}{0.4\textwidth}
+	\begin{prooftree}
+		\AxiomC{}
+		\noLine
+		\UnaryInf$\fCenter \Gamma\Downarrow H$
+		\UnaryInf$\fCenter H,\Gamma\Uparrow \cdot$
+		\AxiomC{}
+		\noLine
+		\UnaryInf$\fCenter \Delta\Uparrow H^{\bot}$
+		\UnaryInf$\fCenter \Delta \Downarrow H^{\bot}$
+		\RightLabel{[$\Uparrow$LC]}
+		\BinaryInfC{$\vdash \Gamma,\Delta\Uparrow \cdot$}
+	\end{prooftree}
+\end{minipage}
+\begin{minipage}{0.1\textwidth}
+	\begin{center}
+		$\rightsquigarrow$
+	\end{center}
+\end{minipage}
+\begin{minipage}{0.3\textwidth}
+	\begin{prooftree}
+		\AxiomC{}
+		\noLine
+		\UnaryInf$\fCenter\Delta\Uparrow H^{\bot}$
+		\AxiomC{}
+		\noLine
+		\UnaryInfC{$\vdash \Gamma \Downarrow H$}
+		\RightLabel{[$\Uparrow$C]}
+		\BinaryInf$\fCenter \Gamma,\Delta\Uparrow \cdot$
+	\end{prooftree}
+\end{minipage}
+\end{tcolorbox}
+
+\vspace{0.3cm}	
+ \newpage
+\section{$\Uparrow$ Cut Elimination}
+
+{\footnotesize	
+	\vspace{0.3cm}	
+	\begin{prooftree}
+		\AxiomC{$[\Pi_1]$}
+		\noLine
+		\UnaryInf$\fCenter \Gamma\Uparrow H, S$
+		\AxiomC{$[\Pi_2]$}
+		\noLine
+		\UnaryInfC{$\vdash \Delta \Downarrow H^{\bot}$}
+		\RightLabel{[$\Uparrow$C]}
+		\BinaryInfC{$\vdash \Gamma,\Delta\Uparrow S $}
+	\end{prooftree}
+	\vspace{0.3cm}	
+}
+
+
+{\footnotesize
+
+
+	
+	\vspace{0.3cm}
+	\begin{minipage}{0.4\textwidth}
+		\begin{prooftree}
+			\AxiomC{}
+			\noLine
+			\UnaryInf$\fCenter\Gamma\Uparrow L$
+			\UnaryInf$\fCenter\Gamma \Uparrow \bot, L$
+			
+			\AxiomC{}
+			\UnaryInf$\fCenter\cdot\Downarrow 1$
+			\RightLabel{[$\Uparrow$C]}
+			\BinaryInfC{$\vdash\Gamma\Uparrow L$}
+		\end{prooftree}
+	\end{minipage}
+	\begin{minipage}{0.2\textwidth}
+		\begin{center}
+			$\rightsquigarrow$
+		\end{center}
+	\end{minipage}
+	\begin{minipage}{0.3\textwidth}
+		\begin{prooftree}
+			\AxiomC{}
+			\noLine
+			\UnaryInfC{$\vdash\Gamma\Uparrow L$}
+		\end{prooftree}
+	\end{minipage}
+	\vspace{0.3cm}
+	
+		\vspace{0.3cm}
+	\begin{minipage}{0.5\textwidth}
+		\begin{prooftree}
+			\AxiomC{[$\Sigma_1$]}
+			\noLine
+			\UnaryInf$\fCenter\Gamma\Uparrow P,Q,L$
+			\UnaryInf$\fCenter\Gamma\Uparrow P \parr Q, L$
+			\AxiomC{[$\Sigma_2$]}
+			\noLine
+			\UnaryInfC{$\vdash\Delta_{P}\Downarrow P^{\bot}$}
+			\AxiomC{[$\Sigma_3$]}
+			\noLine
+			\UnaryInfC{$\vdash\Delta_{Q}\Downarrow Q^{\bot}$}
+			\BinaryInfC{$\vdash\Delta\Downarrow P^{\bot}\otimes Q^{\bot}$}
+			\RightLabel{[$\Uparrow$C]}
+			\BinaryInfC{$\vdash\Gamma,\Delta\Uparrow L $}
+		\end{prooftree}
+	\end{minipage}
+	\begin{minipage}{0.1\textwidth}
+		\begin{center}
+			$\rightsquigarrow$
+		\end{center}
+	\end{minipage}
+	\begin{minipage}{0.2\textwidth}
+		\begin{prooftree}
+			\AxiomC{}
+			\noLine
+			\UnaryInfC{[$\Sigma_1$]}
+			\AxiomC{}
+			\noLine
+			\UnaryInfC{[$\Sigma_2$]}
+			\RightLabel{[$\Uparrow$C]}
+			\BinaryInfC{$\vdash\Gamma,\Delta_{P} \Uparrow Q,L$}
+			\AxiomC{}
+			\noLine
+			\UnaryInfC{[$\Sigma_3$]}
+			\RightLabel{[$\Uparrow$C]}
+			\BinaryInfC{$\vdash\Gamma,\Delta\Uparrow L$}
+		\end{prooftree}
+	\end{minipage}
+	\vspace{0.3cm}
+	
+	\vspace{0.3cm}
+\begin{minipage}{0.5\textwidth}
+	\begin{prooftree}
+		\AxiomC{}
+		\noLine
+		\UnaryInfC{$\fCenter\Gamma\Uparrow P,L$}
+		\AxiomC{}
+		\noLine
+		\UnaryInfC{$\vdash\Gamma \Uparrow Q,L$}
+		\BinaryInfC{$\fCenter\Gamma\Uparrow P \with Q,L$}
+		\AxiomC{}
+		\noLine
+		\UnaryInf$\fCenter\Delta \Downarrow  P^{\bot}$
+		\UnaryInf$\fCenter\Delta \Downarrow P^{\bot} \oplus Q^{\bot}$
+		\RightLabel{[$\Uparrow$C]}
+		\BinaryInfC{$\vdash\Gamma,\Delta\Uparrow L$}
+	\end{prooftree}
+\end{minipage}
+\begin{minipage}{0.1\textwidth}
+	\begin{center}
+		$\rightsquigarrow$
+	\end{center}
+\end{minipage}
+\begin{minipage}{0.2\textwidth}
+	\begin{prooftree}
+		\AxiomC{}
+		\noLine
+		\UnaryInfC{$\vdash\Gamma \Uparrow P,L$}
+		\AxiomC{}
+		\noLine
+		\UnaryInfC{$\vdash\Delta\Downarrow P^{\bot}$}
+		\RightLabel{[$\Uparrow$C]}
+		\BinaryInfC{$\vdash\Gamma,\Delta\Uparrow L$}
+	\end{prooftree}
+\end{minipage}
+\vspace{0.3cm}	
+
+	\vspace{0.3cm}
+\begin{minipage}{0.5\textwidth}
+	\begin{prooftree}
+		\AxiomC{}
+		\noLine
+		\UnaryInfC{$\fCenter\Gamma\Uparrow P,L$}
+		\AxiomC{}
+		\noLine
+		\UnaryInfC{$\vdash\Gamma \Uparrow Q,L$}
+		\BinaryInfC{$\fCenter\Gamma\Uparrow P \with Q,L$}
+		\AxiomC{}
+		\noLine
+		\UnaryInf$\fCenter\Delta \Downarrow  Q^{\bot}$
+		\UnaryInf$\fCenter\Delta \Downarrow P^{\bot} \oplus Q^{\bot}$
+		\RightLabel{[$\Uparrow$C]}
+		\BinaryInfC{$\vdash\Gamma,\Delta\Uparrow L$}
+	\end{prooftree}
+\end{minipage}
+\begin{minipage}{0.1\textwidth}
+	\begin{center}
+		$\rightsquigarrow$
+	\end{center}
+\end{minipage}
+\begin{minipage}{0.2\textwidth}
+	\begin{prooftree}
+		\AxiomC{}
+		\noLine
+		\UnaryInfC{$\vdash\Gamma \Uparrow Q,L$}
+		\AxiomC{}
+		\noLine
+		\UnaryInfC{$\vdash\Delta\Downarrow Q^{\bot}$}
+		\RightLabel{[$\Uparrow$C]}
+		\BinaryInfC{$\vdash\Gamma,\Delta\Uparrow L$}
+	\end{prooftree}
+\end{minipage}
+\vspace{0.3cm}	
+
+
+	\vspace{0.3cm}
+\begin{minipage}{0.5\textwidth}
+	\begin{prooftree}
+		\AxiomC{}
+		\noLine		
+		\UnaryInf$\fCenter\Gamma\Uparrow P[c/x],L$
+		\UnaryInf$\fCenter\Gamma\Uparrow \forall x.P,L$
+		\AxiomC{}
+		\noLine
+		\UnaryInf$\fCenter\Delta \Downarrow  P^{\bot}[t/x]$
+		\UnaryInf$\fCenter\Delta \Downarrow \exists  x.P^{\bot}$
+		\RightLabel{[$\Uparrow$C]}
+		\BinaryInfC{$\vdash\Gamma,\Delta\Uparrow L$}
+	\end{prooftree}
+\end{minipage}
+\begin{minipage}{0.1\textwidth}
+	\begin{center}
+		$\rightsquigarrow$
+	\end{center}
+\end{minipage}
+\begin{minipage}{0.2\textwidth}
+	\begin{prooftree}
+		\AxiomC{}
+		\noLine
+		\UnaryInfC{$\fCenter\Gamma\Uparrow P[c/x],L$}
+		\AxiomC{}
+		\noLine		
+		\UnaryInfC{$\fCenter\Delta \Downarrow  P^{\bot}[t/x]$}	
+		\RightLabel{[$\Uparrow$C]}
+		\BinaryInfC{$\vdash\Gamma,\Delta\Uparrow L$}
+	\end{prooftree}
+\end{minipage}
+\vspace{0.3cm}
+
+\vspace{0.3cm}
+\begin{tcolorbox}
+\begin{minipage}{0.5\textwidth}
+	\vspace{0.3cm}	
+	\begin{prooftree}
+		\AxiomC{}
+		\noLine
+		\UnaryInf$\fCenter\Theta,H : \Gamma\Uparrow L$
+		\UnaryInf$\fCenter\Theta : \Gamma\Uparrow \wn H, L$
+		\AxiomC{}
+		\noLine
+		\UnaryInf$\fCenter\Theta : \cdot \Downarrow \oc H^{\bot}$
+		\RightLabel{[$\Uparrow$C]}
+		\BinaryInfC{$\vdash\Theta : \Gamma\Uparrow L $}
+	\end{prooftree}
+	\vspace{0.3cm}	
+\end{minipage}
+\begin{minipage}{0.1\textwidth}
+	\begin{center}
+		$\rightsquigarrow$
+	\end{center}
+\end{minipage}
+\begin{minipage}{0.2\textwidth}
+	\begin{prooftree}
+		\AxiomC{}
+		\noLine
+		\UnaryInf$\fCenter\Theta,H : \Gamma\Uparrow L$
+		\AxiomC{}
+		\noLine
+		\UnaryInfC{$\vdash\Theta : \cdot \Downarrow \oc H^{\bot}$}
+		\RightLabel{[$\Uparrow$CC]}
+		\BinaryInfC{$\vdash\Theta : \Gamma\Uparrow L $}
+	\end{prooftree}
+\end{minipage}
+\vspace{0.3cm}
+
+\vspace{0.3cm}	
+\begin{minipage}{0.5\textwidth}
+
+\begin{prooftree}
+	\AxiomC{}
+	\noLine
+		\UnaryInf$\fCenter H,\Gamma\Uparrow L$
+	\UnaryInf$\fCenter \Gamma\Uparrow H, L$
+	\AxiomC{}
+	\noLine
+	\UnaryInfC{$\vdash \Delta \Downarrow H^{\bot}$}
+	\RightLabel{[$\Uparrow$C]}
+	\BinaryInfC{$\vdash \Gamma,\Delta\Uparrow L $}
+\end{prooftree}
+\vspace{0.3cm}	
+	\end{minipage}
+	\begin{minipage}{0.1\textwidth}
+		\begin{center}
+			$\rightsquigarrow$
+		\end{center}
+	\end{minipage}
+	\begin{minipage}{0.2\textwidth}
+\begin{prooftree}
+	\AxiomC{}
+	\noLine
+	\UnaryInf$\fCenter H,\Gamma\Uparrow L$
+	\AxiomC{}
+	\noLine
+	\UnaryInfC{$\vdash \Delta \Downarrow H^{\bot}$}
+	\RightLabel{[$\Uparrow$LC]}
+	\BinaryInfC{$\vdash \Gamma,\Delta\Uparrow L $}
+\end{prooftree}
+	\end{minipage}
+\end{tcolorbox}
+	\vspace{0.3cm}} \newpage
+\section{$\Uparrow$-Classic Cut Elimination}
+	
+{\footnotesize
+	\vspace{0.2cm}
+	\begin{prooftree}
+		\AxiomC{$[\Pi_1]$}
+		\noLine
+		\UnaryInfC{$\vdash\Theta,H : \Gamma\Uparrow S$}
+		\AxiomC{$[\Pi_2]$}
+		\noLine
+		\UnaryInfC{$\vdash\Theta : \cdot \Downarrow \oc H^{\bot}$}
+		\RightLabel{[$\Uparrow$CC]}
+		\BinaryInfC{$\vdash\Theta : \Gamma\Uparrow S$}
+	\end{prooftree}
+	\vspace{0.2cm}
+}
+	
+	{\footnotesize	
+	\vspace{0.3cm}	
+	\begin{minipage}{0.4\textwidth}
+		\begin{prooftree}
+			\AxiomC{}
+			\noLine
+			\UnaryInf$\fCenter\Theta,H : \Gamma \Uparrow  L$
+			\UnaryInf$\fCenter\Theta,H : \Gamma \Uparrow  \bot, L$
+			\AxiomC{}
+			\noLine
+			\UnaryInfC{$\Pi_2$}
+			\RightLabel{[$\Uparrow$CC]}
+			\BinaryInfC{$\vdash\Theta : \Gamma\Uparrow \bot, L$}
+		\end{prooftree}
+	\end{minipage}
+	\begin{minipage}{0.1\textwidth}
+		\begin{center}
+			$\rightsquigarrow$
+		\end{center}
+	\end{minipage}
+	\begin{minipage}{0.3\textwidth}
+		\begin{prooftree}
+			\AxiomC{}
+			\noLine
+			\UnaryInfC{$\vdash\Theta,H : \Gamma \Uparrow  L$}
+			\AxiomC{}
+			\noLine
+			\UnaryInfC{$\Pi_2$}
+			\RightLabel{[$\Uparrow$CC]}
+			\BinaryInf$\fCenter\Theta : \Gamma\Uparrow L$
+			\UnaryInf$\fCenter\Theta : \Gamma\Uparrow \bot, L$
+		\end{prooftree}
+	\end{minipage}
+	\vspace{0.3cm}
+	
+	\vspace{0.3cm}
+	\begin{minipage}{0.4\textwidth}
+		\begin{prooftree}
+			\AxiomC{}
+			\UnaryInfC{$\vdash\Theta,H : \Gamma \Uparrow  \top, L$}
+			\AxiomC{}
+			\noLine
+			\UnaryInfC{$\Pi_2$}
+			\RightLabel{[$\Uparrow$CC]}
+			\BinaryInfC{$\vdash\Theta : \Gamma\Uparrow \top, L$}
+		\end{prooftree}
+	\end{minipage}
+	\begin{minipage}{0.1\textwidth}
+		\begin{center}
+			$\rightsquigarrow$
+		\end{center}
+	\end{minipage}
+	\begin{minipage}{0.3\textwidth}
+		\begin{prooftree}
+			\AxiomC{}
+			\UnaryInfC{$\vdash\Theta : \Gamma\Uparrow \top, L$}
+		\end{prooftree}
+	\end{minipage}
+	\vspace{0.3cm}
+	
+	\vspace{0.3cm}
+	\begin{minipage}{0.4\textwidth}
+		\begin{prooftree}
+			\AxiomC{}
+			\noLine
+			\UnaryInf$\fCenter\Theta,H : \Gamma \Uparrow  P, Q, L$
+			\UnaryInf$\fCenter\Theta,H : \Gamma \Uparrow  P\parr Q, L$
+			\AxiomC{}
+			\noLine
+			\UnaryInfC{$\Pi_2$}
+			\RightLabel{[$\Uparrow$CC]}
+			\BinaryInfC{$\vdash\Theta : \Gamma\Uparrow P\parr Q, L$}
+		\end{prooftree}
+	\end{minipage}
+	\begin{minipage}{0.1\textwidth}
+		\begin{center}
+			$\rightsquigarrow$
+		\end{center}
+	\end{minipage}
+	\begin{minipage}{0.3\textwidth}
+		\begin{prooftree}
+			\AxiomC{}
+			\noLine
+			\UnaryInfC{$\vdash\Theta,H : \Gamma \Uparrow  P, Q, L$}
+			\AxiomC{}
+			\noLine
+			\UnaryInfC{$\Pi_2$}
+			\RightLabel{[$\Uparrow$CC]}
+			\BinaryInf$\fCenter\Theta : \Gamma\Uparrow P, Q, L$
+			\UnaryInf$\fCenter\Theta : \Gamma\Uparrow P\parr Q, L  $
+		\end{prooftree}
+	\end{minipage}
+	\vspace{0.3cm}
+	
+	\vspace{0.3cm}	
+	\begin{minipage}{0.4\textwidth}
+		\begin{prooftree}
+			\AxiomC{$[\Sigma_1]$}
+			\noLine
+			\UnaryInfC{$\vdash\Theta,H : \Gamma \Uparrow  P, L$}
+			\AxiomC{$[\Sigma_2]$}
+			\noLine
+			\UnaryInfC{$\vdash\Theta,H : \Gamma \Uparrow  Q, L$}
+			\BinaryInfC{$\vdash\Theta,H : \Gamma \Uparrow  P\with Q, L$}
+			\AxiomC{}
+			\noLine
+			\UnaryInfC{$\Pi_2$}
+			\RightLabel{[$\Uparrow$CC]}
+			\BinaryInfC{$\vdash\Theta : \Gamma\Uparrow P\with Q, L$}
+		\end{prooftree}
+	\end{minipage}
+	\begin{minipage}{0.1\textwidth}
+		\begin{center}
+			$\rightsquigarrow$
+		\end{center}
+	\end{minipage}
+	\begin{minipage}{0.3\textwidth}
+		\begin{prooftree}
+			\AxiomC{}
+			\noLine
+			\UnaryInfC{$\Sigma_1$}
+			\AxiomC{}
+			\noLine
+			\UnaryInfC{$\Pi_2$}
+			\RightLabel{[$\Uparrow$CC]}
+			\BinaryInfC{$\vdash\Theta : \Gamma \Uparrow  P, L$}
+			\AxiomC{}
+			\noLine
+			\UnaryInfC{$\Sigma_2$}
+			\AxiomC{}
+			\noLine
+			\UnaryInfC{$\Pi_2$}
+			\RightLabel{[$\Uparrow$CC]}
+			\BinaryInfC{$\vdash\Theta : \Gamma \Uparrow  Q, L$}
+			\BinaryInfC{$\vdash\Theta : \Gamma\Uparrow P\with Q, L$}
+		\end{prooftree}
+	\end{minipage} 
+	\vspace{0.3cm}
+	
+	\vspace{0.3cm}
+	\begin{minipage}{0.4\textwidth}
+		\begin{prooftree}
+			\AxiomC{}
+			\noLine
+			\UnaryInf$\fCenter\Theta,H,P : \Gamma \Uparrow  L$
+			\UnaryInf$\fCenter\Theta,H : \Gamma \Uparrow  \wn P,L$
+			\AxiomC{}
+			\noLine
+			\UnaryInfC{$\Pi_2$}
+			\RightLabel{[$\Uparrow$CC]}
+			\BinaryInfC{$\vdash\Theta : \Gamma\Uparrow \wn P,L$}
+		\end{prooftree}
+	\end{minipage}
+	\begin{minipage}{0.1\textwidth}
+		\begin{center}
+			$\rightsquigarrow$
+		\end{center}
+	\end{minipage}
+	\begin{minipage}{0.3\textwidth}
+		\begin{prooftree}
+			\AxiomC{}
+			\noLine
+			\UnaryInfC{$\vdash\Theta,P,H : \Gamma \Uparrow L$}
+			\AxiomC{}
+			\noLine
+			\UnaryInfC{$\Pi_2$}
+			\RightLabel{[$W$]}
+			\UnaryInfC{$\fCenter\Theta,P: \Delta \Uparrow  H^{\bot}$}
+			\RightLabel{[$\Uparrow$CC]}
+			\BinaryInf$\fCenter\Theta, P : \Gamma\Uparrow  L$
+			\UnaryInf$\fCenter\Theta : \Gamma\Uparrow \wn P, L$
+		\end{prooftree}
+	\end{minipage} 
+	\vspace{0.3cm}
+	
+	\vspace{0.3cm}
+	\begin{minipage}{0.4\textwidth}
+		\begin{prooftree}
+			\AxiomC{}
+			\noLine
+			\UnaryInf$\fCenter\Theta, H : \Gamma \Uparrow  P[c/x], L$
+			\UnaryInf$\fCenter\Theta,H : \Gamma \Uparrow  \forall xP,L$
+			\AxiomC{}
+			\noLine
+			\UnaryInfC{$\Pi_2$}
+			\RightLabel{[$\Uparrow$CC]}
+			\BinaryInfC{$\vdash\Theta : \Gamma\Uparrow \forall xP,L$}
+		\end{prooftree}
+	\end{minipage}
+	\begin{minipage}{0.1\textwidth}
+		\begin{center}
+			$\rightsquigarrow$
+		\end{center}
+	\end{minipage}
+	\begin{minipage}{0.3\textwidth}
+		\begin{prooftree}
+			\AxiomC{}
+			\noLine
+			\UnaryInfC{$\vdash\Theta,H : \Gamma \Uparrow P[c/x], L$}
+			\AxiomC{}
+			\noLine
+			\UnaryInfC{$\Pi_2$}
+			\RightLabel{[$\Uparrow$CC]}
+			\BinaryInf$\fCenter\Theta : \Gamma\Uparrow  P[c/x], L$
+			\UnaryInf$\fCenter\Theta : \Gamma\Uparrow \forall xP, L$
+		\end{prooftree}
+	\end{minipage} 
+	\vspace{0.3cm}
+	
+	\vspace{0.3cm}	
+	\begin{minipage}{0.4\textwidth}
+		\begin{prooftree}
+			\AxiomC{}
+			\noLine
+			\UnaryInf$\fCenter\Theta,H : P, \Gamma \Uparrow  L$
+			\UnaryInf$\fCenter\Theta,H : \Gamma \Uparrow  P, L$
+			\AxiomC{}
+			\noLine
+			\UnaryInfC{$\Pi_2$}
+			\RightLabel{[$\Uparrow$CC]}
+			\BinaryInfC{$\vdash\Theta : \Gamma\Uparrow P, L$}
+		\end{prooftree}
+	\end{minipage}
+	\begin{minipage}{0.1\textwidth}
+		\begin{center}
+			$\rightsquigarrow$
+		\end{center}
+	\end{minipage}
+	\begin{minipage}{0.3\textwidth}
+		\begin{prooftree}
+			\AxiomC{}
+			\noLine
+			\UnaryInfC{$\vdash\Theta,H : P, \Gamma \Uparrow L$}
+			\AxiomC{}
+			\noLine
+			\UnaryInfC{$\Pi_2$}
+			\RightLabel{[$\Uparrow$CC]}
+			\BinaryInf$\fCenter\Theta : P, \Gamma \Uparrow  L$
+			\UnaryInf$\fCenter\Theta : \Gamma\Uparrow P, L$
+		\end{prooftree}
+	\end{minipage} 
+	\vspace{0.3cm}
+	
+		\vspace{0.3cm}		
+\begin{tcolorbox}
+	
+	$H$ is not a positive atom.
+	
+	\begin{minipage}{0.4\textwidth}
+		\begin{prooftree}
+			\AxiomC{}
+			\noLine
+			\UnaryInf$\fCenter\Theta,H : \Gamma\Downarrow Q$
+			\RightLabel{[$D_2$]}
+			\UnaryInf$\fCenter\Theta, H : \Gamma\Uparrow \cdot$
+			\AxiomC{}
+			\noLine
+			\UnaryInfC{$\Pi_2$}
+			\RightLabel{[$\Uparrow$CC]}
+			\BinaryInfC{$\vdash\Theta : \Gamma\Uparrow \cdot$}
+		\end{prooftree}
+	\end{minipage}
+	\begin{minipage}{0.1\textwidth}
+		\begin{center}
+			$\rightsquigarrow$
+		\end{center}
+	\end{minipage}
+	\begin{minipage}{0.3\textwidth}
+		\begin{prooftree}
+			\AxiomC{}
+			\noLine
+			\UnaryInfC{$\vdash\Theta, H : \Gamma \Downarrow Q$}
+			\AxiomC{}
+			\noLine
+			\UnaryInfC{$\Pi_2$}
+			\RightLabel{[$\Downarrow$CC]}
+			\BinaryInf$\fCenter\Theta : \Gamma\Downarrow Q$
+			\RightLabel{[$D_2$]}
+			\UnaryInf$\fCenter\Theta : \Gamma\Uparrow \cdot $
+		\end{prooftree}
+	\end{minipage}
+	\vspace{0.3cm}
+	
+		\begin{minipage}{0.4\textwidth}
+		\begin{prooftree}
+			\AxiomC{}
+			\noLine
+			\UnaryInf$\fCenter\Theta,H : \Gamma\Downarrow Q$
+			\RightLabel{[$D_3$]}
+			\UnaryInf$\fCenter\Theta, H : \Gamma\Uparrow \cdot$
+			\AxiomC{}
+			\noLine
+			\UnaryInfC{$\Pi_2$}
+			\RightLabel{[$\Uparrow$CC]}
+			\BinaryInfC{$\vdash\Theta : \Gamma\Uparrow \cdot$}
+		\end{prooftree}
+	\end{minipage}
+	\begin{minipage}{0.1\textwidth}
+		\begin{center}
+			$\rightsquigarrow$
+		\end{center}
+	\end{minipage}
+	\begin{minipage}{0.3\textwidth}
+		\begin{prooftree}
+			\AxiomC{}
+			\noLine
+			\UnaryInfC{$\vdash\Theta, H : \Gamma \Downarrow Q$}
+			\AxiomC{}
+			\noLine
+			\UnaryInfC{$\Pi_2$}
+			\RightLabel{[$\Downarrow$CC]}
+			\BinaryInf$\fCenter\Theta : \Gamma\Downarrow Q$
+				\RightLabel{[$D_3$]}
+			\UnaryInf$\fCenter\Theta : \Gamma\Uparrow \cdot $
+		\end{prooftree}
+	\end{minipage}
+	\vspace{0.3cm}
+	
+	\vspace{0.3cm}
+	\begin{minipage}{0.4\textwidth}
+		\begin{prooftree}
+			\AxiomC{}
+			\noLine
+			\UnaryInf$\fCenter\Theta, H : \Gamma\Downarrow P$
+				\RightLabel{[$D_2$]}
+			\UnaryInf$\fCenter\Theta, H : P,\Gamma\Uparrow \cdot$
+			\AxiomC{}
+			\noLine
+			\UnaryInfC{$\Pi_2$}
+			\RightLabel{[$\Uparrow$CC]}
+			\BinaryInfC{$\vdash\Theta : P,\Gamma\Uparrow \cdot$}
+		\end{prooftree}
+	\end{minipage}
+	\begin{minipage}{0.1\textwidth}
+		\begin{center}
+			$\rightsquigarrow$
+		\end{center}
+	\end{minipage}
+	\begin{minipage}{0.3\textwidth}
+		\begin{prooftree}
+			\AxiomC{}
+			\noLine
+			\UnaryInfC{$\vdash\Theta, H : \Gamma \Downarrow P$}
+			\AxiomC{}
+			\noLine
+			\UnaryInfC{$\Pi_2$}
+			\RightLabel{[$\Downarrow$CC]}
+			\BinaryInf$\fCenter\Theta : \Gamma\Downarrow P$
+				\RightLabel{[$D_2$]}
+			\UnaryInf$\fCenter\Theta : P,\Gamma\Uparrow \cdot $
+		\end{prooftree}
+	\end{minipage}
+	\vspace{0.3cm}
+	
+	\vspace{0.3cm}
+	\begin{minipage}{0.4\textwidth}
+		\begin{prooftree}
+			\AxiomC{}
+			\noLine
+			\UnaryInf$\fCenter\Theta,H : \Gamma\Downarrow H$
+			\UnaryInf$\fCenter\Theta,H : \Gamma\Uparrow \cdot$
+			\AxiomC{}
+			\noLine
+			\UnaryInf$\fCenter\Theta : \cdot\Uparrow H^{\bot}$
+			\UnaryInf$\fCenter\Theta : \cdot\Downarrow\oc H^{\bot}$
+			\RightLabel{[$\Uparrow$CC]}
+			\BinaryInfC{$\Theta : \Gamma\Uparrow \cdot$}
+		\end{prooftree}
+	\end{minipage}
+	\begin{minipage}{0.1\textwidth}
+		\begin{center}
+			$\rightsquigarrow$
+		\end{center}
+	\end{minipage}
+	\begin{minipage}{0.3\textwidth}
+		\begin{prooftree}
+			\AxiomC{}
+			\noLine
+			\UnaryInfC{$\vdash\Theta : \cdot\Uparrow H^{\bot}$}
+			\AxiomC{}
+			\noLine
+			\UnaryInfC{$\vdash\Theta,H : \Gamma\Downarrow H$}
+			\AxiomC{}
+			\noLine	
+			\UnaryInfC{$\vdash\Theta : \cdot\Uparrow H^{\bot}$}	
+			\UnaryInfC{$\vdash\Theta : \cdot\Downarrow \oc H^{\bot}$}
+			\RightLabel{[$\Downarrow$CC]}
+			\BinaryInfC{$\vdash\Theta : \Gamma \Downarrow H$}
+			\RightLabel{[$\Uparrow$C]}
+			\BinaryInfC{$\vdash\Theta : \Gamma\Uparrow \cdot$}
+		\end{prooftree}
+	\end{minipage}
+
+\end{tcolorbox}
+	\vspace{0.3cm}
+
+	\vspace{0.3cm}		
+\begin{tcolorbox}
+	
+	$H$ is a positive atom ($A^+$).
+	\vspace{0.3cm}
+
+
+\begin{minipage}{0.4\textwidth}
+	\begin{prooftree}
+		\AxiomC{}
+		\noLine
+		\UnaryInf$\fCenter\Theta,A^+ : \Gamma\Downarrow Q$
+		\RightLabel{[$D_1$]}
+		\UnaryInf$\fCenter\Theta, A^+ : \Gamma,Q\Uparrow \cdot$
+		\AxiomC{}
+		\noLine
+		\UnaryInfC{$\Pi_2$}
+		\RightLabel{[$\Uparrow$CC]}
+		\BinaryInfC{$\vdash\Theta : \Gamma,Q\Uparrow \cdot$}
+	\end{prooftree}
+\end{minipage}
+\vspace{0.3cm}
+
+By Atomic Permutation $\fCenter\Theta : \Gamma\Uparrow Q$ is derivable.\\
+If $Q$ is positive then $\fCenter\Theta : \Gamma,Q\Uparrow \cdot$. If $Q$ is release, then:
+
+	\vspace{0.3cm}
+
+
+\begin{minipage}{0.4\textwidth}
+	\begin{prooftree}
+		\AxiomC{}
+		\noLine
+		\UnaryInf$\fCenter\Theta,A^+ : \Gamma\Uparrow Q$
+		\doubleLine
+		\RightLabel{[$D_1 R\Downarrow$]}
+		\UnaryInf$\fCenter\Theta, A^+ : \Gamma,Q\Uparrow \cdot$
+		\AxiomC{}
+		\noLine
+		\UnaryInfC{$\Pi_2$}
+		\RightLabel{[$\Uparrow$CC]}
+		\BinaryInfC{$\vdash\Theta : \Gamma,Q\Uparrow \cdot$}
+	\end{prooftree}
+\end{minipage}
+\begin{minipage}{0.1\textwidth}
+	\begin{center}
+		$\rightsquigarrow$
+	\end{center}
+\end{minipage}
+\begin{minipage}{0.3\textwidth}
+	\begin{prooftree}
+		\AxiomC{}
+		\noLine
+		\UnaryInf$\fCenter\Theta, A^+ : \Gamma\Uparrow Q$
+		\AxiomC{}
+		\noLine
+		\UnaryInfC{$\Pi_2$}	
+		
+		\RightLabel{[$\Uparrow$CC]}
+		\BinaryInf$\fCenter\Theta: \Gamma\Uparrow Q$
+	    \doubleLine
+		\RightLabel{[$D_1 R\Downarrow$]}
+		\UnaryInf$\fCenter\Theta: \Gamma,Q\Uparrow \cdot$
+		
+	\end{prooftree}
+\end{minipage}
+\vspace{0.3cm}
+
+\begin{center}
+	$\ast\ast\ast\ast\ast\ast\ast\ast\ast\ast\ast\ast\ast\ast$
+\end{center}
+
+	\vspace{0.3cm}
+\begin{minipage}{0.4\textwidth}
+	\begin{prooftree}
+		\AxiomC{}
+		\noLine
+		\UnaryInf$\fCenter\Theta,A^+: \Gamma\Downarrow Q$
+		\RightLabel{[$D_2$]}
+		\UnaryInf$\fCenter\Theta, A^+ : \Gamma\Uparrow \cdot$
+		\AxiomC{}
+		\noLine
+		\UnaryInfC{$\Pi_2$}
+		\RightLabel{[$\Uparrow$CC]}
+		\BinaryInfC{$\vdash\Theta : \Gamma\Uparrow \cdot$}
+	\end{prooftree}
+\end{minipage}
+\begin{minipage}{0.1\textwidth}
+	\begin{center}
+		$\rightsquigarrow$
+	\end{center}
+\end{minipage}
+\begin{minipage}{0.3\textwidth}
+	\begin{prooftree}
+		\AxiomC{}
+		\noLine
+		\UnaryInfC{$\fCenter\Theta : \Gamma\Uparrow Q$}
+		\RightLabel{[AbsorptionC]}
+		\UnaryInfC{$\Theta : \Gamma\Uparrow \cdot$}
+		
+	\end{prooftree}
+\end{minipage}
+\vspace{0.3cm}
+
+
+By Atomic Permutation $\fCenter\Theta : \Gamma\Uparrow Q$ is derivable.
+
+\begin{center}
+	$\ast\ast\ast\ast\ast\ast\ast\ast\ast\ast\ast\ast\ast\ast$
+\end{center}
+
+\vspace{0.3cm}
+\begin{minipage}{0.4\textwidth}
+	\begin{prooftree}
+		\AxiomC{}
+		\noLine
+		\UnaryInf$\fCenter\Theta,A^+ : \Gamma\Downarrow Q$
+		\RightLabel{[$D_3$]}
+		\UnaryInf$\fCenter\Theta,A^+ : \Gamma\Uparrow \cdot$
+		\AxiomC{}
+		\noLine
+		\UnaryInfC{$\Pi_2$}
+		\RightLabel{[$\Uparrow$CC]}
+		\BinaryInfC{$\vdash\Theta : \Gamma\Uparrow \cdot$}
+	\end{prooftree}
+\end{minipage}
+
+By Atomic Permutation $\fCenter\Theta : \Gamma\Uparrow Q$ is derivable.
+
+If $Q$ is not a negative atom, then	
+
+\begin{center}
+	\begin{minipage}{0.3\textwidth}
+	\begin{prooftree}
+		\AxiomC{}
+		\noLine
+		\UnaryInfC{$\fCenter\Theta : \Gamma\Uparrow Q$}
+		\RightLabel{[AbsorptionT]}
+		\UnaryInfC{$\Theta : \Gamma\Uparrow \cdot$}
+		
+	\end{prooftree}
+\end{minipage}
+
+\end{center}
+
+If $Q$ is a negative atom
+	
+	\begin{minipage}{0.4\textwidth}
+		\begin{prooftree}
+			\AxiomC{}
+			\UnaryInf$\fCenter\Theta,A^+ : X^{+}\Downarrow X^{-}$
+				\RightLabel{[$D_3$]}
+			\UnaryInf$\fCenter\Theta,A^+ : X^{+}\Uparrow \cdot$
+			\AxiomC{}
+			\noLine
+			\UnaryInfC{$\Pi_2$}
+			\RightLabel{[$\Uparrow$CC]}
+			\BinaryInfC{$\vdash\Theta : X^{+}\Uparrow \cdot$}
+		\end{prooftree}
+	\end{minipage}
+	\begin{minipage}{0.1\textwidth}
+		\begin{center}
+			$\rightsquigarrow$
+		\end{center}
+	\end{minipage}
+	\begin{minipage}{0.3\textwidth}
+		\begin{prooftree}
+			\AxiomC{}
+			\UnaryInf$\fCenter\Theta : X^{+}\Downarrow X^{-}$
+			\RightLabel{[$D_3$]}
+			\UnaryInf$\fCenter\Theta : X^{+}\Uparrow \cdot $
+		\end{prooftree}
+	\end{minipage}
+	\vspace{0.3cm}
+	
+		\begin{minipage}{0.4\textwidth}
+		\begin{prooftree}
+			\AxiomC{}
+			\RightLabel{[$X^{+} \in \Theta$]}
+			\UnaryInf$\fCenter\Theta,A^+ : \cdot\Downarrow X^{-}$
+				\RightLabel{[$D_3$]}
+			\UnaryInf$\fCenter\Theta, A^+ : \Gamma\Uparrow \cdot$
+			\AxiomC{}
+			\noLine
+			\UnaryInfC{$\Pi_2$}
+			\RightLabel{[$\Uparrow$CC]}
+			\BinaryInfC{$\vdash\Theta : \cdot\Uparrow \cdot$}
+		\end{prooftree}
+	\end{minipage}
+	\begin{minipage}{0.1\textwidth}
+		\begin{center}
+			$\rightsquigarrow$
+		\end{center}
+	\end{minipage}
+	\begin{minipage}{0.3\textwidth}
+		\begin{prooftree}
+			\AxiomC{}
+			\RightLabel{[$X \in \Theta$]}
+			\UnaryInf$\fCenter\Theta : \cdot\Downarrow X^{-}$
+				\RightLabel{[$D_3$]}
+			\UnaryInf$\fCenter\Theta : \cdot\Uparrow \cdot $
+		\end{prooftree}
+	\end{minipage}
+	\vspace{0.3cm}
+	
+		\begin{minipage}{0.4\textwidth}
+		\begin{prooftree}
+			\AxiomC{}
+			\UnaryInf$\fCenter\Theta,A^+ : \cdot\Downarrow A^{-}$
+			\RightLabel{[$D_3$]}
+			\UnaryInf$\fCenter\Theta, A^+ : \cdot\Uparrow \cdot$
+			\AxiomC{}
+			\noLine
+			\UnaryInfC{$\fCenter\Theta :  A^{-}\Uparrow \cdot$}
+			\UnaryInfC{$\fCenter\Theta : \cdot\Uparrow  A^{-}$}
+			\UnaryInfC{$\fCenter\Theta : \cdot\Downarrow \oc A^{-}$}
+			\RightLabel{[$\Uparrow$CC]}
+			\BinaryInfC{$\vdash\Theta :\cdot\Uparrow \cdot$}
+		\end{prooftree}
+	\end{minipage}
+	\begin{minipage}{0.1\textwidth}
+		\begin{center}
+			$\rightsquigarrow$
+		\end{center}
+	\end{minipage}
+	\begin{minipage}{0.3\textwidth}
+		\begin{prooftree}
+			\AxiomC{}
+			\noLine
+			\UnaryInfC{$\fCenter\Theta :  A^{-}\Uparrow \cdot$}
+			\RightLabel{[AbsorptionL]}
+			\UnaryInfC{$\fCenter\Theta : \cdot\Uparrow \cdot $}
+		\end{prooftree}
+	\end{minipage}
+
+	
+\end{tcolorbox}
+\vspace{0.3cm}} \newpage
+\section{$\Downarrow$-Classic Cut Elimination}
+
+{\footnotesize
+	\vspace{0.2cm}
+	\begin{prooftree}
+		\AxiomC{$[\Pi_1]$}
+		\noLine
+		\UnaryInfC{$\vdash\Theta,H : \Gamma\Downarrow F$}
+		\AxiomC{$[\Pi_2]$}
+		\noLine
+		\UnaryInfC{$\vdash\Theta : \cdot \Downarrow \oc H^{\bot}$}
+		\RightLabel{[$\Downarrow$CC]}
+		\BinaryInfC{$\vdash\Theta : \Gamma\Downarrow F$}
+	\end{prooftree}
+	\vspace{0.2cm}
+}
+
+
+{\footnotesize
+
+		\vspace{0.3cm}
+\begin{minipage}{0.4\textwidth}
+	\begin{prooftree}
+		\AxiomC{}
+		\UnaryInf$\fCenter\Theta,H : X^{+}\Downarrow X^{-}$
+		\AxiomC{}
+		\noLine
+		\UnaryInfC{$\Pi_2$}
+		\RightLabel{[$\Downarrow$CC]}
+		\BinaryInfC{$\vdash\Theta : X^{+}\Downarrow X^{-}$}
+	\end{prooftree}
+\end{minipage}
+\begin{minipage}{0.1\textwidth}
+	\begin{center}
+		$\rightsquigarrow$
+	\end{center}
+\end{minipage}
+\begin{minipage}{0.3\textwidth}
+	\begin{prooftree}		
+		\AxiomC{}
+		\UnaryInf$\fCenter\Theta : X^{+}\Downarrow X^{-}$
+	\end{prooftree}
+\end{minipage}
+\vspace{0.3cm}
+
+		\vspace{0.3cm}
+\begin{minipage}{0.4\textwidth}
+	\begin{prooftree}
+		\AxiomC{}
+			\RightLabel{[$X^{+}\in\Theta$]}
+		\UnaryInf$\fCenter\Theta,H : \cdot\Downarrow X^{-}$
+		\AxiomC{}
+		\noLine
+		\UnaryInfC{$\Pi_2$}
+		\RightLabel{[$\Downarrow$CC]}
+		\BinaryInfC{$\vdash\Theta : \cdot\Downarrow X^{-}$}
+	\end{prooftree}
+\end{minipage}
+\begin{minipage}{0.1\textwidth}
+	\begin{center}
+		$\rightsquigarrow$
+	\end{center}
+\end{minipage}
+\begin{minipage}{0.3\textwidth}
+	\begin{prooftree}		
+		\AxiomC{}
+		\UnaryInf$\fCenter\Theta : \cdot\Downarrow X^{-}$
+	\end{prooftree}
+\end{minipage}
+\vspace{0.3cm}
+	
+		\vspace{0.3cm}
+	\begin{minipage}{0.4\textwidth}
+		\begin{prooftree}
+			\AxiomC{}
+			\noLine
+			\UnaryInf$\fCenter\Theta,H : \cdot\Downarrow 1$
+			\AxiomC{}
+			\noLine
+			\UnaryInfC{$\Pi_2$}
+			\RightLabel{[$\Downarrow$CC]}
+			\BinaryInfC{$\vdash\Theta : \cdot\Downarrow 1$}
+		\end{prooftree}
+	\end{minipage}
+	\begin{minipage}{0.1\textwidth}
+		\begin{center}
+			$\rightsquigarrow$
+		\end{center}
+	\end{minipage}
+	\begin{minipage}{0.3\textwidth}
+		\begin{prooftree}		
+			\AxiomC{}
+			\UnaryInfC{$\vdash\Theta : \cdot\Downarrow 1$}
+		\end{prooftree}
+	\end{minipage}
+	\vspace{0.3cm}
+	
+	\vspace{0.3cm}
+	\begin{minipage}{0.4\textwidth}
+		\begin{prooftree}
+			\AxiomC{[$\Sigma_1$]}
+			\noLine
+			\UnaryInfC{$\vdash\Theta,H : \Gamma_P\Downarrow P$}
+			\AxiomC{[$\Sigma_2$]}
+			\noLine
+			\UnaryInfC{$\vdash\Theta,H : \Gamma_Q\Downarrow Q$}
+			\BinaryInfC{$\vdash\Theta,H : \Gamma\Downarrow P\otimes Q$}
+			\AxiomC{}
+			\noLine
+			\UnaryInfC{$\Pi_2$}
+			\RightLabel{[$\Downarrow$CC]}
+			\BinaryInfC{$\vdash\Theta: \Gamma\Downarrow P\otimes Q$}
+		\end{prooftree}
+	\end{minipage}
+	\begin{minipage}{0.1\textwidth}
+		\begin{center}
+			$\rightsquigarrow$
+		\end{center}
+	\end{minipage}
+	\begin{minipage}{0.3\textwidth}
+		\begin{prooftree}
+			\AxiomC{}
+			\noLine
+			\UnaryInfC{$\Sigma_1$}
+			\AxiomC{}
+			\noLine
+			\UnaryInfC{$\Pi_2$}
+			\RightLabel{[$\Downarrow$CC]}
+			\BinaryInfC{$\vdash\Theta : \Gamma_P\Downarrow P$}
+			
+			\AxiomC{}
+			\noLine
+			\UnaryInfC{$\Sigma_2$}
+			\AxiomC{}
+			\noLine
+			\UnaryInfC{$\Pi_2$}
+			\RightLabel{[$\Downarrow$CC]}
+			\BinaryInfC{$\vdash\Theta : \Gamma_Q\Downarrow Q$}
+			\BinaryInfC{$\vdash\Theta : \Gamma\Downarrow P\otimes Q$}
+		\end{prooftree}
+	\end{minipage}
+	\vspace{0.3cm}
+	
+	\vspace{0.3cm}
+	\begin{minipage}{0.4\textwidth}
+		\begin{prooftree}
+			\AxiomC{}
+			\noLine
+			\UnaryInf$\fCenter\Theta,H : \Gamma\Downarrow P$
+			\UnaryInf$\fCenter\Theta,H : \Gamma\Downarrow P\oplus Q$
+			\AxiomC{}
+			\noLine
+			\UnaryInfC{$\Pi_2$}
+			\RightLabel{[$\Downarrow$CC]}
+			\BinaryInfC{$\vdash\Theta : \Gamma\Downarrow P\oplus Q$}
+		\end{prooftree}
+	\end{minipage}
+	\begin{minipage}{0.1\textwidth}
+		\begin{center}
+			$\rightsquigarrow$
+		\end{center}
+	\end{minipage}
+	\begin{minipage}{0.3\textwidth}
+		\begin{prooftree}
+			
+			\AxiomC{}
+			\noLine
+			\UnaryInfC{$\vdash\Theta,H : \Gamma\Downarrow P$}
+			
+			\AxiomC{}
+			\noLine
+			\UnaryInfC{$\Pi_2$}		
+			
+			\RightLabel{[$\Downarrow$CC]}
+			\BinaryInf$\fCenter\Theta : \Gamma\Downarrow P$
+			\UnaryInf$\fCenter\Theta : \Gamma\Downarrow P\oplus Q$
+		\end{prooftree}
+	\end{minipage}
+	\vspace{0.3cm}
+	
+	\vspace{0.3cm}
+	\begin{minipage}{0.4\textwidth}
+		\begin{prooftree}
+			\AxiomC{}
+			\noLine
+			\UnaryInf$\fCenter\Theta,H : \Gamma\Downarrow Q$
+			\UnaryInf$\fCenter\Theta,H : \Gamma\Downarrow P\oplus Q$
+			\AxiomC{}
+			\noLine
+			\UnaryInfC{$\Pi_2$}
+			\RightLabel{[$\Downarrow$CC]}
+			\BinaryInfC{$\vdash\Theta : \Gamma\Downarrow P\oplus Q$}
+		\end{prooftree}
+	\end{minipage}
+	\begin{minipage}{0.1\textwidth}
+		\begin{center}
+			$\rightsquigarrow$
+		\end{center}
+	\end{minipage}
+	\begin{minipage}{0.3\textwidth}
+		\begin{prooftree}
+		
+			\AxiomC{}
+			\noLine
+			\UnaryInfC{$\vdash\Theta,H : \Gamma\Downarrow Q$}
+			
+			\AxiomC{}
+			\noLine
+			\UnaryInfC{$\Pi_2$}		
+			
+			\RightLabel{[$\Downarrow$CC]}
+			\BinaryInf$\fCenter\Theta : \Gamma\Downarrow Q$
+			\UnaryInf$\fCenter\Theta : \Gamma\Downarrow P\oplus Q$
+		\end{prooftree}
+	\end{minipage}
+	\vspace{0.3cm}
+	
+	\vspace{0.3cm}
+	\begin{minipage}{0.4\textwidth}
+		\begin{prooftree}
+			\AxiomC{}
+			\noLine
+			\UnaryInf$\fCenter\Theta,H : \Gamma\Downarrow P[c/x]$
+			\UnaryInf$\fCenter\Theta,H : \Gamma\Downarrow \exists x.P$
+			\AxiomC{}
+			\noLine
+			\UnaryInfC{$\Pi_2$}
+			\RightLabel{[$\Downarrow$CC]}
+			\BinaryInfC{$\vdash\Theta : \Gamma\Downarrow \exists x.P $}
+		\end{prooftree}
+	\end{minipage}
+	\begin{minipage}{0.1\textwidth}
+		\begin{center}
+			$\rightsquigarrow$
+		\end{center}
+	\end{minipage}
+	\begin{minipage}{0.3\textwidth}
+		\begin{prooftree}
+			
+			\AxiomC{}
+			\noLine
+			\UnaryInfC{$\vdash\Theta,H : \Gamma\Downarrow P[c/x]$}
+			
+			\AxiomC{}
+			\noLine
+			\UnaryInfC{$\Pi_2$}		
+			
+			\RightLabel{[$\Downarrow$CC]}
+			\BinaryInf$\fCenter\Theta : \Gamma\Downarrow P[c/x]$
+			\UnaryInf$\fCenter\Theta : \Gamma\Downarrow \exists x.P$
+		\end{prooftree}
+	\end{minipage}
+	\vspace{0.3cm}
+	
+		\vspace{0.3cm}	
+\begin{tcolorbox}
+	\begin{minipage}{0.4\textwidth}
+		\begin{prooftree}
+			\AxiomC{}
+			\noLine
+			\UnaryInf$\fCenter\Theta,H : \cdot\Uparrow P$
+			\UnaryInf$\fCenter\Theta,H : \cdot\Downarrow \oc P$
+			\AxiomC{}
+			\noLine
+			\UnaryInfC{$\Pi_2$}
+			\RightLabel{[$\Downarrow$CC]}
+			\BinaryInfC{$\vdash\Theta : \cdot\Downarrow \oc P $}
+		\end{prooftree}
+	\end{minipage}
+	\begin{minipage}{0.1\textwidth}
+		\begin{center}
+			$\rightsquigarrow$
+		\end{center}
+	\end{minipage}
+	\begin{minipage}{0.3\textwidth}
+		\begin{prooftree}
+			
+			\AxiomC{}
+			\noLine
+			\UnaryInfC{$\vdash\Theta,H : \cdot\Uparrow P$}
+			
+			\AxiomC{}
+			\noLine
+			\UnaryInfC{$\Pi_2$}			
+			\RightLabel{[$\Uparrow$CC]}
+			\BinaryInf$\fCenter\Theta : \cdot\Uparrow P$
+			\UnaryInf$\fCenter\Theta : \cdot\Downarrow \oc P$
+		\end{prooftree}
+	\end{minipage}
+	\vspace{0.3cm}
+
+		\vspace{0.3cm}
+\begin{minipage}{0.4\textwidth}
+	\begin{prooftree}
+		\AxiomC{}
+		\noLine
+		\UnaryInf$\fCenter\Theta,H : \Gamma\Uparrow P$
+		\UnaryInf$\fCenter\Theta,H : \Gamma\Downarrow P$
+		\AxiomC{}
+		\noLine
+		\UnaryInfC{$\Pi_2$}
+		\RightLabel{[$\Downarrow$CC]}
+		\BinaryInfC{$\vdash\Theta : \Gamma\Downarrow P $}
+	\end{prooftree}
+\end{minipage}
+\begin{minipage}{0.1\textwidth}
+	\begin{center}
+		$\rightsquigarrow$
+	\end{center}
+\end{minipage}
+\begin{minipage}{0.3\textwidth}
+	\begin{prooftree}
+		
+		\AxiomC{}
+		\noLine
+		\UnaryInfC{$\vdash\Theta,H : \Gamma\Uparrow P$}
+		
+		\AxiomC{}
+		\noLine
+		\UnaryInfC{$\Pi_2$}			
+		\RightLabel{[$\Uparrow$CC]}
+		\BinaryInf$\fCenter\Theta : \Gamma\Uparrow P$
+		\UnaryInf$\fCenter\Theta : \Gamma\Downarrow P$
+	\end{prooftree}
+\end{minipage}
+\end{tcolorbox}
+\vspace{0.3cm}
+	
+}
+
+%
+ 
+
+
+
+
+\end{document}
