@@ -657,8 +657,9 @@ Section HyLL.
 
   Ltac easyF := try apply ForallApp;auto; try apply ForallCons;auto;try solveOLFormula;try easyOLFormula.
 
-  (** None legal applications of rules are OK *)
-  Theorem NORightNotProvable : forall n Gamma  L ,
+  (** Non-legal applications of rules are not possible: a sequent with only
+      left atoms is not provable *)
+  Theorem OnlyLeft : forall n Gamma  L ,
       isOLFormulaL Gamma -> 
       isOLFormulaL L ->  
       ~ seqN OLTheory n (LEncode Gamma)  (LEncode L) ( > [] ) .
@@ -1021,7 +1022,7 @@ Section HyLL.
         
         assert(~ seqN OLTheory n (map (fun x : uexp => d| x |) Gamma)
                  (LEncode (x3 ++ [ F2 @ w0])) (> [])).
-        apply NORightNotProvable;auto.
+        apply OnlyLeft;auto.
         rewrite H4 in H1.
         assert(isOLFormulaL ((F1 --o F2) @ w0 :: x2 ++ x3)).
         apply (Forall_Permute H0 H1).
@@ -1060,7 +1061,7 @@ Section HyLL.
         
         assert(~ seqN OLTheory n (map (fun x : uexp => d| x |) Gamma)
                  (LEncode (x2 ++ [ F2 @ w0])) (> [])).
-        apply NORightNotProvable;auto.
+        apply OnlyLeft;auto.
         
         assert(isOLFormulaL (x1 ++ x2)).
         apply (Forall_Permute H0 H4).
@@ -1137,7 +1138,7 @@ Section HyLL.
           
           assert(~ seqN OLTheory n (map (fun x : uexp => d| x |) Gamma)
                    (LEncode (x3 ++ [ F2 @ w0])) (> [])).
-          apply NORightNotProvable;auto.
+          apply OnlyLeft;auto.
           apply ForallApp;auto.
           rewrite H5 in H3.
           
@@ -1172,7 +1173,7 @@ Section HyLL.
           
           assert(~ seqN OLTheory n (map (fun x : uexp => d| x |) Gamma)
                    (LEncode (x4 ++ [ F2 @ w0])) (> [])).
-          apply NORightNotProvable;auto.
+          apply OnlyLeft;auto.
           apply ForallApp;auto.
           specialize (Forall_Permute H1 H3);intros.
           inversion H7;subst.
@@ -1235,7 +1236,7 @@ Section HyLL.
         
         assert(~ seqN OLTheory n (map (fun x : uexp => d| x |) Gamma)
                  (LEncode (x2 ++ [ F2 @ w0])) (> [])).
-        apply NORightNotProvable;auto.
+        apply OnlyLeft;auto.
         apply ForallApp;auto.
         assert(isOLFormulaL ([F @ w] ++ L)).
         apply ForallApp;auto.
